@@ -14,10 +14,9 @@ export function ThemeProvider({ children }) {
       setTheme(savedTheme);
       root.classList.toggle('dark', savedTheme === 'dark');
       root.classList.toggle('light', savedTheme === 'light');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
-      root.classList.add('dark');
     } else {
+      // Default to light theme
+      setTheme('light');
       root.classList.add('light');
     }
   }, []);
