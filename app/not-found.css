@@ -1,0 +1,123 @@
+/* not-found.css */
+.not-found-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #eff6ff 50%, #f3f4f6 100%);
+}
+
+.not-found-content {
+  text-align: center;
+  max-width: 48rem;
+}
+
+.not-found-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .not-found-title {
+    font-size: 3rem;
+  }
+}
+
+.not-found-description {
+  font-size: 1.125rem;
+  color: #4b5563;
+  margin-bottom: 2rem;
+  line-height: 1.625;
+}
+
+@media (min-width: 768px) {
+  .not-found-description {
+    font-size: 1.25rem;
+  }
+}
+
+.not-found-description .hidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .not-found-description .md\:block {
+    display: inline;
+  }
+}
+
+.not-found-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.3);
+}
+
+.not-found-btn:hover {
+  box-shadow: 0 20px 25px -5px rgba(236, 72, 153, 0.4);
+  transform: translateY(-2px);
+}
+
+.not-found-illustration {
+  margin-top: 3rem;
+  position: relative;
+}
+
+.illustration-svg {
+  width: 100%;
+  max-width: 32rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+@keyframes bike-move {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.bike-animation {
+  animation: bike-move 3s ease-in-out infinite;
+}
+
+@keyframes tree-sway {
+  0%, 100% {
+    transform: rotate(0deg);
+    transform-origin: bottom center;
+  }
+  50% {
+    transform: rotate(2deg);
+    transform-origin: bottom center;
+  }
+}
+
+.tree-sway {
+  animation: tree-sway 4s ease-in-out infinite;
+}
+
+.tree-sway-delay-1 {
+  animation: tree-sway 4s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.tree-sway-delay-2 {
+  animation: tree-sway 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.tree-sway-delay-3 {
+  animation: tree-sway 4s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
