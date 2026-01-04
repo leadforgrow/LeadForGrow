@@ -49,7 +49,7 @@ export default function LeadForGrowHerods() {
               {theme === 'dark' ? <Moon className="w-8 h-8 text-white" /> : <Sun className="w-8 h-8 text-white" />}
             </div>
           </div>
-          <p className="text-center mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</p>
+              <p className="text-center mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{theme === 'dark' ? 'I am your Lead' : 'I am your Lead'}</p>
           <p className="text-center text-[10px] text-indigo-500 font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity mt-1 italic">Click to Switch</p>
         </div>
 

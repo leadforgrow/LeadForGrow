@@ -57,7 +57,7 @@ export default function ContactFormSection() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email Us</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white transition-colors">hello@leadforgrow.com</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white transition-colors">sales@leadforgrow.online</p>
                 </div>
               </div>
 
