@@ -56,9 +56,9 @@ export default function LeadForGrowHerods() {
         {/* Main Content */}
         <div className="relative z-20 text-center pt-40" style={{marginTop:"-130px"}}>
           <h1 className="text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
-            Build pages. Manage<br />
-            clients. Capture<br />
-            leads. Track analytics.
+            Turn interest into revenue<br />
+            capture every lead<br />
+            automatically.
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-4 font-light transition-colors duration-500">

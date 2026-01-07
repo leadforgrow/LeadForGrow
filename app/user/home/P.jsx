@@ -1,5 +1,6 @@
-import { Check, Info, X, CreditCard, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { Check, Info, X, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
 export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -85,6 +86,30 @@ export default function PricingSection() {
   const handleSelectPlan = (plan) => {
     setSelectedPlan(plan);
     setIsModalOpen(true);
+  };
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleConfirmPay = () => {
+    setIsProcessing(true);
+
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+
+      // Store the plan name in localStorage
+      localStorage.setItem('userPlan', selectedPlan.name);
+
+      toast.success(`${selectedPlan.name} plan saved successfully!`);
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setIsSuccess(false);
+      }, 3000);
+    }, 2000);
   };
 
   return (
@@ -257,10 +282,26 @@ export default function PricingSection() {
 
               <div className="flex flex-col gap-4">
                 <button
-                  className="w-full py-5 px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-sm tracking-widest uppercase transition-all shadow-xl shadow-indigo-200 dark:shadow-none active:scale-95"
-                  onClick={() => window.location.href = '/user/register'}
+                  className={`w-full py-5 px-8 rounded-2xl font-bold text-sm tracking-widest uppercase transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 ${isSuccess
+                    ? 'bg-emerald-500 text-white shadow-emerald-200'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 dark:shadow-none'
+                    }`}
+                  onClick={handleConfirmPay}
+                  disabled={isProcessing || isSuccess}
                 >
-                  Confirm & Pay
+                  {isProcessing ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : isSuccess ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      Plan Activated
+                    </>
+                  ) : (
+                    'Confirm & Pay'
+                  )}
                 </button>
                 <p className="text-center text-[10px] text-slate-400 font-medium uppercase tracking-widest">
                   Secure encrypted transactions powered by LFG.

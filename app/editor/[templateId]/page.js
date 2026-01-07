@@ -14,9 +14,16 @@ import {
   Layout as LayoutIcon,
   Sparkles,
   Zap,
+  X,
+  User,
+  ShoppingBag,
   Globe,
   Link as LinkIcon,
-  X
+  Mail,
+  Phone,
+  MessageCircle,
+  Activity,
+  Heart
 } from 'lucide-react';
 import TemplateRenderer from '../../components/templates/TemplateRenderer';
 import { defaultContent } from '../../components/templates/content/defaultContent';
@@ -234,7 +241,7 @@ function EditorContent() {
 
           <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
             {activeTab === 'text' && (
-              <>
+              <div className="space-y-10">
                 {/* Hero Section */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -244,7 +251,7 @@ function EditorContent() {
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Main Heading</label>
                       <textarea 
-                        value={content.hero.heading}
+                        value={content.hero?.heading || ''}
                         onChange={(e) => handleUpdate('hero', 'heading', e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm h-32"
                       />
@@ -252,212 +259,252 @@ function EditorContent() {
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sub-text</label>
                       <textarea 
-                        value={content.hero.subheading}
+                        value={content.hero?.subheading || ''}
                         onChange={(e) => handleUpdate('hero', 'subheading', e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-medium text-slate-500 text-sm h-24"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Call to Action Text</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hero Image URL</label>
                       <input 
                         type="text"
-                        value={content.hero.ctaText}
-                        onChange={(e) => handleUpdate('hero', 'ctaText', e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Call to Action Link</label>
-                      <input 
-                        type="text"
-                        value={content.hero.ctaHref || ''}
-                        onChange={(e) => handleUpdate('hero', 'ctaHref', e.target.value)}
-                        placeholder="#contact"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Features & Solution */}
-                <div className="space-y-4 pt-4 border-t border-slate-50">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <LayoutIcon className="w-4 h-4 text-indigo-600" /> Features & Solution
-                  </h3>
-                  <div className="space-y-6">
-                    {content.problemSolution && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Section Title</label>
-                          <input 
-                            type="text"
-                            value={content.problemSolution.title}
-                            onChange={(e) => handleUpdate('problemSolution', 'title', e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Description</label>
-                          <textarea 
-                            value={content.problemSolution.text}
-                            onChange={(e) => handleUpdate('problemSolution', 'text', e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-medium text-slate-500 text-sm h-32"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {content.benefits && (
-                      <div className="space-y-4 pt-4 border-t border-slate-50">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Benefits Title</label>
-                        <input 
-                          type="text"
-                          value={content.benefits.title}
-                          onChange={(e) => handleUpdate('benefits', 'title', e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                        />
-                        <div className="space-y-4 pt-4">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Individual Benefits</label>
-                          {content.benefits.items.map((item, i) => (
-                            <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
-                              <input 
-                                type="text"
-                                value={item.title}
-                                onChange={(e) => {
-                                  const newItems = [...content.benefits.items];
-                                  newItems[i].title = e.target.value;
-                                  handleUpdate('benefits', 'items', newItems);
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
-                                placeholder="Benefit Title"
-                              />
-                              <textarea 
-                                value={item.description}
-                                onChange={(e) => {
-                                  const newItems = [...content.benefits.items];
-                                  newItems[i].description = e.target.value;
-                                  handleUpdate('benefits', 'items', newItems);
-                                }}
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs h-20"
-                                placeholder="Benefit Description"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {content.form && (
-                      <div className="space-y-4 pt-4 border-t border-slate-50">
-                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Form Title</label>
-                         <input 
-                           type="text"
-                           value={content.form.title}
-                           onChange={(e) => handleUpdate('form', 'title', e.target.value)}
-                           className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                         />
-                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Form Subtitle</label>
-                         <textarea 
-                           value={content.form.subtitle}
-                           onChange={(e) => handleUpdate('form', 'subtitle', e.target.value)}
-                           className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-medium text-slate-500 text-sm h-20"
-                         />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Branding & Footer */}
-                <div className="space-y-4 pt-4 border-t border-slate-50">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-indigo-600" /> Branding & Footer
-                  </h3>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Company Name</label>
-                      <input 
-                        type="text"
-                        value={content.footer?.companyName || ''}
-                        onChange={(e) => handleUpdate('footer', 'companyName', e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Footer Links</label>
-                      <div className="space-y-3">
-                        {(content.footer?.links || []).map((link, i) => (
-                          <div key={i} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                            <div className="flex gap-2">
-                              <input 
-                                type="text"
-                                value={link.label}
-                                onChange={(e) => {
-                                  const newLinks = [...content.footer.links];
-                                  newLinks[i].label = e.target.value;
-                                  handleUpdate('footer', 'links', newLinks);
-                                }}
-                                placeholder="Label"
-                                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
-                              />
-                            </div>
-                            <input 
-                              type="text"
-                              value={link.href || ''}
-                              onChange={(e) => {
-                                const newLinks = [...content.footer.links];
-                                newLinks[i].href = e.target.value;
-                                handleUpdate('footer', 'links', newLinks);
-                              }}
-                              placeholder="URL (#about)"
-                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px]"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {content.trust && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trust/Partners Title</label>
-                        <input 
-                          type="text"
-                          value={content.trust.title}
-                          onChange={(e) => handleUpdate('trust', 'title', e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Imagery Section */}
-                <div className="space-y-4 pt-4 border-t border-slate-50">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-indigo-600" /> Imagery
-                  </h3>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hero Image/Video URL</label>
-                      <input 
-                        type="text"
-                        value={content.hero.visualUrl}
+                        value={content.hero?.visualUrl || ''}
                         onChange={(e) => handleUpdate('hero', 'visualUrl', e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all text-xs"
                       />
                     </div>
-                    {content.problemSolution && (
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Secondary Image URL</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Text</label>
                         <input 
                           type="text"
-                          value={content.problemSolution.visualUrl || ''}
-                          onChange={(e) => handleUpdate('problemSolution', 'visualUrl', e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all text-xs"
+                          value={content.hero?.ctaText || ''}
+                          onChange={(e) => handleUpdate('hero', 'ctaText', e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all font-bold text-xs"
                         />
                       </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Link</label>
+                        <input 
+                          type="text"
+                          value={content.hero?.ctaHref || ''}
+                          onChange={(e) => handleUpdate('hero', 'ctaHref', e.target.value)}
+                          placeholder="#contact"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-indigo-600 transition-all text-[10px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Template Specific Dynamic Lists */}
+                {templateId === 'hospital' && content.doctors && (
+                  <div className="space-y-4 pt-8 border-t border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                      <User className="w-4 h-4 text-sky-500" /> Doctors Directory
+                    </h3>
+                    <div className="space-y-4">
+                      {content.doctors.items.map((doc, i) => (
+                        <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl relative group">
+                          <button 
+                            onClick={() => {
+                              const newItems = [...content.doctors.items];
+                              newItems.splice(i, 1);
+                              handleUpdate('doctors', 'items', newItems);
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-white text-rose-500 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <div className="space-y-3">
+                            <input 
+                              type="text" value={doc.name} 
+                              onChange={(e) => {
+                                const newItems = [...content.doctors.items];
+                                newItems[i].name = e.target.value;
+                                handleUpdate('doctors', 'items', newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold" placeholder="Doctor Name"
+                            />
+                            <input 
+                              type="text" value={doc.role} 
+                              onChange={(e) => {
+                                const newItems = [...content.doctors.items];
+                                newItems[i].role = e.target.value;
+                                handleUpdate('doctors', 'items', newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs" placeholder="Role (e.g. Surgeon)"
+                            />
+                            <input 
+                              type="text" value={doc.image} 
+                              onChange={(e) => {
+                                const newItems = [...content.doctors.items];
+                                newItems[i].image = e.target.value;
+                                handleUpdate('doctors', 'items', newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px]" placeholder="Image URL"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <button 
+                         onClick={() => {
+                           const newItems = [...content.doctors.items, { name: "New Doctor", role: "Specialist", image: "" }];
+                           handleUpdate('doctors', 'items', newItems);
+                         }}
+                         className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-400 rounded-2xl text-[10px] font-bold uppercase hover:border-sky-500 hover:text-sky-500 transition-all"
+                      >
+                        + Add Doctor
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {templateId === 'ecommerce' && content.products && (
+                  <div className="space-y-4 pt-8 border-t border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                       <ShoppingBag className="w-4 h-4 text-emerald-500" /> Products Catalog
+                    </h3>
+                    <div className="space-y-4">
+                      {content.products.items.map((prod, i) => (
+                        <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl relative group">
+                          <button 
+                            onClick={() => {
+                              const newItems = [...content.products.items];
+                              newItems.splice(i, 1);
+                              handleUpdate('products', 'items', newItems);
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-white text-rose-500 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-2">
+                               <input 
+                                 type="text" value={prod.name} 
+                                 onChange={(e) => {
+                                   const newItems = [...content.products.items];
+                                   newItems[i].name = e.target.value;
+                                   handleUpdate('products', 'items', newItems);
+                                 }}
+                                 className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold" placeholder="Product Name"
+                               />
+                               <input 
+                                 type="text" value={prod.price} 
+                                 onChange={(e) => {
+                                   const newItems = [...content.products.items];
+                                   newItems[i].price = e.target.value;
+                                   handleUpdate('products', 'items', newItems);
+                                 }}
+                                 className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs" placeholder="Price"
+                               />
+                            </div>
+                            <input 
+                              type="text" value={prod.image} 
+                              onChange={(e) => {
+                                const newItems = [...content.products.items];
+                                newItems[i].image = e.target.value;
+                                handleUpdate('products', 'items', newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px]" placeholder="Image URL"
+                            />
+                            <textarea 
+                              value={prod.description} 
+                              onChange={(e) => {
+                                const newItems = [...content.products.items];
+                                newItems[i].description = e.target.value;
+                                handleUpdate('products', 'items', newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] h-16" placeholder="Description"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <button 
+                         onClick={() => {
+                           const newItems = [...content.products.items, { id: Date.now().toString(), name: "New Item", price: "$0.00", image: "", description: "" }];
+                           handleUpdate('products', 'items', newItems);
+                         }}
+                         className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-400 rounded-2xl text-[10px] font-bold uppercase hover:border-emerald-500 hover:text-emerald-500 transition-all"
+                      >
+                        + Add Product
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Sections (Reviews, Trust Badges) */}
+                {(content.reviews || content.trustBadges) && (
+                  <div className="space-y-4 pt-8 border-t border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                       <Sparkles className="w-4 h-4 text-amber-500" /> Social Proof & Trust
+                    </h3>
+                    <div className="space-y-6">
+                       {content.reviews && (
+                         <div className="space-y-3">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Review Section Title</label>
+                            <input type="text" value={content.reviews.title} onChange={(e) => handleUpdate('reviews', 'title', e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold" />
+                            <div className="space-y-3 pt-3">
+                               {content.reviews.items.map((rev, i) => (
+                                 <div key={i} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                                    <input type="text" value={rev.name} onChange={(e) => {
+                                      const newItems = [...content.reviews.items];
+                                      newItems[i].name = e.target.value;
+                                      handleUpdate('reviews', 'items', newItems);
+                                    }} className="w-full px-2 py-1.5 bg-white border-transparent text-xs font-bold" />
+                                    <textarea value={rev.text} onChange={(e) => {
+                                      const newItems = [...content.reviews.items];
+                                      newItems[i].text = e.target.value;
+                                      handleUpdate('reviews', 'items', newItems);
+                                    }} className="w-full px-2 py-1.5 bg-white border-transparent text-[10px] h-12" />
+                                 </div>
+                               ))}
+                            </div>
+                         </div>
+                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Branding & Contacts */}
+                <div className="space-y-4 pt-8 border-t border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-indigo-600" /> Contacts & Footer
+                  </h3>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Support Email</label>
+                       <input 
+                         type="text"
+                         value={content.footer?.contactInfo?.email || ''}
+                         onChange={(e) => handleUpdate('footer', 'contactInfo', { ...content.footer.contactInfo, email: e.target.value })}
+                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Support Phone</label>
+                       <input 
+                         type="text"
+                         value={content.footer?.contactInfo?.phone || ''}
+                         onChange={(e) => handleUpdate('footer', 'contactInfo', { ...content.footer.contactInfo, phone: e.target.value })}
+                         className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
+                       />
+                    </div>
+                    {content.whatsapp && (
+                       <div className="space-y-4 pt-4 border-t border-slate-50">
+                          <div className="flex items-center justify-between">
+                             <label className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">WhatsApp Button</label>
+                             <input type="checkbox" checked={content.whatsapp.enabled} onChange={(e) => handleUpdate('whatsapp', 'enabled', e.target.checked)} className="w-4 h-4 accent-emerald-500" />
+                          </div>
+                          <div className="space-y-2">
+                             <label className="text-[10px] font-bold text-slate-400 uppercase">Number</label>
+                             <input type="text" value={content.whatsapp.phone} onChange={(e) => handleUpdate('whatsapp', 'phone', e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs" placeholder="+1234..." />
+                          </div>
+                       </div>
                     )}
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {activeTab === 'navbar' && (

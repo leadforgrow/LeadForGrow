@@ -9,6 +9,8 @@ import LaunchFlowTemplate from './layouts/LaunchFlowTemplate';
 import WaitlistProTemplate from './layouts/WaitlistProTemplate';
 import AgencyPrimeTemplate from './layouts/AgencyPrimeTemplate';
 import BusinessBrandTemplate from './layouts/BusinessBrandTemplate';
+import HospitalTemplate from './layouts/HospitalTemplate';
+import EcommerceTemplate from './layouts/EcommerceTemplate';
 
 export default function TemplateRenderer({ templateId, content }) {
   if (!content) return <div className="p-20 text-center font-bold">No content found for this template.</div>;
@@ -33,6 +35,10 @@ export default function TemplateRenderer({ templateId, content }) {
         return <AgencyPrimeTemplate content={content} brandName={brandName} />;
       case 'businessbrand-website':
         return <BusinessBrandTemplate content={content} brandName={brandName} />;
+      case 'hospital':
+        return <HospitalTemplate content={content} brandName={brandName} />;
+      case 'ecommerce':
+        return <EcommerceTemplate content={content} brandName={brandName} />;
       default:
         return <div className="p-20 text-center font-bold text-red-500 bg-red-50">Invalid template ID: {templateId}</div>;
     }

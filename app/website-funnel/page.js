@@ -58,6 +58,19 @@ export default function WebsiteFunnelPage() {
       )
     },
     {
+      id: 'business',
+      title: 'Business & Storefronts',
+      description: 'Specialized solutions for hospitals, coaching, and e-commerce.',
+      icon: (
+        <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12">
+          <path d="M10 14 H14 L16 26 H28 L30 14 H10" stroke="#10B981" strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M20 16 V24 M16 20 H24" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="18" cy="30" r="2" fill="#FBBF24" />
+          <circle cx="26" cy="30" r="2" fill="#FBBF24" />
+        </svg>
+      )
+    },
+    {
       id: 'agency',
       title: 'Build an Agency / Company Website',
       description: 'Custom domains, short links & campaign tracking.',
@@ -154,6 +167,7 @@ export default function WebsiteFunnelPage() {
                   {option.description}
                 </p>
                 
+                {/* Selection indicator & footer of card */}
                 <div className={`mt-8 flex items-center gap-2 font-medium text-[10px] transition-all duration-500 ${selectedOption === option.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 group-hover:opacity-60 group-hover:translate-y-0'}`}>
                   <span className="text-indigo-500 tracking-widest uppercase text-[9px]">Select this goal</span>
                   <div className="p-1.5 bg-indigo-50 rounded-full group-hover:translate-x-1 transition-transform">
@@ -176,7 +190,7 @@ export default function WebsiteFunnelPage() {
               disabled={!selectedOption}
               className={`
                 px-8 py-3 rounded-2xl font-medium text-l flex items-center gap-2 transition-all duration-500
-                ${selectedOption 
+                ${selectedOption
                   ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-2 cursor-pointer active:scale-95' 
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                 }

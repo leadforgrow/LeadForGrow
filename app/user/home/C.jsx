@@ -67,7 +67,8 @@ export default function ContactFormSection() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Call Us</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white transition-colors">+91 (800) 123-4567</p>
+                  <p className="text-lg  text-slate-900 dark:text-white transition-colors">+91 8810 873 052</p>
+                  <p className="text-lg  text-slate-900 dark:text-white transition-colors">+91 8076 772 797</p>
                 </div>
               </div>
 

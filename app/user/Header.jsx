@@ -192,10 +192,6 @@ const UserNavbar = () => {
                   <DropdownMenu items={resourcesDropdown} isOpen={openDropdown === 'resources'} />
                 </div>
 
-                {/* Talk to Sales */}
-                <a href="/contact" className="text-sm  text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors uppercase tracking-wider">
-                  Talk to Sales
-                </a>
               </div>
             ) : (
               // AUTHENTICATED NAVIGATION
@@ -376,13 +372,6 @@ const UserNavbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Pricing
-                </a>
-                <a
-                  href="/contact"
-                  className="block px-4 py-3 text-base  text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Talk to Sales
                 </a>
               </div>
 

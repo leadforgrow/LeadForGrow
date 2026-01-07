@@ -153,6 +153,38 @@ function TemplatesContent() {
           )
         }
       ]
+    },
+    business: {
+      title: 'Select your business type',
+      templates: [
+        {
+          id: 'hospital',
+          name: 'Hospital / Coaching',
+          tag: 'Professional',
+          description: 'Complete presence for healthcare providers or personal coaching.',
+          bestFor: ['Doctors', 'Clinics', 'Life Coaches', 'Fitness trainers'],
+          icon: (
+            <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12">
+              <path d="M12 12 H28 V28 H12 Z" stroke="#3B82F6" strokeWidth="2.5" />
+              <path d="M20 16 V24 M16 20 H24" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          )
+        },
+        {
+          id: 'ecommerce',
+          name: 'E-commerce Store',
+          tag: 'Modern',
+          description: 'Full-featured online store to sell products and manage inventory.',
+          bestFor: ['Retailers', 'Brand owners', 'Direct to Consumer'],
+          icon: (
+            <svg viewBox="0 0 40 40" fill="none" className="w-12 h-12">
+              <path d="M10 14 H14 L16 26 H28 L30 14 H10" stroke="#10B981" strokeWidth="2.5" strokeLinejoin="round" />
+              <circle cx="18" cy="30" r="2" fill="#FBBF24" />
+              <circle cx="26" cy="30" r="2" fill="#FBBF24" />
+            </svg>
+          )
+        }
+      ]
     }
   };
 

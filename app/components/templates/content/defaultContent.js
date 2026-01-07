@@ -462,5 +462,135 @@ export const defaultContent = {
       headingFont: "Inter",
       bodyFont: "Inter"
     }
+  },
+  'hospital': {
+    hero: {
+      heading: "Compassionate Care, Advanced Medicine",
+      subheading: "World-class healthcare services for you and your family. Our specialists are here to provide personalized treatments.",
+      ctaText: "Book Appointment",
+      ctaHref: "#booking",
+      visualType: 'image',
+      visualUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80'
+    },
+    services: {
+      title: "Our Specializations",
+      items: [
+        { title: "Cardiology", description: "Comprehensive heart care using the latest diagnostic tools." },
+        { title: "Neurology", description: "Expert treatment for brain and nervous system disorders." },
+        { title: "Pediatrics", description: "Specialized care for infants, children, and adolescents." },
+        { title: "Orthopedics", description: "Advanced surgical and non-surgical bone and joint care." }
+      ]
+    },
+    booking: {
+      title: "Schedule Your Visit",
+      subtitle: "Select a department and date that works best for you.",
+      buttonText: "Confirm Booking",
+      fields: [
+        { label: "Patient Name", placeholder: "Full Name" },
+        { label: "Department", placeholder: "e.g. Cardiology" },
+        { label: "Preferred Date", placeholder: "Select Date", type: 'date' }
+      ]
+    },
+    doctors: {
+      title: "Meet Our Experts",
+      items: [
+        { name: "Dr. Sarah Johnson", role: "Chief Cardiologist", image: "https://images.unsplash.com/photo-1559839734-2b71f1e59816?auto=format&fit=crop&q=80" },
+        { name: "Dr. Michael Chen", role: "Neurosurgeon", image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80" }
+      ]
+    },
+    footer: {
+      companyName: "City General Hospital",
+      links: [{ label: "Find a Doctor", href: "#" }, { label: "Patient Portal", href: "#" }],
+      contactInfo: { email: "care@hospital.io", phone: "+1 (555) HEALTH" }
+    },
+    navbar: {
+      links: [
+        { label: "Services", href: "#services" },
+        { label: "Doctors", href: "#doctors" },
+        { label: "About", href: "#about" }
+      ],
+      ctaText: "Emergency Call",
+      ctaHref: "tel:+1911"
+    },
+    theme: {
+      primaryColor: "#0ea5e9",
+      secondaryColor: "#0284c7",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
+      accentColor: "#f43f5e",
+      headingFont: "Inter",
+      bodyFont: "Inter"
+    }
+  },
+  'ecommerce': {
+    hero: {
+      heading: "New Season: Tracksuits & Essentials",
+      subheading: "Premium quality athletic wear designed for comfort and style. Shop the autumn collection now.",
+      ctaText: "Shop Collection",
+      ctaHref: "#products",
+      visualType: 'image',
+      visualUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80'
+    },
+    products: {
+      title: "Featured Fashion",
+      items: [
+        { id: '1', name: "Tech Fleece Tracksuit", price: "$129.00", image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80", description: "Our best-selling Tech Fleece set. Perfect for daily wear." },
+        { id: '2', name: "Urban Cargo Joggers", price: "$85.00", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80", description: "Durable cargo pants with a modern tapered fit." },
+        { id: '3', name: "Essential Oversized Hoodie", price: "$65.00", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80", description: "Heavyweight cotton hoodie with a premium feel." },
+        { id: '4', name: "Signature Sport Cap", price: "$25.00", image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80", description: "Classic 6-panel cap with embroidered branding." }
+      ]
+    },
+    categories: {
+      title: "Shop by Category",
+      items: ["Activewear", "Streetwear", "Accessories", "Sale"]
+    },
+    trustBadges: {
+       items: [
+         { icon: 'Truck', title: "Free Shipping", description: "On all orders over $100" },
+         { icon: 'ShieldCheck', title: "Secure Payment", description: "SSL encrypted checkout" },
+         { icon: 'RotateCcw', title: "Easy Returns", description: "30-day money back guarantee" },
+         { icon: 'CreditCard', title: "COD Available", description: "Pay when you receive" }
+       ]
+    },
+    reviews: {
+       title: "Customer Love",
+       items: [
+         { name: "Alex M.", rating: 5, text: "The tracksuit fits perfectly! The quality of the fabric is top-notch. Highly recommend.", role: "Verified Buyer" },
+         { name: "Sarah K.", rating: 5, text: "Fast delivery and amazing customer service. The hoodie is so cozy!", role: "Verified Buyer" }
+       ]
+    },
+    whatsapp: {
+       phone: "+15550000000",
+       message: "Hello! I'm interested in your products.",
+       enabled: true
+    },
+    footer: {
+      companyName: "TrendFlow Fashion",
+      links: [
+        { label: "Privacy Policy", href: "#privacy" },
+        { label: "Shipping Policy", href: "#shipping" }, 
+        { label: "Refund Policy", href: "#refund" },
+        { label: "Contact Us", href: "#contact" }
+      ],
+      contactInfo: { email: "sales@trendflow.io", phone: "+1 (800) TRENDY" }
+    },
+    navbar: {
+      links: [
+        { label: "New Arrivals", href: "#products" },
+        { label: "Categories", href: "#categories" },
+        { label: "Reviews", href: "#reviews" }
+      ],
+      ctaText: "Cart (0)",
+      ctaHref: "#cart"
+    },
+    theme: {
+      primaryColor: "#000000",
+      secondaryColor: "#171717",
+      backgroundColor: "#ffffff",
+      textColor: "#000000",
+      accentColor: "#fbbf24",
+      headingFont: "Inter",
+      bodyFont: "Inter"
+    }
   }
 };

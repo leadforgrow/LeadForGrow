@@ -61,8 +61,11 @@ export default function AuthPage() {
       if (data.success) {
         localStorage.setItem('userid', data.data.userId);
         localStorage.setItem('userToken', data.data.token);
+        localStorage.setItem('userEmail', formData.email);
+        localStorage.setItem('userRole', data.data.role);
+        localStorage.setItem('userPlan', data.data.business.plan);
         toast.success('Account created successfully!');
-        router.push('/website-funnel/dashboard');
+        router.push('/automation');
       } else {
         toast.error(data.error || 'Registration failed');
       }
@@ -90,8 +93,11 @@ export default function AuthPage() {
       if (data.success) {
         localStorage.setItem('userid', data.data.userId);
         localStorage.setItem('userToken', data.data.token);
+        localStorage.setItem('userEmail', formData.email);
+        localStorage.setItem('userRole', data.data.role);
+        localStorage.setItem('userPlan', data.data.business.plan);
         toast.success('Logged in successfully!');
-        router.push('/website-funnel/dashboard');
+        router.push('/automation');
       } else {
         toast.error(data.error || 'Login failed');
       }
