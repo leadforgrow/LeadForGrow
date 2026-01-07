@@ -5,6 +5,7 @@ import Lead from '@/models/automation/Lead';
 import Activity from '@/models/automation/Activity';
 import User from '@/models/User';
 import Business from '@/models/Business';
+import Form from '@/models/Form';
 import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
 
 // Helper to get user and business

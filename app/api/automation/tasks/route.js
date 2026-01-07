@@ -2,6 +2,7 @@ import { dbConnect } from "@/lib/mongodb";
 import Task from '@/models/automation/Task';
 import User from '@/models/User';
 import Business from '@/models/Business';
+import Lead from '@/models/automation/Lead';
 import { NextResponse } from 'next/server';
 
 // Helper to get user and business

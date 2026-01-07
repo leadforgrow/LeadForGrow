@@ -133,7 +133,6 @@ const FormSchema = new mongoose.Schema({
 
 // Indexes
 FormSchema.index({ businessId: 1, active: 1 });
-FormSchema.index({ token: 1 }, { unique: true });
 
 // Auto-generate embed code before saving
 FormSchema.pre('save', async function() {

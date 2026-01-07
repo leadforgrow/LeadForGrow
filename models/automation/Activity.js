@@ -28,6 +28,8 @@ const ActivitySchema = new mongoose.Schema({
       'contacted_email',
       'follow_up_scheduled',
       'follow_up_completed',
+      'task_created',
+      'automation_executed',
       'assigned',
       'converted',
       'lost'

@@ -51,6 +51,10 @@ const AutomationRuleSchema = new mongoose.Schema({
       type: String,
       enum: ['whatsapp', 'email', 'both']
     },
+    emailSubject: {
+      type: String,
+      trim: true
+    },
     
     // For auto-assign
     assignmentRule: {

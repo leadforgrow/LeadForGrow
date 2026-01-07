@@ -1,12 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Zap, MessageCircle, Bell, RefreshCw, CheckCircle2, Rocket } from 'lucide-react';
+import { 
+  Zap, 
+  MessageCircle, 
+  Bell, 
+  RefreshCw, 
+  CheckCircle2, 
+  Rocket, 
+  Settings, 
+  Save, 
+  X, 
+  ChevronRight,
+  Mail,
+  Smartphone,
+  History,
+  AlertCircle
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function AutomationRulesPage() {
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingRule, setEditingRule] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchRules();
@@ -40,25 +58,75 @@ export default function AutomationRulesPage() {
     const userId = localStorage.getItem('userid');
 
     try {
-      // Optimistic update
       setRules(rules.map(r => r._id === ruleId ? { ...r, enabled: newEnabled } : r));
 
-      const res = await fetch(`/api/automation/automation-rules/${ruleId}`, {
+      const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, enabled: newEnabled })
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': userId
+        },
+        body: JSON.stringify({ userId, ruleId, enabled: newEnabled })
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success(newEnabled ? `${rule.name} activated` : `${rule.name} deactivated`);
+    } catch (error) {
+      setRules(rules.map(r => r._id === ruleId ? { ...r, enabled: !newEnabled } : r));
+      toast.error('Failed to update rule');
+    }
+  };
+
+  const handleEdit = (rule) => {
+    setEditingRule(rule);
+    setEditForm({
+      name: rule.name,
+      description: rule.description,
+      channel: rule.config?.channel || 'both',
+      messageTemplate: rule.config?.messageTemplate || '',
+      delayHours: rule.config?.delayHours || 0,
+      emailSubject: rule.config?.emailSubject || ''
+    });
+  };
+
+  const saveEdit = async () => {
+    setSaving(true);
+    const userId = localStorage.getItem('userid');
+    try {
+      const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': userId
+        },
+        body: JSON.stringify({ 
+          userId, 
+          ruleId: editingRule._id,
+          name: editForm.name,
+          description: editForm.description,
+          config: {
+            ...editingRule.config,
+            channel: editForm.channel,
+            messageTemplate: editForm.messageTemplate,
+            delayHours: editForm.delayHours,
+            emailSubject: editForm.emailSubject
+          }
+        })
       });
 
       const data = await res.json();
       if (data.success) {
-        toast.success(newEnabled ? `${rule.name} activated` : `${rule.name} deactivated`);
+        setRules(rules.map(r => r._id === editingRule._id ? data.data : r));
+        setEditingRule(null);
+        toast.success('Rule updated successfully');
       } else {
-        throw new Error(data.error);
+        toast.error(data.error || 'Update failed');
       }
     } catch (error) {
-      // Revert on error
-      setRules(rules.map(r => r._id === ruleId ? { ...r, enabled: !newEnabled } : r));
-      toast.error('Failed to update rule');
+      toast.error('An error occurred');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -73,96 +141,220 @@ export default function AutomationRulesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-12 text-center">
-        <div className="w-16 h-16 bg-amber-100 rounded-[20px] flex items-center justify-center mx-auto mb-6">
-          <Zap className="w-8 h-8 text-amber-600" />
+    <div className="p-8 max-w-6xl mx-auto">
+      {/* SaaS Premium Header */}
+      <div className="flex items-center justify-between mb-12">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Automation Cloud</h1>
+          <p className="text-slate-500">Manage rules that work for your business 24/7.</p>
         </div>
-        <h1 className="text-4xl font-black text-slate-900 mb-4">Automation Quick Setup</h1>
-        <p className="text-lg text-slate-600">Enable recommended rules to start capturing and responding to leads automatically.</p>
+        <div className="flex items-center gap-4">
+          <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+            Cloud Engine Active
+          </div>
+        </div>
       </div>
 
-      {/* Main Toggles */}
-      <div className="space-y-6 mb-12">
-        {rules.filter(r => ['instant_acknowledgement', 'notify_team', 'follow_up_reminder'].includes(r.type)).map((rule) => {
-          const Icon = getRuleIcon(rule.type);
-          
-          return (
-            <div
-              key={rule._id}
-              className={`bg-white rounded-[32px] border-2 p-8 transition-all flex items-center justify-between gap-6 ${
-                rule.enabled ? 'border-indigo-600 shadow-xl shadow-indigo-50' : 'border-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-6">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
-                  rule.enabled ? 'bg-indigo-600' : 'bg-slate-100'
-                }`}>
-                  <Icon className={`w-8 h-8 ${rule.enabled ? 'text-white' : 'text-slate-400'}`} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">{rule.name}</h3>
-                  <p className="text-slate-500 leading-relaxed max-w-md">{rule.description}</p>
-                </div>
-              </div>
-
-              {/* Toggle Switch */}
-              <button
-                onClick={() => toggleRule(rule._id)}
-                className={`relative w-20 h-10 rounded-full transition-all flex-shrink-0 ${
-                  rule.enabled ? 'bg-indigo-600' : 'bg-slate-300'
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Rules Explorer */}
+        <div className="lg:col-span-2 space-y-4">
+          {rules.map((rule) => {
+            const Icon = getRuleIcon(rule.type);
+            const isSelected = editingRule?._id === rule._id;
+            
+            return (
+              <div
+                key={rule._id}
+                className={`group bg-white rounded-[24px] border-2 p-6 transition-all hover:shadow-xl ${
+                  isSelected ? 'border-indigo-600' : 'border-slate-100'
                 }`}
               >
-                <div
-                  className={`absolute top-1 w-8 h-8 bg-white rounded-full shadow-md transition-transform ${
-                    rule.enabled ? 'translate-x-11' : 'translate-x-1'
-                  }`}
-                ></div>
-              </button>
-            </div>
-          );
-        })}
-      </div>
+                <div className="flex items-start justify-between">
+                  <div className="flex gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      rule.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        {rule.name}
+                        {rule.executionCount > 0 && (
+                          <span className="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                            {rule.executionCount} Runs
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">{rule.description}</p>
+                      
+                      {/* Configuration Preview */}
+                      {rule.enabled && (
+                        <div className="flex items-center gap-4 mt-4 text-xs font-medium">
+                          {rule.config?.channel && (
+                            <span className="flex items-center gap-1.5 text-indigo-600">
+                              {rule.config.channel === 'email' ? <Mail className="w-3.5 h-3.5" /> : <Smartphone className="w-3.5 h-3.5" />}
+                              {rule.config.channel.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-slate-400">•</span>
+                          <span className="flex items-center gap-1.5 text-slate-500">
+                            <History className="w-3.5 h-3.5" />
+                            {!rule.config?.delayHours || rule.config.delayHours === 0 ? 'Instant' : `${rule.config.delayHours}h Delay`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-      {/* Action Area */}
-      <div className="bg-slate-900 rounded-[40px] p-10 text-white flex flex-col items-center text-center">
-        <Rocket className="w-12 h-12 text-indigo-400 mb-6" />
-        <h2 className="text-2xl font-bold mb-4">You're in control</h2>
-        <p className="text-slate-400 mb-8 max-w-lg">
-          Once enabled, these rules work 24/7 in the background. You don't need to do anything manually. 
-          New leads will get instant responses and you'll get notified immediately.
-        </p>
-        <button 
-          onClick={() => toast.success('Recommended Automation is LIVE!')}
-          className="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-900/20"
-        >
-          Enable Recommended Automation
-        </button>
-      </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(rule)}
+                      className="p-2.5 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-indigo-600"
+                    >
+                      <Settings className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => toggleRule(rule._id)}
+                      className={`relative w-14 h-7 rounded-full transition-all ${
+                        rule.enabled ? 'bg-indigo-600' : 'bg-slate-300'
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                          rule.enabled ? 'translate-x-8' : 'translate-x-1'
+                        }`}
+                      ></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-      {/* Live State Info */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { title: 'Zero Missing Leads', desc: 'Every single enquiry is captured and logged.' },
-          { title: 'Instant Response', desc: 'Customers get welcomed before they look elsewhere.' },
-          { title: 'Team Alerted', desc: 'The right person is notified the second it happens.' }
-        ].map((item, i) => (
-          <div key={i} className="flex gap-4">
-            <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
-            <div>
-              <p className="font-bold text-slate-900">{item.title}</p>
-              <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
+        {/* Property Panel (Editor) */}
+        <div className="lg:col-span-1">
+          {editingRule ? (
+            <div className="bg-white rounded-[32px] border-2 border-slate-100 p-8 sticky top-8 animate-in slide-in-from-right duration-300">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-black text-slate-900">Configure Rule</h2>
+                <button 
+                  onClick={() => setEditingRule(null)}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Response Channel</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['email', 'whatsapp', 'both'].map((ch) => (
+                      <button
+                        key={ch}
+                        onClick={() => setEditForm({ ...editForm, channel: ch })}
+                        className={`py-2 text-xs font-bold rounded-xl border-2 transition-all ${
+                          editForm.channel === ch 
+                            ? 'border-indigo-600 bg-indigo-50 text-indigo-600' 
+                            : 'border-slate-50 text-slate-400 hover:border-slate-200'
+                        }`}
+                      >
+                        {ch.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {['email', 'both'].includes(editForm.channel) && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Email Subject</label>
+                    <input
+                      type="text"
+                      value={editForm.emailSubject}
+                      onChange={(e) => setEditForm({ ...editForm, emailSubject: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-indigo-600 rounded-xl outline-none transition-all font-medium text-slate-900"
+                      placeholder="e.g. Thanks for reaching out!"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Message Template</label>
+                  <textarea
+                    rows={6}
+                    value={editForm.messageTemplate}
+                    onChange={(e) => setEditForm({ ...editForm, messageTemplate: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-indigo-600 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none"
+                    placeholder="Use {{name}} for dynamic names..."
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {['name', 'serviceInterest', 'phone'].map(tag => (
+                      <button 
+                        key={tag}
+                        onClick={() => setEditForm({ ...editForm, messageTemplate: editForm.messageTemplate + ` {{${tag}}}` })}
+                        className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {editingRule.type === 'follow_up_reminder' && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Delay (Hours)</label>
+                    <input
+                      type="number"
+                      value={editForm.delayHours}
+                      onChange={(e) => setEditForm({ ...editForm, delayHours: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-indigo-600 rounded-xl outline-none transition-all font-medium text-slate-900"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={saveEdit}
+                  disabled={saving}
+                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-xl shadow-indigo-100"
+                >
+                  {saving ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div className="bg-slate-50 rounded-[32px] p-8 border-2 border-dashed border-slate-200 text-center">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
+                <Settings className="w-8 h-8 text-slate-300" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Configuration Required</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8">
+                Select a rule to customize its behavior, change messaging, or adjust timings.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-left p-3 bg-white rounded-xl border border-slate-100">
+                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <p className="text-[11px] text-slate-600 font-medium">Verify your SMTP settings to ensure emails send correctly.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
 'use client';
 
-import { Settings as SettingsIcon, Bell, Globe, Download, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Globe, Download, Shield, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
+  const router = useRouter();
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -28,7 +30,8 @@ export default function SettingsPage() {
             icon: Globe,
             title: 'Integrations',
             description: 'Connect WhatsApp, Email, and other services',
-            color: 'emerald'
+            color: 'emerald',
+            link: '/automation/settings/integrations'
           },
           {
             icon: Download,
@@ -39,12 +42,19 @@ export default function SettingsPage() {
         ].map((item, idx) => {
           const Icon = item.icon;
           return (
-            <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all cursor-pointer group">
-              <div className={`w-12 h-12 bg-${item.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <Icon className={`w-6 h-6 text-${item.color}-600`} />
+            <div 
+              key={idx} 
+              onClick={() => item.link && router.push(item.link)}
+              className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all cursor-pointer group flex items-start justify-between"
+            >
+              <div className="flex-1">
+                <div className={`w-12 h-12 bg-${item.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <Icon className={`w-6 h-6 text-${item.color}-600`} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-slate-600">{item.description}</p>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-slate-600">{item.description}</p>
+              <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition-colors mt-1" />
             </div>
           );
         })}

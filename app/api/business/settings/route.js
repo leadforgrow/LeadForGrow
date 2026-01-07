@@ -1,80 +1,74 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from "@/lib/mongodb";
 import Business from '@/models/Business';
-import User from '@/models/User';
+import { withPlanAccess } from '@/lib/accessControl';
 
-// Helper to get user and business
-async function getUserAndBusiness(request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-  
-  if (!userId) {
-    return { error: 'Authentication required', status: 401 };
-  }
-  
-  await dbConnect();
-  const user = await User.findById(userId);
-  if (!user) {
-    return { error: 'User not found', status: 404 };
-  }
-  
-  const business = await Business.findById(user.businessId);
-  if (!business) {
-    return { error: 'Business not found', status: 404 };
-  }
-  
-  return { user, business };
-}
-
-// GET - Fetch business settings
+// GET - Fetch business settings and integrations
 export async function GET(request) {
-  try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  return withPlanAccess(request, 'settings', async (req, user) => {
+    try {
+      await dbConnect();
+      const business = await Business.findById(user.businessId);
+      
+      if (!business) {
+        return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ 
+        success: true, 
+        data: {
+          settings: business.settings,
+          integrationCredentials: business.integrationCredentials,
+          businessName: business.businessName,
+          plan: business.plan
+        } 
+      });
+    } catch (error) {
+      console.error('Error fetching business data:', error);
+      return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
     }
-    
-    const { business } = result;
-    return NextResponse.json({ success: true, data: business.settings });
-  } catch (error) {
-    console.error('Error fetching business settings:', error);
-    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
-  }
+  });
 }
 
-// PUT - Update business settings
+// PUT - Update business settings or integrations
 export async function PUT(request) {
-  try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  return withPlanAccess(request, 'settings', async (req, user) => {
+    try {
+      await dbConnect();
+      const business = await Business.findById(user.businessId);
+      
+      if (!business) {
+        return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+      }
+
+      const body = await request.json();
+      const { settings, integrationCredentials, onboardingStep, onboardingComplete } = body;
+      
+      // Update Settings if provided
+      if (settings) {
+        business.settings = { ...business.settings, ...settings };
+      }
+      
+      // Update Integrations if provided (Crucial for SMTP/WhatsApp)
+      if (integrationCredentials) {
+        business.integrationCredentials = { ...business.integrationCredentials, ...integrationCredentials };
+      }
+
+      if (onboardingStep) business.onboardingStep = onboardingStep;
+      if (onboardingComplete !== undefined) business.onboardingComplete = onboardingComplete;
+      
+      await business.save();
+      
+      return NextResponse.json({ 
+        success: true, 
+        data: {
+          settings: business.settings,
+          integrationCredentials: business.integrationCredentials
+        } 
+      });
+    } catch (error) {
+      console.error('Error updating business data:', error);
+      return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
     }
-    
-    const { business } = result;
-    const body = await request.json();
-    const { assignmentStrategy, notifications, businessHours, autoResponse } = body;
-    
-    if (assignmentStrategy) {
-      business.settings.assignmentStrategy = assignmentStrategy;
-    }
-    
-    if (notifications) {
-      business.settings.notifications = { ...business.settings.notifications, ...notifications };
-    }
-    
-    if (businessHours) {
-      business.settings.businessHours = { ...business.settings.businessHours, ...businessHours };
-    }
-    
-    if (autoResponse) {
-      business.settings.autoResponse = { ...business.settings.autoResponse, ...autoResponse };
-    }
-    
-    await business.save();
-    
-    return NextResponse.json({ success: true, data: business.settings });
-  } catch (error) {
-    console.error('Error updating business settings:', error);
-    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
-  }
+  });
 }

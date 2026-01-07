@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import Lead from '@/models/automation/Lead';
 import Activity from '@/models/automation/Activity';
 import Task from '@/models/automation/Task';
+import User from '@/models/User';
 import { withPlanAccess } from '@/lib/accessControl';
+import { triggerAutomationForLead } from '@/lib/leadProcessor';
 
 // GET - Fetch single lead with details
 export async function GET(request, { params }) {
@@ -112,6 +114,14 @@ export async function PUT(request, { params }) {
       
       const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true }).populate('assignedTo', 'email');
       if (activities.length > 0) await Activity.insertMany(activities);
+      
+      // Trigger automation on status change
+      if (status && status !== lead.status) {
+        // Trigger as a side effect
+        triggerAutomationForLead(id, businessId, 'onStatusChange').catch(err => {
+          console.error('[Automation] Trigger failed for status change:', err);
+        });
+      }
       
       return NextResponse.json({ success: true, data: updatedLead });
     } catch (error) {

@@ -102,7 +102,7 @@ const BusinessSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  
+  // 530570
   // Subscription & Plan
   plan: {
     type: String,
@@ -187,7 +187,6 @@ const BusinessSchema = new mongoose.Schema({
 
 // Indexes (removed duplicates - only define once here)
 BusinessSchema.index({ ownerId: 1 });
-BusinessSchema.index({ apiKey: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
 

@@ -18,7 +18,9 @@ import {
   MoreVertical,
   PartyPopper,
   Trophy,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  Layout
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -41,6 +43,8 @@ export default function LeadDetailPage({ params }) {
     description: '',
     dueDate: new Date().toISOString().split('T')[0]
   });
+  const [templates, setTemplates] = useState([]);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
 
   const fetchLeadDetails = async () => {
     try {
@@ -70,9 +74,22 @@ export default function LeadDetailPage({ params }) {
     }
   };
 
+  const fetchTemplates = async () => {
+    try {
+      const res = await fetch(`/api/automation/automation-rules?userId=${localStorage.getItem('userid')}`);
+      const data = await res.json();
+      if (data.success) {
+        setTemplates(data.data.filter(rule => rule.enabled));
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
   useEffect(() => {
     fetchLeadDetails();
     fetchLeadsTasks();
+    fetchTemplates();
   }, [id]);
 
   const handleUpdateStatus = async (newStatus) => {
@@ -167,22 +184,35 @@ export default function LeadDetailPage({ params }) {
     }
   };
 
-  const handleCommunication = (channel, taskId = null) => {
+  const handleCommunication = (channel, taskId = null, customMessage = '') => {
     let url = '';
     const phone = lead.phone.replace(/\D/g, '');
+    const encodedMessage = encodeURIComponent(customMessage);
     
     if (channel === 'call') url = `tel:${lead.phone}`;
-    if (channel === 'whatsapp') url = `https://wa.me/${phone}`;
-    if (channel === 'email') url = `mailto:${lead.email}`;
+    if (channel === 'whatsapp') url = `https://wa.me/${phone}${customMessage ? `?text=${encodedMessage}` : ''}`;
+    if (channel === 'email') url = `mailto:${lead.email}${customMessage ? `?body=${encodedMessage}` : ''}`;
 
     if (url) {
       window.open(url, '_blank');
+      // If a task was associated, complete it
       if (taskId) {
         handleCompleteTask(taskId, true);
       } else {
+        // Log activity if manually triggered without task
         handleUpdateStatus('contacted');
       }
     }
+  };
+
+  const renderMessageFromTemplate = (template) => {
+    if (!template) return '';
+    return template.replace(/\{\{(.*?)\}\}/g, (match, field) => {
+      const fieldName = field.trim();
+      if (fieldName === 'name') return lead.name;
+      if (fieldName === 'serviceInterest') return lead.serviceInterest || 'our services';
+      return match;
+    });
   };
 
   if (loading) {
@@ -357,6 +387,58 @@ export default function LeadDetailPage({ params }) {
                 <MessageCircle className="w-5 h-5" />
                 WhatsApp
               </button>
+
+              {/* Quick Template Selector */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                  className="w-full py-3 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 font-bold hover:bg-slate-800 transition-all cursor-pointer active:scale-95"
+                >
+                  <Layout className="w-5 h-5 text-indigo-400" />
+                  Use Quick Template
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showTemplateDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showTemplateDropdown && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden animate-in slide-in-from-bottom-2 duration-200">
+                    <div className="p-4 bg-slate-50 border-b border-slate-100">
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Select a Template</p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {templates.length > 0 ? (
+                        templates.map((rule) => (
+                          <button
+                            key={rule._id}
+                            onClick={() => {
+                              const msg = renderMessageFromTemplate(rule.config?.messageTemplate);
+                              handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
+                              setShowTemplateDropdown(false);
+                            }}
+                            className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-xs">{rule.name}</span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                rule.config?.channel === 'whatsapp' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
+                              }`}>
+                                {rule.config?.channel || 'whatsapp'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 line-clamp-2 italic">
+                              "{rule.config?.messageTemplate}"
+                            </p>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-6 text-center">
+                          <p className="text-sm text-slate-400">No active automation templates found.</p>
+                          <button onClick={() => router.push('/automation/automation-rules')} className="text-xs font-bold text-indigo-600 mt-2 hover:underline">Setup Templates</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3 relative z-10">

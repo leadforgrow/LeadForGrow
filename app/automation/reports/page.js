@@ -9,7 +9,9 @@ import {
   Globe,
   Phone,
   Mail,
-  MessageCircle
+  MessageCircle,
+  ShieldCheck,
+  Send
 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
@@ -28,6 +30,8 @@ export default function ReportsPage() {
     leadsBySource: [],
     recentLeads: []
   });
+  const [warmingEmail, setWarmingEmail] = useState('');
+  const [warmingLoading, setWarmingLoading] = useState(false);
 
   useEffect(() => {
     fetchReports();
@@ -79,6 +83,36 @@ export default function ReportsPage() {
     };
     return colors[source] || 'bg-slate-100 text-slate-700';
   };
+
+  const handleWarmEmail = async () => {
+    if (!warmingEmail) {
+      toast.error('Please enter an email address');
+      return;
+    }
+
+    try {
+      setWarmingLoading(true);
+      const userId = localStorage.getItem('userid');
+      const res = await fetch('/api/automation/reports/warm-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, targetEmail: warmingEmail })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message);
+        setWarmingEmail('');
+      } else {
+        toast.error(data.error || 'Failed to send warming email');
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+    } finally {
+      setWarmingLoading(false);
+    }
+  };
+
   const handleExportPDF = () => {
     window.print();
   };
@@ -237,6 +271,39 @@ export default function ReportsPage() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Reputation Warmer */}
+      <div className="bg-indigo-900 rounded-[32px] p-8 text-white mb-8 border border-indigo-800 shadow-2xl shadow-indigo-200/50 no-print">
+        <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="w-20 h-20 bg-indigo-800 rounded-3xl flex items-center justify-center flex-shrink-0">
+            <ShieldCheck className="w-10 h-10 text-indigo-300" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2">Email Reputation Warmer</h2>
+            <p className="text-indigo-200 mb-6 max-w-lg">
+              Is your mail going to spam? Send a test email to your personal Gmail/Outlook, and mark it as 
+              <strong> "Not Spam"</strong> to help build your domain reputation.
+            </p>
+            <div className="flex gap-3 max-w-md">
+              <input 
+                type="email" 
+                placeholder="Enter your personal email"
+                value={warmingEmail}
+                onChange={(e) => setWarmingEmail(e.target.value)}
+                className="flex-1 bg-indigo-800/50 border border-indigo-700 rounded-xl px-4 py-3 text-white placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button 
+                onClick={handleWarmEmail}
+                disabled={warmingLoading}
+                className="bg-white text-indigo-900 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {warmingLoading ? <div className="w-5 h-5 border-2 border-indigo-900 border-t-transparent rounded-full animate-spin"></div> : <Send className="w-5 h-5" />}
+                Send
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
