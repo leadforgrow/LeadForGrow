@@ -7,10 +7,11 @@ import PricingSection from './P';
 import ContactFormSection from './C';
 import UserNavbar from '../Header';
 import { useTheme } from '../../components/ThemeContext';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, X, Play } from 'lucide-react';
 
-export default function LeadForGrowHerods() {
+export default function LeadForGrowHeroPage() {
   const { theme, toggleTheme } = useTheme();
+  const [showVideo, setShowVideo] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500 overflow-hidden">
@@ -55,10 +56,10 @@ export default function LeadForGrowHerods() {
 
         {/* Main Content */}
         <div className="relative z-20 text-center pt-40" style={{marginTop:"-130px"}}>
-          <h1 className="text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
+          <h1 className="text-4xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
             Turn interest into revenue<br />
             capture every lead<br />
-            automatically.
+            <span className="block sm:inline">automatically</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-4 font-light transition-colors duration-500">
@@ -70,11 +71,12 @@ export default function LeadForGrowHerods() {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <button className="bg-slate-900 dark:bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-slate-800 dark:hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/10 active:scale-95">
-              Start Free Trial
-            </button>
-            <button className="bg-white dark:bg-transparent text-slate-900 dark:text-white px-8 py-4 rounded-xl text-lg font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition active:scale-95">
-              Watch Demo
+            <button 
+              onClick={() => setShowVideo(true)}
+              className="bg-white dark:bg-transparent text-slate-900 dark:text-white px-8 py-4 rounded-xl text-lg font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition flex items-center gap-2 active:scale-95"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Watch video
             </button>
           </div>
 
@@ -102,6 +104,28 @@ export default function LeadForGrowHerods() {
       <AgencyOSLanding />
       <PricingSection />
       <ContactFormSection />
+
+      {/* Video Modal */}
+      {showVideo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <button 
+              onClick={() => setShowVideo(false)}
+              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/HZZpgqgy3kg?autoplay=1" 
+              title="Product Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
