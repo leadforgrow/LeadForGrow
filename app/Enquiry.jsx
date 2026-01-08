@@ -1,7 +1,6 @@
 
 "use client"
 
-
 import React, { useState, useEffect, useRef } from 'react';
 
 // Copy this component to your React project
@@ -13,7 +12,7 @@ const LeadForGrowWidget = () => {
   const timerRef = useRef(null);
 
   const config = {
-    token: "lfg_form_99554910c61d7752936fa3e5a749fed33eb4e04adfafc29bd73069fc61426672",
+    token: "lfg_form_2c34f1daed079fdd7a8188c8c779e9a6cafaf736c278b8a851f4b25008ccd208",
     baseUrl: "https://www.leadforgrow.com"
   };
 

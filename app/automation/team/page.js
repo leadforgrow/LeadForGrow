@@ -26,7 +26,7 @@ export default function TeamPage() {
       const settingsRes = await fetch(`/api/business/settings?userId=${userId}`);
       const settingsData = await settingsRes.json();
       if (settingsData.success) {
-        setAssignmentStrategy(settingsData.data.assignmentStrategy || 'solo');
+        setAssignmentStrategy(settingsData.data.settings?.assignmentStrategy || 'solo');
       }
 
       // Fetch team
@@ -50,7 +50,7 @@ export default function TeamPage() {
       const res = await fetch(`/api/business/settings?userId=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignmentStrategy })
+        body: JSON.stringify({ settings: { assignmentStrategy } })
       });
       const data = await res.json();
       if (data.success) {

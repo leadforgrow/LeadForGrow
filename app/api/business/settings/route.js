@@ -49,6 +49,9 @@ export async function PUT(request) {
       // Update Settings if provided
       if (settings) {
         business.settings = { ...business.settings, ...settings };
+      } else if (body.assignmentStrategy) {
+        // Fallback for direct strategy update
+        business.settings.assignmentStrategy = body.assignmentStrategy;
       }
       
       // Update Integrations if provided (Crucial for SMTP/WhatsApp)
@@ -60,9 +63,15 @@ export async function PUT(request) {
         business.generateWebhookSecret();
       }
 
-      if (onboardingStep) business.onboardingStep = onboardingStep;
-      if (onboardingComplete !== undefined) business.onboardingComplete = onboardingComplete;
+      if (body.onboardingStep) business.onboardingStep = onboardingStep;
+      if (body.onboardingComplete !== undefined) business.onboardingComplete = onboardingComplete;
       
+      // Update Root Level Fields (Business Info)
+      if (body.businessName) business.businessName = body.businessName;
+      if (body.industry) business.industry = body.industry;
+      if (body.website) business.website = body.website;
+      if (body.logo) business.logo = body.logo;
+
       await business.save();
       
       return NextResponse.json({ 

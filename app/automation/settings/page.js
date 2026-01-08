@@ -18,7 +18,8 @@ export default function SettingsPage() {
             icon: SettingsIcon,
             title: 'Business Details',
             description: 'Update your company information and contact details',
-            color: 'indigo'
+            color: 'indigo',
+            link: '/automation/settings/details'
           },
           {
             icon: Bell,
