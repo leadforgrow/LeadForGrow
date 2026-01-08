@@ -137,10 +137,14 @@ export default function TasksPage() {
 
   const handleCommunication = (task, channel) => {
     const lead = task.leadId;
+    if (!lead) {
+      toast.error('Lead information is missing');
+      return;
+    }
     let url = '';
     
     if (channel === 'call') url = `tel:${lead.phone}`;
-    if (channel === 'whatsapp') url = `https://wa.me/${lead.phone.replace(/\D/g, '')}`;
+    if (channel === 'whatsapp') url = `https://wa.me/${lead?.phone?.replace(/\D/g, '')}`;
     if (channel === 'email') url = `mailto:${lead.email}`;
 
     if (url) {
@@ -295,14 +299,18 @@ export default function TasksPage() {
                     {/* Lead Info */}
                     <div className="flex items-center gap-4 mb-4 text-sm">
                       <span className="text-slate-500">
-                        Lead: <span className="font-bold text-slate-900">{task.leadId.name}</span>
+                        Lead: <span className="font-bold text-slate-900">{task.leadId?.name || 'N/A'}</span>
                       </span>
-                      <span className="text-slate-500">
-                        {task.leadId.phone}
-                      </span>
-                      <span className="text-slate-500">
-                        {task.leadId.serviceInterest}
-                      </span>
+                      {task.leadId?.phone && (
+                        <span className="text-slate-500">
+                          {task.leadId.phone}
+                        </span>
+                      )}
+                      {task.leadId?.serviceInterest && (
+                        <span className="text-slate-500">
+                          {task.leadId.serviceInterest}
+                        </span>
+                      )}
                     </div>
 
                     {/* Actions */}
@@ -358,7 +366,13 @@ export default function TasksPage() {
                       </button>
 
                       <button
-                        onClick={() => router.push(`/automation/leads/${task.leadId._id}`)}
+                        onClick={() => {
+                          if (task.leadId?._id) {
+                            router.push(`/automation/leads/${task.leadId._id}`);
+                          } else {
+                            toast.error('Lead no longer exists');
+                          }
+                        }}
                         className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors"
                       >
                         Lead Details

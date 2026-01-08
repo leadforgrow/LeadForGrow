@@ -1,0 +1,13 @@
+Collections in Database:
+- users (10 documents)
+- websites (1 documents)
+- employees (5 documents)
+- activities (25 documents)
+- referrals (0 documents)
+- teammembers (7 documents)
+- leadsources (0 documents)
+- forms (2 documents)
+- businesses (3 documents)
+- automationrules (13 documents)
+- tasks (7 documents)
+- leads (3 documents)

@@ -19,6 +19,8 @@ export async function GET(request) {
         data: {
           settings: business.settings,
           integrationCredentials: business.integrationCredentials,
+          integrationHealth: business.integrationHealth,
+          webhookSecret: business.webhookSecret,
           businessName: business.businessName,
           plan: business.plan
         } 
@@ -52,6 +54,10 @@ export async function PUT(request) {
       // Update Integrations if provided (Crucial for SMTP/WhatsApp)
       if (integrationCredentials) {
         business.integrationCredentials = { ...business.integrationCredentials, ...integrationCredentials };
+      }
+
+      if (body.generateWebhookSecret) {
+        business.generateWebhookSecret();
       }
 
       if (onboardingStep) business.onboardingStep = onboardingStep;

@@ -33,7 +33,7 @@ const LeadSchema = new mongoose.Schema({
   // Lead Information
   source: {
     type: String,
-    enum: ['website', 'form', 'whatsapp', 'referral', 'ad', 'call', 'other'],
+    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'other'],
     default: 'website'
   },
   sourceDetails: {
@@ -122,7 +122,8 @@ const LeadSchema = new mongoose.Schema({
 });
 
 // Indexes for performance and deduplication
-LeadSchema.index({ businessId: 1, phone: 1 }, { unique: true });
+// Note: Deduplication is handled in leadProcessor.js, not via unique constraint
+LeadSchema.index({ businessId: 1, phone: 1 }); // Non-unique for query performance
 LeadSchema.index({ businessId: 1, status: 1 });
 LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });

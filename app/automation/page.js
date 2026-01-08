@@ -113,7 +113,7 @@ export default function AutomationDashboard() {
       const lost = allLeads.filter(lead => lead.status === 'lost').length;
 
       // Fetch tasks for today
-      const tasksRes = await fetch(`/api/automation/tasks?userId=${userId}&filter=today`);
+      const tasksRes = await fetch(`/api/automation/tasks?userId=${userId}`);
       const tasksData = await tasksRes.json();
       const followUpsDueToday = tasksData.success ? tasksData.data.length : 0;
 
@@ -296,7 +296,7 @@ export default function AutomationDashboard() {
         </button>
 
         <button
-          onClick={() => router.push('/automation/tasks?filter=today')}
+          onClick={() => router.push('/automation/tasks')}
           className="bg-white border-2 border-purple-200 rounded-2xl p-6 hover:shadow-xl transition-all group text-left"
         >
           <CheckCircle2 className="w-8 h-8 text-purple-600 mb-4 group-hover:scale-110 transition-transform" />

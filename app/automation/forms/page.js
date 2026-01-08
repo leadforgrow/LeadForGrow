@@ -12,7 +12,8 @@ import {
   Code,
   CheckCircle2,
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -336,80 +337,236 @@ function CreateFormModal({ onClose, onCreate }) {
 
 // Embed Code Modal Component
 function EmbedCodeModal({ form, onClose, onCopy }) {
-  const submissionUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/forms/submit`;
+  const [tab, setTab] = useState('html');
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const submissionUrl = `${baseUrl}/api/forms/submit`;
+  
+  // Simplified 3-line embed code
+  const simpleEmbedCode = `<!-- LeadForGrow Widget -->
+<div data-lfg-token="${form.token}"></div>
+<script src="${baseUrl}/lfg-widget.js" async></script>`;
+
+  const reactCode = `import React, { useState, useEffect, useRef } from 'react';
+
+// Copy this component to your React project
+const LeadForGrowWidget = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const timerRef = useRef(null);
+
+  const config = {
+    token: "${form.token}",
+    baseUrl: "${baseUrl}"
+  };
+
+  const startTimer = (delay) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      if (!isSubmitted && !isOpen) setIsOpen(true);
+    }, delay);
+  };
+
+  useEffect(() => {
+    startTimer(30000);
+    return () => clearTimeout(timerRef.current);
+  }, [isSubmitted, isOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    if (!isSubmitted) startTimer(45000);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSending(true);
+    const data = { token: config.token };
+    new FormData(e.target).forEach((v, k) => data[k] = v);
+
+    try {
+      const resp = await fetch(\`\${config.baseUrl}/api/forms/submit\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const res = await resp.json();
+      if (res.success) {
+        setIsSubmitted(true);
+        setSuccess(true);
+        setTimeout(() => setIsOpen(false), 3000);
+      } else {
+        alert(res.error || 'Failed to send');
+      }
+    } catch (err) {
+      alert('Error connecting to server');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Floating Badge */}
+      <div 
+        onClick={() => setIsOpen(true)}
+        style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#4F46E5', color: 'white', width: '60px', height: '60px', borderRadius: '50%', boxShadow: '0 4px 14px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 9999 }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      </div>
+
+      {/* Modal Overlay */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 9998, opacity: isOpen ? 1 : 0, visibility: isOpen ? 'visible' : 'hidden', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: 'white', borderRadius: '20px', padding: '32px', width: '90%', maxWidth: '450px', position: 'relative', boxShadow: '0 20px 60px -12px rgba(0,0,0,0.15)' }}>
+          <div onClick={handleClose} style={{ position: 'absolute', top: '16px', right: '16px', cursor: 'pointer', fontSize: '24px' }}>&times;</div>
+          
+          {success ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 700 }}>✅ Success!</h3>
+              <p style={{ marginTop: '10px', color: '#64748b' }}>Thank you! We'll get back to you soon.</p>
+            </div>
+          ) : (
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>Contact Us</h3>
+              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>Share your details and we'll get in touch!</p>
+              <form onSubmit={handleSubmit}>
+                <input type="text" name="name" placeholder="Full Name" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }} />
+                <input type="tel" name="phone" placeholder="Phone Number" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }} />
+                <textarea name="message" placeholder="Message" rows="3" style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }}></textarea>
+                <button type="submit" disabled={isSending} style={{ width: '100%', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '10px', padding: '14px', fontWeight: 600, cursor: 'pointer', opacity: isSending ? 0.7 : 1 }}>
+                  {isSending ? 'Sending...' : 'Submit'}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default LeadForGrowWidget;`;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-slate-900 mb-6">Embed Code & Integration</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-slate-900">Embed Widget</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4 border-b border-slate-100 mb-6">
+          <button 
+            onClick={() => setTab('html')}
+            className={`pb-3 font-bold text-sm transition-all ${tab === 'html' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}
+          >
+            HTML / WEBSITE
+          </button>
+          <button 
+            onClick={() => setTab('react')}
+            className={`pb-3 font-bold text-sm transition-all ${tab === 'react' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}
+          >
+            REACT JS
+          </button>
+          <button 
+            onClick={() => setTab('api')}
+            className={`pb-3 font-bold text-sm transition-all ${tab === 'api' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}
+          >
+            API / WEBHOOK
+          </button>
+        </div>
         
-        {/* Embed Code */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-bold text-slate-700">Embed Code (HTML)</label>
-            <button
-              onClick={() => onCopy(form.embedCode)}
-              className="px-4 py-2 bg-indigo-100 text-indigo-600 rounded-lg font-medium text-sm hover:bg-indigo-200 transition-colors flex items-center gap-2"
-            >
-              <Copy className="w-4 h-4" />
-              Copy Code
-            </button>
-          </div>
-          <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-sm">
-            <code>{form.embedCode}</code>
-          </pre>
-        </div>
+        {tab === 'html' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-bold text-slate-700">Simple Embed (Recommended)</label>
+                <button
+                  onClick={() => onCopy(simpleEmbedCode)}
+                  className="px-4 py-2 bg-indigo-100 text-indigo-600 rounded-lg font-medium text-sm hover:bg-indigo-200 transition-colors flex items-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy Code
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mb-2">Paste this at the end of your body tag. It handles the design, popups, and logic automatically.</p>
+              <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-sm">
+                <code>{simpleEmbedCode}</code>
+              </pre>
+            </div>
 
-        {/* API Endpoint */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-bold text-slate-700">API Endpoint</label>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(submissionUrl);
-                toast.success('API endpoint copied!');
-              }}
-              className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg font-medium text-sm hover:bg-purple-200 transition-colors flex items-center gap-2"
-            >
-              <Copy className="w-4 h-4" />
-              Copy URL
-            </button>
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-slate-700 mb-3">Legacy Embed (Full Source)</label>
+              <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs max-h-40 opacity-70">
+                <code>{form.embedCode}</code>
+              </pre>
+            </div>
           </div>
-          <div className="bg-slate-50 p-4 rounded-xl">
-            <p className="text-sm font-mono text-slate-700 break-all">{submissionUrl}</p>
-          </div>
-        </div>
+        )}
 
-        {/* Form Token */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold text-slate-700 mb-3">Form Token (Keep Secret)</label>
-          <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl">
-            <p className="text-sm font-mono text-orange-900 break-all">{form.token}</p>
+        {tab === 'react' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-bold text-slate-700">LeadForGrowWidget.jsx</label>
+              <button
+                onClick={() => onCopy(reactCode)}
+                className="px-4 py-2 bg-indigo-100 text-indigo-600 rounded-lg font-medium text-sm hover:bg-indigo-200 transition-colors flex items-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                Copy React Component
+              </button>
+            </div>
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs max-h-[400px]">
+              <code>{reactCode}</code>
+            </pre>
           </div>
-          <p className="text-xs text-slate-500 mt-2">⚠️ This token authenticates form submissions. Do not share publicly.</p>
-        </div>
+        )}
 
-        {/* Example cURL */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold text-slate-700 mb-3">Example API Call (cURL)</label>
-          <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs">
-            <code>{`curl -X POST ${submissionUrl} \\
+        {tab === 'api' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-slate-700 mb-3">Form Token (Secret)</label>
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-center justify-between">
+                <code className="text-sm font-mono text-orange-900 break-all">{form.token}</code>
+                <button onClick={() => { navigator.clipboard.writeText(form.token); toast.success('Token copied!'); }} className="text-orange-600 hover:text-orange-700">
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-slate-700 mb-3">API Endpoint</label>
+              <div className="bg-slate-50 p-4 rounded-xl flex items-center justify-between">
+                <code className="text-sm font-mono text-slate-700 break-all">{submissionUrl}</code>
+                <button onClick={() => { navigator.clipboard.writeText(submissionUrl); toast.success('URL copied!'); }} className="text-slate-600 hover:text-slate-700">
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-3">cURL Example</label>
+              <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs">
+                <code>{`curl -X POST ${submissionUrl} \\
   -H "Content-Type: application/json" \\
   -d '{
     "token": "${form.token}",
     "name": "John Doe",
-    "phone": "+1234567890",
-    "email": "john@example.com",
-    "message": "I'm interested in your services"
+    "phone": "9876543210"
   }'`}</code>
-          </pre>
-        </div>
+              </pre>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={onClose}
-          className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+          className="w-full mt-6 px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-colors shadow-lg"
         >
-          Close
+          Done
         </button>
       </div>
     </div>

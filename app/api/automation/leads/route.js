@@ -67,11 +67,16 @@ export async function GET(request) {
       ];
     }
     
+    
+    console.log('[API Leads] Query:', JSON.stringify(query));
+    
     const leads = await Lead.find(query)
       .populate('assignedTo', 'email firstName lastName')
       .populate('formId', 'name')
       .sort({ receivedAt: -1 })
       .lean();
+      
+    console.log('[API Leads] Found leads:', leads.length);
     
     return NextResponse.json({ success: true, data: leads });
   } catch (error) {

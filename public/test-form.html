@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +21,7 @@
             justify-content: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 24px;
@@ -29,24 +30,24 @@
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
-        
+
         h1 {
             font-size: 32px;
             font-weight: 800;
             color: #1e293b;
             margin-bottom: 8px;
         }
-        
+
         .subtitle {
             color: #64748b;
             margin-bottom: 32px;
             font-size: 16px;
         }
-        
+
         .form-group {
             margin-bottom: 24px;
         }
-        
+
         label {
             display: block;
             font-weight: 600;
@@ -54,8 +55,9 @@
             margin-bottom: 8px;
             font-size: 14px;
         }
-        
-        input, textarea {
+
+        input,
+        textarea {
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e2e8f0;
@@ -64,18 +66,19 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        
-        input:focus, textarea:focus {
+
+        input:focus,
+        textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         textarea {
             resize: vertical;
             min-height: 120px;
         }
-        
+
         button {
             width: 100%;
             padding: 16px;
@@ -88,21 +91,21 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
-        
+
         button:active {
             transform: translateY(0);
         }
-        
+
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
+
         .message {
             padding: 16px;
             border-radius: 12px;
@@ -110,24 +113,24 @@
             font-weight: 600;
             display: none;
         }
-        
+
         .message.success {
             background: #d1fae5;
             color: #065f46;
             display: block;
         }
-        
+
         .message.error {
             background: #fee2e2;
             color: #991b1b;
             display: block;
         }
-        
+
         .token-input {
             background: #fef3c7;
             border-color: #fbbf24;
         }
-        
+
         .help-text {
             font-size: 12px;
             color: #64748b;
@@ -135,78 +138,46 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🚀 Test Form Submission</h1>
         <p class="subtitle">Submit a test lead to your LeadForGrow form</p>
-        
+
         <div id="message" class="message"></div>
-        
+
         <form id="testForm">
             <div class="form-group">
                 <label for="token">Form Token *</label>
-                <input 
-                    type="text" 
-                    id="token" 
-                    name="token" 
-                    class="token-input"
-                    placeholder="lfg_form_..." 
-                    required
-                >
+                <input type="text" id="token" name="token" class="token-input" placeholder="lfg_form_..." required>
                 <p class="help-text">Get this from your form's embed code in the Forms page</p>
             </div>
-            
+
             <div class="form-group">
                 <label for="name">Full Name *</label>
-                <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    placeholder="John Doe" 
-                    required
-                >
+                <input type="text" id="name" name="name" placeholder="John Doe" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="phone">Phone Number *</label>
-                <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
-                    placeholder="+1234567890" 
-                    required
-                >
+                <input type="tel" id="phone" name="phone" placeholder="+1234567890" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="john@example.com"
-                >
+                <input type="email" id="email" name="email" placeholder="john@example.com">
             </div>
-            
+
             <div class="form-group">
                 <label for="serviceInterest">Service Interest</label>
-                <input 
-                    type="text" 
-                    id="serviceInterest" 
-                    name="serviceInterest" 
-                    placeholder="Web Development"
-                >
+                <input type="text" id="serviceInterest" name="serviceInterest" placeholder="Web Development">
             </div>
-            
+
             <div class="form-group">
                 <label for="message">Message</label>
-                <textarea 
-                    id="message" 
-                    name="message" 
-                    placeholder="I'm interested in your services..."
-                ></textarea>
+                <textarea id="message" name="message" placeholder="I'm interested in your services..."></textarea>
             </div>
-            
+
             <button type="submit" id="submitBtn">
                 Submit Test Lead
             </button>
@@ -220,14 +191,14 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             messageDiv.style.display = 'none';
-            
+
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
-            
+
             try {
                 const response = await fetch('/api/forms/submit', {
                     method: 'POST',
@@ -236,14 +207,14 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     messageDiv.className = 'message success';
                     messageDiv.textContent = '✅ ' + (result.message || 'Lead submitted successfully!');
                     form.reset();
-                    
+
                     // If there's a redirect URL, show it
                     if (result.redirectUrl) {
                         setTimeout(() => {
@@ -264,4 +235,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -144,8 +144,33 @@ const BusinessSchema = new mongoose.Schema({
     default: () => ({})
   },
   
-  // API Key for external integrations
+  // Integration Health & Status Tracking
+  integrationHealth: {
+    email: {
+      status: { type: String, enum: ['healthy', 'degraded', 'failing', 'unknown'], default: 'unknown' },
+      lastSuccessAt: Date,
+      lastError: String
+    },
+    whatsapp: {
+      status: { type: String, enum: ['healthy', 'degraded', 'failing', 'unknown'], default: 'unknown' },
+      lastSuccessAt: Date,
+      lastError: String
+    },
+    webhooks: {
+      status: { type: String, enum: ['active', 'error', 'inactive'], default: 'inactive' },
+      lastSuccessAt: Date,
+      lastError: String,
+      totalCount: { type: Number, default: 0 }
+    }
+  },
+  
+  // API & Webhook Security
   apiKey: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  webhookSecret: {
     type: String,
     unique: true,
     sparse: true
@@ -194,6 +219,11 @@ BusinessSchema.index({ plan: 1 });
 BusinessSchema.methods.generateApiKey = function() {
   this.apiKey = 'lfg_biz_' + crypto.randomBytes(32).toString('hex');
   return this.apiKey;
+};
+
+BusinessSchema.methods.generateWebhookSecret = function() {
+  this.webhookSecret = 'wh_sec_' + crypto.randomBytes(32).toString('hex');
+  return this.webhookSecret;
 };
 
 BusinessSchema.methods.canCreateForm = function() {

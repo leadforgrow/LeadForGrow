@@ -1,127 +1,100 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Form from '@/models/Form';
-import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
+import { ingestLead } from '@/lib/leadProcessor';
+
+// Utility for CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-user-id',
+};
 
 /**
- * Public Form Submission Endpoint
- * This endpoint accepts form submissions from anywhere (embedded forms, external websites)
- * Authentication is done via form token, not user session
+ * POST /api/forms/submit
+ * Universal endpoint for LeadForGrow Form Submissions (Native & Embedded)
  */
 export async function POST(request) {
   try {
-    await dbConnect();
-    
     const body = await request.json();
     const { token, ...formData } = body;
-    
-    // 1. Validate token
+
     if (!token) {
-      return NextResponse.json({
-        success: false,
-        error: 'Form token required'
-      }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Form token is required' }, { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
-    
-    // 2. Find form by token
+
+    await dbConnect();
+
+    // 1. Resolve Form and Business via token
+    console.log('[Form Submit Debug] Received token:', token);
     const form = await Form.findOne({ token, active: true });
+    console.log('[Form Submit Debug] Query result:', form ? `Found form: ${form.name}` : 'Form NOT FOUND');
+    
     if (!form) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid or inactive form'
-      }, { status: 404 });
+      console.log('[Form Submit Debug] 404 Error: Invalid or inactive form');
+      return NextResponse.json({ success: false, error: 'Invalid or inactive form' }, { 
+        status: 404,
+        headers: corsHeaders
+      });
     }
-    
-    // 3. Validate required fields
-    const requiredFields = form.fields.filter(f => f.required);
-    const missingFields = [];
-    
-    for (const field of requiredFields) {
-      if (!formData[field.name] || formData[field.name].trim() === '') {
-        missingFields.push(field.label);
-      }
-    }
-    
-    if (missingFields.length > 0) {
-      return NextResponse.json({
-        success: false,
-        error: `Missing required fields: ${missingFields.join(', ')}`
-      }, { status: 400 });
-    }
-    
-    // 4. Extract IP address for fraud detection
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown';
-    
-    // 5. Extract source page from referer
-    const sourcePage = request.headers.get('referer') || 'direct';
-    
-    // 6. Process lead through centralized processor
-    const leadData = {
-      name: formData.name,
-      email: formData.email || '',
-      phone: formData.phone,
-      whatsapp: formData.whatsapp || formData.phone,
-      serviceInterest: formData.serviceInterest || formData.service || '',
-      message: formData.message || '',
+
+    // 2. Extract client metadata
+    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+    const sourcePage = request.headers.get('referer') || '';
+
+    // 3. Hand off to the Unified Ingestion Engine
+    const result = await ingestLead(formData, form.businessId, {
       source: 'form',
-      sourceDetails: form.name,
-      sourcePage,
+      sourceDetails: `Form: ${form.name}`,
+      formId: form._id,
       ipAddress,
-      metadata: {
-        formId: form._id,
+      sourcePage,
+      extra: {
         formName: form.name,
-        submittedAt: new Date().toISOString()
+        formToken: token
       }
-    };
-    
-    const result = await processNewLead(leadData, form.businessId, form._id);
-    
-    if (!result.success) {
-      return NextResponse.json({
-        success: false,
-        error: result.message || 'Failed to process lead'
-      }, { status: 500 });
-    }
-    
-    // 7. Update form submission count
+    });
+
+    // 4. Update form analytics
     await form.recordSubmission();
-    
-    // 8. Trigger automation asynchronously (don't wait for it)
-    if (!result.isDuplicate) {
-      // Use setTimeout to trigger automation without blocking response
-      setTimeout(() => {
-        triggerAutomationForLead(result.lead._id, form.businessId).catch(err => {
-          console.error('Automation trigger failed:', err);
-        });
-      }, 100);
-    }
-    
-    // 9. Return success response (never expose business details)
+
+    // 5. Response (Generic to prevent leaking internal business data)
     return NextResponse.json({
       success: true,
-      message: form.successMessage || 'Thank you! We will get back to you soon.',
+      message: form.successMessage || 'Thank you! We have received your inquiry.',
       redirectUrl: form.redirectUrl || null
-    }, { status: 201 });
-    
+    }, {
+      status: 200,
+      headers: corsHeaders
+    });
+
   } catch (error) {
-    console.error('Form submission error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Submission failed. Please try again.'
-    }, { status: 500 });
+    console.error('[Form Submission API] Error:', error);
+    
+    // Generic error message for public security
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Submission failed. Please try again later.' 
+    }, { 
+      status: 500,
+      headers: corsHeaders
+    });
   }
 }
 
-// OPTIONS - Handle CORS preflight
-export async function OPTIONS(request) {
+/**
+ * OPTIONS - Handle CORS for embedded forms
+ */
+export async function OPTIONS() {
   return new NextResponse(null, {
-    status: 200,
+    status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, x-user-id',
     },
   });
 }

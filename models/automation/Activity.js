@@ -32,7 +32,8 @@ const ActivitySchema = new mongoose.Schema({
       'automation_executed',
       'assigned',
       'converted',
-      'lost'
+      'lost',
+      're-engagement'
     ],
     required: true
   },
