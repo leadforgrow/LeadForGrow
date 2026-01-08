@@ -57,7 +57,7 @@ const UserNavbar = () => {
     { label: "Lead System Setup", href: "/services/lead-setup" },
     { label: "Automation Setup", href: "/services/automation-setup" },
     { label: "Social Profile Setup", href: "/services/social-setup" },
-    { label: "SEO Setup", href: "/services/seo-setup", badge: "Coming Soon" },
+    { label: "SEO Setup", href: "/services/seo-setup" },
     { label: "Managed Growth Service", href: "/services/managed-growth" },
   ];
 

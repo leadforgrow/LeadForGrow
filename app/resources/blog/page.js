@@ -3,34 +3,15 @@
 import React from 'react';
 import MarketingLayout from '@/app/components/MarketingLayout';
 import { Calendar, User, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { blogPosts } from './blogs_data';
 
 export default function BlogPage() {
-  const posts = [
-    {
-      title: "Agency Scaling: How to Reach $100k/mo in 2026",
-      excerpt: "Discover the exact frameworks and automation triggers the top 1% of agencies use to scale without increasing headcount.",
-      image: "/images/blog/scaling.png",
-      date: "Jan 5, 2026",
-      author: "Alex Rivera",
-      category: "Scaling"
-    },
-    {
-      title: "The Death of Manual Lead Entry",
-      excerpt: "Why the manual lead sheet is hurting your ROI and how intelligent capture widgets are changing the game for local businesses.",
-      image: "/images/blog/automation.png",
-      date: "Jan 3, 2026",
-      author: "Sarah Chen",
-      category: "Automation"
-    },
-    {
-      title: "Psychology of the 5-Minute Lead Follow-up",
-      excerpt: "Research shows that follow-up time is the #1 factor in closing leads. Learn how to automate this critical window of opportunity.",
-      image: "/images/blog/management.png",
-      date: "Dec 28, 2025",
-      author: "Marcus Thorne",
-      category: "Lead Gen"
-    }
-  ];
+  // Convert our blog object to an array for mapping
+  const posts = Object.entries(blogPosts).map(([slug, data]) => ({
+    slug,
+    ...data
+  }));
 
   return (
     <MarketingLayout 
@@ -39,7 +20,7 @@ export default function BlogPage() {
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         {posts.map((post, idx) => (
-          <article key={idx} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] overflow-hidden group hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500">
+          <article key={idx} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] overflow-hidden group hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 flex flex-col">
             <div className="aspect-[16/10] overflow-hidden relative">
               <img 
                 src={post.image} 
@@ -53,7 +34,7 @@ export default function BlogPage() {
               </div>
             </div>
             
-            <div className="p-10 space-y-6">
+            <div className="p-10 space-y-6 flex-grow flex flex-col">
               <div className="flex items-center gap-6 text-sm font-medium text-slate-400">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
@@ -69,13 +50,13 @@ export default function BlogPage() {
                 {post.title}
               </h2>
               
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 font-light">
-                {post.excerpt}
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 font-light flex-grow">
+                {post.description}
               </p>
               
-              <button className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold group/btn">
+              <Link href={`/resources/blog/${post.slug}`} className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold group/btn pt-4">
                 Read Article <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
-              </button>
+              </Link>
             </div>
           </article>
         ))}
