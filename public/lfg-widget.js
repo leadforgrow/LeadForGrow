@@ -41,12 +41,12 @@
     style.textContent = `
       .lfg-badge { position: fixed; bottom: 20px; right: 20px; background: ${primaryColor}; color: white; width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
       .lfg-badge:hover { transform: scale(1.1); }
-      .lfg-badge svg { width: 32px; height: 32px; fill: white; }
+      .lfg-badge svg { width: 32px; height: 32px; fill: white; display: flex; align-items: center; justify-content: center; }
       
       .lfg-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9998; opacity: 0; visibility: hidden; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
       .lfg-modal-overlay.open { opacity: 1; visibility: visible; }
       
-      .lfg-form-card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: ${theme === 'dark' ? '#1e293b' : '#ffffff'}; border-radius: 20px; padding: 32px; width: 90%; max-width: 450px; position: relative; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15); color: ${theme === 'dark' ? '#f8fafc' : '#1e293b'}; max-height: 90vh; overflow-y: auto; text-align: left; }
+      .lfg-form-card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: ${theme === 'dark' ? '#1e293b' : '#ffffff'}; border-radius: 20px; padding: 32px; width: 90%; max-width: 450px; position: relative; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15); color: ${theme === 'dark' ? '#f8fafc' : '#000000'}; max-height: 90vh; overflow-y: auto; text-align: left; }
       .lfg-modal-overlay.open .lfg-form-card { transform: translateY(0); }
       
       .lfg-close { position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: 0.5; padding: 4px; font-size: 24px; line-height: 1; }
@@ -67,7 +67,7 @@
     // Create Badge
     const badge = document.createElement('div');
     badge.className = 'lfg-badge';
-    badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>';
+    badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.07,12.85c0.77-1.39,2.25-2.21,3.11-3.44c0.91-1.29,0.4-3.7-2.18-3.7c-1.69,0-2.52,1.28-2.87,2.34L6.54,6.96 C7.25,4.83,9.18,3,12.19,3c4.1,0,6.21,3.12,4.84,6.03l-0.01,0.01c-0.6,1.28-2.1,2.42-2.98,3.41c-0.84,0.93-0.92,1.65-1.02,2.55 h-3C11.02,14.28,11.07,13.62,11.07,12.85z M13.84,19.33c0,1.29-1.05,2.34-2.34,2.34s-2.34-1.05-2.34-2.34s1.05-2.34,2.34-2.34 S13.84,18.04,13.84,19.33z"/></svg>';
     container.appendChild(badge);
 
     // Create Modal

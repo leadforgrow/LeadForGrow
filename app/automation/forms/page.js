@@ -412,7 +412,7 @@ const LeadForGrowWidget = () => {
         onClick={() => setIsOpen(true)}
         style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#4F46E5', color: 'white', width: '60px', height: '60px', borderRadius: '50%', boxShadow: '0 4px 14px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 9999 }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M11.07,12.85c0.77-1.39,2.25-2.21,3.11-3.44c0.91-1.29,0.4-3.7-2.18-3.7c-1.69,0-2.52,1.28-2.87,2.34L6.54,6.96 C7.25,4.83,9.18,3,12.19,3c4.1,0,6.21,3.12,4.84,6.03l-0.01,0.01c-0.6,1.28-2.1,2.42-2.98,3.41c-0.84,0.93-0.92,1.65-1.02,2.55 h-3C11.02,14.28,11.07,13.62,11.07,12.85z M13.84,19.33c0,1.29-1.05,2.34-2.34,2.34s-2.34-1.05-2.34-2.34s1.05-2.34,2.34-2.34 S13.84,18.04,13.84,19.33z"/></svg>
       </div>
 
       {/* Modal Overlay */}
@@ -427,12 +427,13 @@ const LeadForGrowWidget = () => {
             </div>
           ) : (
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>Contact Us</h3>
-              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>Share your details and we'll get in touch!</p>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px', color: '#000000' }}>Contact Us</h3>
+              <p style={{ fontSize: '14px', color: '#000000', opacity: 0.7, marginBottom: '24px' }}>Share your details and we'll get in touch!</p>
               <form onSubmit={handleSubmit}>
-                <input type="text" name="name" placeholder="Full Name" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }} />
-                <input type="tel" name="phone" placeholder="Phone Number" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }} />
-                <textarea name="message" placeholder="Message" rows="3" style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }}></textarea>
+                <input type="text" name="name" placeholder="Full Name" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', color: '#000000' }} />
+                <input type="email" name="email" placeholder="Email Address" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', color: '#000000' }} />
+                <input type="tel" name="phone" placeholder="Phone Number" required style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', color: '#000000' }} />
+                <textarea name="message" placeholder="Message" rows="3" style={{ width: '100%', padding: '12px', marginBottom: '16px', border: '1px solid #e2e8f0', borderRadius: '10px', color: '#000000' }}></textarea>
                 <button type="submit" disabled={isSending} style={{ width: '100%', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '10px', padding: '14px', fontWeight: 600, cursor: 'pointer', opacity: isSending ? 0.7 : 1 }}>
                   {isSending ? 'Sending...' : 'Submit'}
                 </button>
