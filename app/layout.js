@@ -1,4 +1,5 @@
 import Footer from "./components/Footer";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -11,6 +12,9 @@ export const metadata = {
     shortcut: "/image.png",
     apple: "/image.png",
   },
+  other: {
+    "google-adsense-account": "ca-pub-4902724266607481",
+  },
 };
 const currentYear = new Date().getFullYear();
 // FIXED: Remove manual head tags - let Next.js handle it
@@ -20,6 +24,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        <Script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4902724266607481"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <ThemeProvider>
           {children}
           <Toaster position="top-right" />
