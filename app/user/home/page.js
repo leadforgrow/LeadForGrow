@@ -19,7 +19,7 @@ export default function LeadForGrowHeroPage() {
       <UserNavbar />
 
       {/* Hero Section */}
-      <div className="relative max-w-7xl mx-auto px-8 py-20 mt-25">
+      <div className="relative max-w-7xl mx-auto px-8 py-20 mt-35">
         {/* Decorative Elements */}
         <div className="absolute top-20 left-10 w-24 h-24 bg-purple-600 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
         <div className="absolute top-40 right-32 w-16 h-16 bg-pink-500 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
@@ -45,44 +45,47 @@ export default function LeadForGrowHeroPage() {
           style={{marginTop:"-70px"}}
           onClick={toggleTheme}
         >
-          <div className="bg-white dark:bg-slate-800 rounded-full p-1 shadow-lg border border-slate-100 dark:border-slate-700 transition-all duration-500 group-hover:scale-110 active:scale-95">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${theme === 'dark' ? 'bg-indigo-600 ring-4 ring-indigo-900/20' : 'bg-amber-400 ring-4 ring-amber-100'}`}>
-              {theme === 'dark' ? <Moon className="w-8 h-8 text-white" /> : <Sun className="w-8 h-8 text-white" />}
+          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full p-1 shadow-2xl border border-white/50 dark:border-slate-700 transition-all duration-500 group-hover:scale-105 active:scale-95 w-32 h-18 relative">
+            <div className={`absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] flex items-center justify-center rounded-full transition-all duration-500 ease-in-out shadow-lg ${theme === 'dark' ? 'translate-x-full bg-indigo-600 ring-4 ring-indigo-900/20' : 'translate-x-0 bg-amber-400 ring-4 ring-amber-100'}`}>
+              {theme === 'dark' ? <Moon className="w-7 h-7 text-white" /> : <Sun className="w-7 h-7 text-white" />}
+            </div>
+            
+            {/* Background Icons (Visible behind the sliding toggle) */}
+            <div className="flex h-full w-full items-center justify-around px-2 opacity-30 select-none">
+                <Sun className={`w-5 h-5 ${theme === 'light' ? 'invisible' : ''} text-amber-500`} />
+                <Moon className={`w-5 h-5 ${theme === 'dark' ? 'invisible' : ''} text-indigo-400`} />
             </div>
           </div>
-              <p className="text-center mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{theme === 'dark' ? 'I am your Lead' : 'I am your Lead'}</p>
+          <p className="text-center mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{theme === 'dark' ? 'I am your Lead' : 'I am your Lead'}</p>
           <p className="text-center text-[10px] text-indigo-500 font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity mt-1 italic">Click to Switch</p>
         </div>
 
         {/* Main Content */}
         <div className="relative z-20 text-center pt-40" style={{marginTop:"-130px"}}>
-          <h1 className="text-4xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
             Turn interest into revenue<br />
             capture every lead<br />
             <span className="block sm:inline">automatically</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-4 font-light transition-colors duration-500">
+          <p className="text-2xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-4 font-light transition-colors duration-500">
             Scale your agency — all from one dashboard.
           </p>
           
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12 transition-colors duration-500">
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12 transition-colors duration-500">
             No more juggling tools. No more chaos. This is the platform agencies use to run their entire client operation.
           </p>
 
           <div className="flex items-center justify-center gap-4">
             <button 
               onClick={() => setShowVideo(true)}
-              className="bg-white dark:bg-transparent text-slate-900 dark:text-white px-8 py-4 rounded-xl text-lg font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition flex items-center gap-2 active:scale-95"
+              className="bg-white dark:bg-transparent text-slate-900 dark:text-white px-8 py-4 rounded-xl text-xl font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition flex items-center gap-2 active:scale-95"
             >
               <Play className="w-5 h-5 fill-current" />
               Watch video
             </button>
           </div>
 
-          <p className="mt-6 text-sm text-slate-400 dark:text-slate-500 font-medium">
-            No credit card required • Free 14-day trial
-          </p>
         </div>
 
         {/* Decorative Arrows */}

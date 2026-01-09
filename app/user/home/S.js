@@ -35,7 +35,7 @@ export default function AgencyOSLanding() {
               Reliable Platform <span className="mx-2">•</span> <span className="underline">150,000+ client</span>
             </div>
 
-            <h2 className="text-5xl lg:text-6xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
+            <h2 className="text-6xl lg:text-6xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
               Providing Services<br />
               with <span className="text-indigo-600">top</span> quality.
             </h2>

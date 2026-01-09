@@ -14,7 +14,7 @@ export default function LeadForGrowHero() {
 
           {/* Heading */}
           <div className="lg:pr-10 py-6">
-            <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
+            <h2 className="text-6xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
               Discover<br />
               all <span className="italic text-indigo-600">our</span><br />
               Services.
