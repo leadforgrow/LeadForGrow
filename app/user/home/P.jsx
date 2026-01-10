@@ -2,7 +2,7 @@ import { Check, Info, X, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-rea
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
-export default function PricingSection() {
+export default function PricingSection({ onGetStarted }) {
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -215,7 +215,13 @@ export default function PricingSection() {
                 </div>
 
                 <button
-                  onClick={() => handleSelectPlan(plan)}
+                  onClick={() => {
+                    if (onGetStarted) {
+                      onGetStarted(plan.name);
+                    } else {
+                      handleSelectPlan(plan);
+                    }
+                  }}
                   className={`w-full py-4 px-6 rounded-2xl font-bold text-[10px] tracking-widest uppercase transition-all duration-300 active:scale-95 mt-auto ${plan.popular
                     ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 dark:shadow-none'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-indigo-200 dark:group-hover:shadow-none'

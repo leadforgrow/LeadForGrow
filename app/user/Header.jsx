@@ -7,12 +7,33 @@ const UserNavbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [userPlan, setUserPlan] = useState(null); // Track user's plan
 
-  // Check for userid in localStorage on mount
+  // Check for userid and fetch user plan on mount
   useEffect(() => {
     const userid = localStorage.getItem("userid");
-    setIsLoggedIn(!!userid);
+    if (userid) {
+      setIsLoggedIn(true);
+      // Fetch user plan from backend
+      fetchUserPlan(userid);
+    } else {
+      setIsLoggedIn(false);
+    }
   }, []);
+
+  // Fetch user plan from backend
+  const fetchUserPlan = async (userId) => {
+    try {
+      const response = await fetch(`/api/user/profile/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserPlan(data.plan || 'free'); // Default to 'free' if no plan
+      }
+    } catch (error) {
+      console.error('Failed to fetch user plan:', error);
+      setUserPlan('free'); // Default to free on error
+    }
+  };
 
   // Handle scroll detection
   useEffect(() => {
@@ -136,7 +157,7 @@ const UserNavbar = () => {
 
           {/* Navigation - Center */}
           <div className="hidden lg:flex flex-1 justify-center">
-            {!isLoggedIn ? (
+            {(!isLoggedIn || userPlan === 'free' || userPlan === null) ? (
               // PUBLIC NAVIGATION
               <div className="flex items-center space-x-10">
                 {/* Product Dropdown */}
@@ -301,7 +322,7 @@ const UserNavbar = () => {
           }`}
       >
         <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
-          {!isLoggedIn ? (
+          {(!isLoggedIn || userPlan === 'free' || userPlan === null) ? (
             <>
               {/* Product Section */}
               <div className="space-y-1">

@@ -11,12 +11,81 @@ import SafetyNet from './SafetyNet';
 import LeaderboardSection from './Leaderboard';
 import Footer from './Footer';
 import UserNavbar from '../Header';
+import TrustPopup from '@/app/components/TrustPopup';
+import SuccessNotification from '@/app/components/SuccessNotification';
 import { useTheme } from '../../components/ThemeContext';
 import { Moon, Sun, X, Play, ArrowRight } from 'lucide-react';
 
 export default function LeadForGrowHeroPage() {
   const { theme, toggleTheme } = useTheme();
   const [showVideo, setShowVideo] = React.useState(false);
+  const [showTrustPopup, setShowTrustPopup] = React.useState(false);
+  const [showSuccess, setShowSuccess] = React.useState(false);
+  const [meetLink, setMeetLink] = React.useState('');
+  const [userData, setUserData] = React.useState(null);
+
+  // Handle Get Started button click
+  const handleGetStarted = () => {
+    const userId = localStorage.getItem('userid');
+    
+    if (!userId) {
+      // Not logged in - redirect to register
+      window.location.href = '/user/register';
+      return;
+    }
+
+    // Logged in - fetch user data and show popup
+    fetchUserDataAndShowPopup(userId);
+  };
+
+  // Fetch user data
+  const fetchUserDataAndShowPopup = async (userId) => {
+    try {
+      const response = await fetch(`/api/user/profile/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+        setShowTrustPopup(true);
+      } else {
+        console.error('Failed to fetch user data');
+        // Fallback: show popup anyway
+        setShowTrustPopup(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      // Fallback: show popup anyway
+      setShowTrustPopup(true);
+    }
+  };
+
+  // Handle schedule call
+  const handleScheduleCall = async () => {
+    const userId = localStorage.getItem('userid');
+    
+    try {
+      const response = await fetch('/api/onboarding/schedule-call', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Close popup and show success notification
+        setShowTrustPopup(false);
+        setMeetLink(data.meetLink);
+        setShowSuccess(true);
+      } else {
+        alert('Failed to schedule call. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error scheduling call:', error);
+      alert('An error occurred. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500 overflow-hidden">
@@ -74,6 +143,7 @@ export default function LeadForGrowHeroPage() {
           <div className="flex flex-col items-center mt-12 mb-12">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
               <button 
+                onClick={handleGetStarted}
                 className="w-full sm:w-auto bg-indigo-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-indigo-700 transition shadow-2xl shadow-indigo-200 dark:shadow-none active:scale-95 flex items-center justify-center gap-3"
               >
                 Fix My Follow-Up Leak <ArrowRight className="w-6 h-6" />
@@ -119,7 +189,14 @@ export default function LeadForGrowHeroPage() {
       <LeaderboardSection />
       <SafetyNet />
       <AgencyOSLanding />
-      <PricingSection />
+      <PricingSection onGetStarted={(planName) => {
+        const userId = localStorage.getItem('userid');
+        if (!userId) {
+          window.location.href = '/user/register';
+        } else {
+          fetchUserDataAndShowPopup(userId);
+        }
+      }} />
       <ContactFormSection />
       {/* <Footer /> */}
 
@@ -144,6 +221,21 @@ export default function LeadForGrowHeroPage() {
           </div>
         </div>
       )}
+
+      {/* Trust Popup */}
+      <TrustPopup
+        isOpen={showTrustPopup}
+        onClose={() => setShowTrustPopup(false)}
+        userName={userData?.name || ''}
+        onScheduleCall={handleScheduleCall}
+      />
+
+      {/* Success Notification */}
+      <SuccessNotification
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        meetLink={meetLink}
+      />
     </div>
   );
 }
