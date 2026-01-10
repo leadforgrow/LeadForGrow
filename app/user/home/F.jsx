@@ -20,10 +20,10 @@ export default function LeadForGrowHero() {
             </h2>
             <div className="space-y-8">
               {[
-                { step: "01", title: "Instant Capture", desc: "Every call, WhatsApp, and form enquiry is instantly funneled into one secure vault. No more lost sticky notes." },
+                { step: "01", title: "Instant Capture", desc: "Every call, WhatsApp, and form enquiry is captured instantly. No more lost sticky notes." },
                 { step: "02", title: "Smart Routing", desc: "Leads are assigned to the right team member in seconds based on availability and expertise." },
-                { step: "03", title: "Automated Persistance", desc: "The system enforces follow-ups through automated multi-channel sequences until the lead converts." },
-                { step: "04", title: "Revenue Visibility", desc: "See exactly how much revenue is 'At Risk' and who in your team is closing the most deals." }
+                { step: "03", title: "Automated Persistence", desc: "The system enforces follow-ups through multi-channel sequences until the lead converts." },
+                { step: "04", title: "Revenue Visibility", desc: "See exactly how much revenue is 'At Risk' and who is closing the most deals." }
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-6 group">
                   <div className="text-2xl font-black text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-colors">{item.step}</div>
@@ -59,10 +59,8 @@ export default function LeadForGrowHero() {
             {[
               { icon: Target, title: "Higher Conversion", desc: "Response time under 5 minutes increases conversion rates by up to 391%. We make it happen every time.", color: "text-emerald-500" },
               { icon: ShieldCheck, title: "Zero Leakage", desc: "Every lead is accounted for. No more 'I forgot to call' or 'The lead was lost in my WhatsApp'.", color: "text-blue-500" },
-              { icon: BarChart3, title: "ROI Clarity", desc: "Know exactly which ad campaign or source is generating your actual revenue, not just clicks.", color: "text-indigo-500" },
-              { icon: Zap, title: "Team Performance", desc: "Gamify your sales team with clear leaderboard metrics based on follow-up speed and closure rates.", color: "text-amber-500" },
-              { icon: Globe, title: "White-Label Ready", desc: "Perfect for Agencies. Provide a high-tier revenue operating system to your clients under your own brand.", color: "text-rose-500" },
-              { icon: Layers, title: "Scale Without Chaos", desc: "Manage 10 or 10,000 leads with the same level of discipline and automated precision.", color: "text-cyan-500" }
+
+              { icon: Zap, title: "Operational Discipline at Scale", desc: "Manage 10 or 10,000 leads with the same level of discipline, automated precision, and leaderboard metrics.", color: "text-amber-500" }
             ].map((item, i) => (
               <div key={i} className="bg-white dark:bg-slate-900/40 p-10 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all group">
                 <div className={`w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-8 group-hover:bg-slate-900 dark:group-hover:bg-white transition-colors`}>

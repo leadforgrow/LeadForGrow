@@ -68,7 +68,7 @@ export default function LeadForGrowHeroPage() {
           </h1>
           
           <p className="text-2xl md:text-3xl text-slate-700 dark:text-slate-300 max-w-4xl mx-auto mb-6 mt-8 font-light transition-colors duration-500 leading-relaxed italic border-l-4 border-indigo-600 pl-6 text-left inline-block">
-            "70% of leads go cold because they aren't followed up within 5 minutes. LeadForGrow ensures every enquiry converts or is marked lost—automatically."
+            Leads go cold within minutes if not followed up. LeadForGrow ensures every enquiry is instantly acted on — or marked lost — automatically.
           </p>
           
           <div className="flex flex-col items-center mt-12 mb-12">
@@ -86,7 +86,6 @@ export default function LeadForGrowHeroPage() {
                 Watch Revenue Walkthrough
               </button>
             </div>
-            <p className="mt-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Trust by 150+ high-growth revenue teams globally</p>
           </div>
         </div>
 
@@ -98,12 +97,27 @@ export default function LeadForGrowHeroPage() {
         </div>
       </div>
 
-    
       <RevenueAudit />
+
+      {/* REVENUE LEAK ESTIMATE BLOCK */}
+      <div className="bg-slate-900 py-16 text-center border-y border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="max-w-4xl mx-auto px-8 relative z-10">
+          <h3 className="text-3xl md:text-4xl font-serif text-white mb-4">What is one missed lead worth to you?</h3>
+          <p className="text-slate-400 text-lg mb-8 max-w-2xl mx-auto font-medium">
+             If your average deal is ₹50,000 and you miss just 3 leads a week, that’s ₹6,00,000 lost every month. 
+             Stop letting them go to your competitors.
+          </p>
+          <button className="bg-white text-slate-900 px-8 py-4 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all shadow-xl">
+             Estimate My Revenue Leak
+          </button>
+        </div>
+      </div>
+
       <PainSection />
       <LeadForGrowHero />
-      <SafetyNet />
       <LeaderboardSection />
+      <SafetyNet />
       <AgencyOSLanding />
       <PricingSection />
       <ContactFormSection />

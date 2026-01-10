@@ -69,7 +69,7 @@ export default function AgencyOSLanding() {
                 },
                 { 
                   icon: Users, 
-                  title: "Revenue Teams", 
+                  title: "Sales Teams", 
                   pain: "Sales team underperforming benchmarks.", 
                   solution: "Enforce a standardized follow-up culture. See exactly who is closing and why.",
                   cta: "Unblock My Team"
@@ -110,7 +110,7 @@ export default function AgencyOSLanding() {
             <div className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent mb-4 tracking-tighter">
               150+
             </div>
-            <div className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">High-Growth Revenue Teams</div>
+            <div className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">High-Growth Sales Teams</div>
           </div>
         </div>
       </main>

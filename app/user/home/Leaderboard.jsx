@@ -37,6 +37,7 @@ export default function LeaderboardSection() {
               <Users className="w-3 h-3" />
               Billion-Dollar Scale
             </div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">You can’t improve what you can’t enforce.</p>
             <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight mb-8">
               Absolute <br />
               Accountability. <br />

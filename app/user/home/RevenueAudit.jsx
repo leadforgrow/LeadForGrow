@@ -12,9 +12,9 @@ export default function RevenueAudit() {
               The Cost of Inaction
             </div>
             <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight mb-8">
-              A 10-minute delay is <br />
-              costing you <span className="text-rose-600">85%</span> of <br />
-              your revenue.
+              A 10-minute delay <br />
+              can cost you <br />
+              most of the deal.
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-10 max-w-xl">
               While your team checks their email or logs into a CRM, your lead has already contacted two other competitors. LeadForGrow stops the clock the second an enquiry arrives.

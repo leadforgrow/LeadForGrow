@@ -43,8 +43,7 @@ export default function ContactFormSection() {
           <div>
             <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4">REACH OUT</p>
             <h2 className="text-5xl lg:text-6xl font-serif text-slate-900 dark:text-white mb-8 leading-tight transition-colors">
-              Stop the <span className="italic text-rose-600">Leak.</span><br />
-              Fix your follow-ups.
+              Want to see where leads are leaking in your business?
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400 mb-12 font-medium leading-relaxed max-w-md">
               Every hour you wait is a lead gone cold. Our team will show you exactly how to automate your follow-ups and recover mission-critical revenue.

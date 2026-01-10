@@ -127,7 +127,10 @@ export default function PricingSection() {
             No hidden charge,<br /> Choose your plan.
           </h2>
           <div className="max-w-2xl mx-auto mb-16 text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic border-x border-indigo-600/20 px-8">
-            LeadForGrow is an investment in revenue persistence. Most teams recover the annual cost of the system within the first 3 missed leads they successfully capture. Choose the tier that matches your current growth volume.
+            <p className="mb-4">LeadForGrow is an investment in revenue persistence. Choose the tier that matches your current growth volume.</p>
+            <p className="text-indigo-600 dark:text-indigo-400 font-bold text-lg not-italic">
+              Most teams recover the cost within their first few recovered leads.
+            </p>
           </div>
 
           {/* Toggle */}

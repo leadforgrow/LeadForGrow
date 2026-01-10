@@ -156,57 +156,7 @@ export default function MarketingLayout({
         </div>
       </div>
 
-      {/* Footer Section */}
-      <footer className="bg-slate-50 dark:bg-black border-t border-slate-100 dark:border-slate-800 pt-24 pb-12 px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <img src="/image.png" alt="LeadForGrow" className="w-10 h-10" />
-              <span className="text-xl font-bold dark:text-white">LeadForGrow</span>
-            </div>
-            <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed">
-              The elite OS for agencies and small businesses. Capture, automate, and close leads with world-class technology.
-            </p>
-          </div>
 
-          <div>
-            <h4 className="font-bold mb-6 dark:text-white uppercase tracking-widest text-xs">Product</h4>
-            <ul className="space-y-4 text-slate-500 dark:text-slate-400">
-              <li><a href="/product/crm" className="hover:text-indigo-600 transition">Lead Management CRM</a></li>
-              <li><a href="/product/builder" className="hover:text-indigo-600 transition">Funnel Builder</a></li>
-              <li><a href="/product/automation" className="hover:text-indigo-600 transition">Sales Automation</a></li>
-              <li><a href="/product/analytics" className="hover:text-indigo-600 transition">ROI Analytics</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-6 dark:text-white uppercase tracking-widest text-xs">Services</h4>
-            <ul className="space-y-4 text-slate-500 dark:text-slate-400">
-              <li><a href="/services/dfy-website" className="hover:text-indigo-600 transition">DFY Website</a></li>
-              <li><a href="/services/lead-setup" className="hover:text-indigo-600 transition">System Setup</a></li>
-              <li><a href="/services/automation-setup" className="hover:text-indigo-600 transition">Automation Setup</a></li>
-              <li><a href="/services/seo-setup" className="hover:text-indigo-600 transition">SEO Strategy</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-6 dark:text-white uppercase tracking-widest text-xs">Resources</h4>
-            <ul className="space-y-4 text-slate-500 dark:text-slate-400">
-              <li><a href="/resources/blog" className="hover:text-indigo-600 transition">Growth Blog</a></li>
-              <li><a href="/resources/how-it-works" className="hover:text-indigo-600 transition">How It Works</a></li>
-              <li><a href="/resources/use-cases" className="hover:text-indigo-600 transition">Use Cases</a></li>
-              <li><a href="/user/register" className="hover:text-indigo-600 transition">Get Started</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-24 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-sm text-slate-400">© 2026 LeadForGrow. Built for high-performance agencies.</p>
-          <div className="flex gap-8 text-sm text-slate-400">
-            <a href="/privacy" className="hover:text-slate-600 transition">Privacy</a>
-            <a href="/terms" className="hover:text-slate-600 transition">Terms</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
