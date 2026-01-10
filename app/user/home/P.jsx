@@ -126,6 +126,9 @@ export default function PricingSection() {
           <h2 className="text-4xl lg:text-5xl font-serif text-slate-900 dark:text-white mb-10 leading-tight transition-colors">
             No hidden charge,<br /> Choose your plan.
           </h2>
+          <div className="max-w-2xl mx-auto mb-16 text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic border-x border-indigo-600/20 px-8">
+            LeadForGrow is an investment in revenue persistence. Most teams recover the annual cost of the system within the first 3 missed leads they successfully capture. Choose the tier that matches your current growth volume.
+          </div>
 
           {/* Toggle */}
           <div className="inline-flex bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-1.5 border border-slate-100 dark:border-slate-800 transition-colors">

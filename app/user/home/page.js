@@ -5,9 +5,14 @@ import LeadForGrowHero from './F';
 import AgencyOSLanding from './S';
 import PricingSection from './P';
 import ContactFormSection from './C';
+import PainSection from './Pain';
+import RevenueAudit from './RevenueAudit';
+import SafetyNet from './SafetyNet';
+import LeaderboardSection from './Leaderboard';
+import Footer from './Footer';
 import UserNavbar from '../Header';
 import { useTheme } from '../../components/ThemeContext';
-import { Moon, Sun, X, Play } from 'lucide-react';
+import { Moon, Sun, X, Play, ArrowRight } from 'lucide-react';
 
 export default function LeadForGrowHeroPage() {
   const { theme, toggleTheme } = useTheme();
@@ -21,22 +26,20 @@ export default function LeadForGrowHeroPage() {
       {/* Hero Section */}
       <div className="relative max-w-7xl mx-auto px-8 py-20 mt-35">
         {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-24 h-24 bg-purple-600 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
-        <div className="absolute top-40 right-32 w-16 h-16 bg-pink-500 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
-        <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-emerald-400 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
-        <div className="absolute bottom-20 right-20 w-32 h-32 bg-yellow-400 rounded-full opacity-20 blur-xl dark:opacity-40"></div>
+        <div className="absolute top-20 left-10 w-24 h-24 bg-indigo-600 rounded-full opacity-10 blur-3xl dark:opacity-20"></div>
+        <div className="absolute top-40 right-32 w-16 h-16 bg-rose-500 rounded-full opacity-10 blur-3xl dark:opacity-20"></div>
         
-        {/* Profile Images */}
-        <div className="absolute top-32 left-20 w-64 h-64 rounded-full overflow-hidden border-8 border-white dark:border-slate-800 shadow-2xl z-10 transition-colors duration-500">
-          <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
-            <div className="w-32 h-32 bg-slate-400 dark:bg-slate-700 rounded-full"></div>
-          </div>
+        {/* Decorative Circles (Refined for Light/Dark mode consistency) */}
+        <div className="absolute top-28 left-6 lg:left-16 w-64 h-64 rounded-full border-[16px] border-white dark:border-slate-800 shadow-2xl hidden md:flex items-center justify-center animate-in fade-in zoom-in duration-1000">
+           <div className="w-48 h-48 bg-slate-200/40 dark:bg-slate-700/50 rounded-full flex items-center justify-center">
+              <div className="w-32 h-32 bg-slate-400/20 dark:bg-slate-600/30 rounded-full blur-sm"></div>
+           </div>
         </div>
         
-        <div className="absolute top-48 right-24 w-72 h-72 rounded-full overflow-hidden border-8 border-white dark:border-slate-800 shadow-2xl z-10 transition-colors duration-500">
-          <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
-            <div className="w-36 h-36 bg-slate-400 dark:bg-slate-700 rounded-full"></div>
-          </div>
+        <div className="absolute top-44 right-6 lg:right-20 w-80 h-80 rounded-full border-[20px] border-white dark:border-slate-800 shadow-2xl hidden lg:flex items-center justify-center animate-in fade-in zoom-in duration-1000 delay-300">
+           <div className="w-64 h-64 bg-slate-200/40 dark:bg-slate-700/50 rounded-full flex items-center justify-center">
+              <div className="w-44 h-44 bg-slate-400/20 dark:bg-slate-600/30 rounded-full blur-sm"></div>
+           </div>
         </div>
 
         {/* Theme Toggle Badge */}
@@ -49,43 +52,42 @@ export default function LeadForGrowHeroPage() {
             <div className={`absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] flex items-center justify-center rounded-full transition-all duration-500 ease-in-out shadow-lg ${theme === 'dark' ? 'translate-x-full bg-indigo-600 ring-4 ring-indigo-900/20' : 'translate-x-0 bg-amber-400 ring-4 ring-amber-100'}`}>
               {theme === 'dark' ? <Moon className="w-7 h-7 text-white" /> : <Sun className="w-7 h-7 text-white" />}
             </div>
-            
-            {/* Background Icons (Visible behind the sliding toggle) */}
             <div className="flex h-full w-full items-center justify-around px-2 opacity-30 select-none">
                 <Sun className={`w-5 h-5 ${theme === 'light' ? 'invisible' : ''} text-amber-500`} />
                 <Moon className={`w-5 h-5 ${theme === 'dark' ? 'invisible' : ''} text-indigo-400`} />
             </div>
           </div>
-          <p className="text-center mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{theme === 'dark' ? 'I am your Lead' : 'I am your Lead'}</p>
-          <p className="text-center text-[10px] text-indigo-500 font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity mt-1 italic">Click to Switch</p>
+          <p className="text-center mt-3 text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest font-sans">Stop Revenue Leakage</p>
         </div>
 
         {/* Main Content */}
         <div className="relative z-20 text-center pt-40" style={{marginTop:"-130px"}}>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
-            Turn interest into revenue<br />
-            capture every lead<br />
-            <span className="block sm:inline">automatically</span>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500 tracking-tight">
+            Stop Losing Revenue<br />
+            to Slow Follow-Ups.
           </h1>
           
-          <p className="text-2xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-4 font-light transition-colors duration-500">
-            Scale your agency — all from one dashboard.
+          <p className="text-2xl md:text-3xl text-slate-700 dark:text-slate-300 max-w-4xl mx-auto mb-6 mt-8 font-light transition-colors duration-500 leading-relaxed italic border-l-4 border-indigo-600 pl-6 text-left inline-block">
+            "70% of leads go cold because they aren't followed up within 5 minutes. LeadForGrow ensures every enquiry converts or is marked lost—automatically."
           </p>
           
-          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12 transition-colors duration-500">
-            No more juggling tools. No more chaos. This is the platform agencies use to run their entire client operation.
-          </p>
-
-          <div className="flex items-center justify-center gap-4">
-            <button 
-              onClick={() => setShowVideo(true)}
-              className="bg-white dark:bg-transparent text-slate-900 dark:text-white px-8 py-4 rounded-xl text-xl font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition flex items-center gap-2 active:scale-95"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              Watch video
-            </button>
+          <div className="flex flex-col items-center mt-12 mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
+              <button 
+                className="w-full sm:w-auto bg-indigo-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-indigo-700 transition shadow-2xl shadow-indigo-200 dark:shadow-none active:scale-95 flex items-center justify-center gap-3"
+              >
+                Fix My Follow-Up Leak <ArrowRight className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={() => setShowVideo(true)}
+                className="w-full sm:w-auto bg-white dark:bg-transparent text-slate-900 dark:text-white px-10 py-5 rounded-2xl text-xl font-bold border-2 border-slate-900 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 transition flex items-center justify-center gap-3 active:scale-95"
+              >
+                <Play className="w-5 h-5 fill-current" />
+                Watch Revenue Walkthrough
+              </button>
+            </div>
+            <p className="mt-8 text-xs font-bold text-slate-400 uppercase tracking-widest">Trust by 150+ high-growth revenue teams globally</p>
           </div>
-
         </div>
 
         {/* Decorative Arrows */}
@@ -94,19 +96,18 @@ export default function LeadForGrowHeroPage() {
             <path d="M7 17L17 7M17 7H7M17 7V17" />
           </svg>
         </div>
-        
-        <div className="absolute top-72 right-1/3 text-slate-300 dark:text-slate-700 transform rotate-180">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M7 17L17 7M17 7H7M17 7V17" />
-          </svg>
-        </div>
       </div>
 
     
+      <RevenueAudit />
+      <PainSection />
       <LeadForGrowHero />
+      <SafetyNet />
+      <LeaderboardSection />
       <AgencyOSLanding />
       <PricingSection />
       <ContactFormSection />
+      {/* <Footer /> */}
 
       {/* Video Modal */}
       {showVideo && (

@@ -57,7 +57,7 @@ export default function Footer() {
               Turn websites into lead-generating systems.
             </p>
             <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-              Build websites, capture leads, automate follow-ups, and manage growth — all in one platform.
+              The Revenue Follow-Up Operating System (Rev-OS) for high-growth teams. We ensure every enquiry converts or is marked lost—automatically.
             </p>
             <a
               href="mailto:sales@leadforgrow.online"

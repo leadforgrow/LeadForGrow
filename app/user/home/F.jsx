@@ -1,127 +1,80 @@
+import React from 'react';
+import { Target, Zap, ShieldCheck, BarChart3, Globe, Layers } from 'lucide-react';
+
 export default function LeadForGrowHero() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-500 overflow-hidden relative border-t dark:border-slate-800">
-      {/* Decorative circles */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-400 rounded-full -translate-y-1/2 translate-x-1/2 opacity-20 blur-2xl"></div>
-      <div className="absolute bottom-20 left-0 w-32 h-32 bg-blue-500 rounded-full -translate-x-1/2 opacity-20 blur-2xl"></div>
-      <div className="absolute top-1/2 left-12 w-12 h-12 bg-emerald-400 rounded-full opacity-20 blur-xl"></div>
-      <div className="absolute bottom-0 right-32 w-20 h-20 bg-orange-500 rounded-full opacity-20 blur-xl"></div>
+    <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 overflow-hidden relative border-t dark:border-slate-800">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-600 rounded-full -translate-y-1/2 translate-x-1/2 opacity-10 blur-3xl"></div>
+      <div className="absolute bottom-20 left-0 w-32 h-32 bg-blue-500 rounded-full -translate-x-1/2 opacity-10 blur-3xl"></div>
 
       <div className="max-w-7xl mx-auto px-8 py-24 relative z-10">
 
-        {/* ROW 1: Headline + 2 Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
-
-          {/* Heading */}
-          <div className="lg:pr-10 py-6">
-            <h2 className="text-6xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500">
-              Discover<br />
-              all <span className="italic text-indigo-600">our</span><br />
-              Services.
+        {/* SECTION 3: HOW IT WORKS (SYSTEM VIEW) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-32">
+          <div className="animate-in fade-in slide-in-from-left-8 duration-700">
+            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4">The System</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight mb-8">
+              A Revenue engine<br />
+              that never <span className="italic text-indigo-600">sleeps.</span>
             </h2>
-            <p className="mt-6 text-slate-500 dark:text-slate-400 font-medium">Everything you need to scale your agency operations from zero to one.</p>
-          </div>
-
-          {/* Card 1 */}
-          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-10 border border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all duration-300 group shadow-sm hover:shadow-xl">
-            <div className="w-16 h-16 mb-8 flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl group-hover:scale-110 transition-transform" onClick={() => window.location.href = '/website-funnel'}>
-              <svg viewBox="0 0 64 64" fill="none" className="w-10 h-10">
-                <rect x="8" y="16" width="20" height="4" fill="#6366f1" rx="2" />
-                <rect x="8" y="24" width="20" height="4" fill="#f472b6" rx="2" />
-                <rect x="8" y="32" width="20" height="4" fill="#fbbf24" rx="2" />
-                <path d="M36 12 L52 20 L52 44 L36 52 L20 44 L20 20 Z" stroke="#6366f1" strokeWidth="3" fill="none" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 cursor-pointer" onClick={() => window.location.href = '/website-funnel'}>Website Funnel</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-              Build landing pages, funnels & payment pages — ultra fast.
-            </p>
-            <div className="text-indigo-600 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
-              Explore Layer <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
+            <div className="space-y-8">
+              {[
+                { step: "01", title: "Instant Capture", desc: "Every call, WhatsApp, and form enquiry is instantly funneled into one secure vault. No more lost sticky notes." },
+                { step: "02", title: "Smart Routing", desc: "Leads are assigned to the right team member in seconds based on availability and expertise." },
+                { step: "03", title: "Automated Persistance", desc: "The system enforces follow-ups through automated multi-channel sequences until the lead converts." },
+                { step: "04", title: "Revenue Visibility", desc: "See exactly how much revenue is 'At Risk' and who in your team is closing the most deals." }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-6 group">
+                  <div className="text-2xl font-black text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-colors">{item.step}</div>
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{item.title}</h4>
+                    <p className="text-slate-500 dark:text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-10 border border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all duration-300 group shadow-sm hover:shadow-xl">
-            <div className="w-16 h-16 mb-8 flex items-center justify-center bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl group-hover:scale-110 transition-transform">
-              <svg viewBox="0 0 64 64" fill="none" className="w-10 h-10">
-                <rect x="12" y="10" width="12" height="6" fill="#fbbf24" rx="2" />
-                <rect x="28" y="10" width="12" height="6" fill="#60a5fa" rx="2" />
-                <rect x="44" y="10" width="8" height="6" fill="#f472b6" rx="2" />
-                <path d="M16 22 L16 50 M32 22 L32 50 M48 22 L48 50" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-              </svg>
+          <div className="relative animate-in fade-in zoom-in duration-1000">
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[3rem] p-4 shadow-2xl overflow-hidden group">
+              <img
+                src="/rev-os-flow.png"
+                alt="LeadForGrow System Architecture"
+                className="w-full h-auto rounded-[2.5rem] group-hover:scale-105 transition-transform duration-700"
+              />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Client Accounts</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-              Manage multiple clients with separate access & roles.
-            </p>
-            <div className="text-emerald-500 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
-              Manage Access <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
-            </div>
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl"></div>
           </div>
-
         </div>
 
-        {/* ROW 2: Remaining Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-          {/* Card 3 */}
-          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-10 border border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all duration-300 group shadow-sm hover:shadow-xl">
-            <div className="w-16 h-16 mb-8 flex items-center justify-center bg-rose-50 dark:bg-rose-900/20 rounded-2xl group-hover:scale-110 transition-transform">
-              <svg viewBox="0 0 64 64" fill="none" className="w-10 h-10">
-                <path d="M12 28 L28 12 L44 28" stroke="#f43f5e" strokeWidth="3" fill="none" strokeLinecap="round" />
-                <circle cx="28" cy="28" r="8" fill="#22d3ee" />
-                <path d="M20 36 L36 52" stroke="#f472b6" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Lead Management</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-              Capture, track & manage leads in one unified dashboard.
-            </p>
-            <div className="text-rose-500 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
-              Track Growth <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
-            </div>
+        {/* SECTION 5: KEY OUTCOMES */}
+        <div className="pt-24 border-t border-slate-200 dark:border-slate-900">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mb-6">Designed for Revenue, not just dashboards.</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">We stopped selling "features" and started selling "results". Here is what changes on Day 1.</p>
           </div>
 
-          {/* Card 4 */}
-          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-10 border border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all duration-300 group shadow-sm hover:shadow-xl">
-            <div className="w-16 h-16 mb-8 flex items-center justify-center bg-cyan-50 dark:bg-cyan-900/20 rounded-2xl group-hover:scale-110 transition-transform">
-              <svg viewBox="0 0 64 64" fill="none" className="w-10 h-10">
-                <rect x="8" y="32" width="6" height="20" fill="#22d3ee" rx="2" />
-                <rect x="18" y="24" width="6" height="28" fill="#60a5fa" rx="2" />
-                <rect x="28" y="16" width="6" height="36" fill="#a78bfa" rx="2" />
-                <rect x="38" y="20" width="6" height="32" fill="#f472b6" rx="2" />
-                <rect x="48" y="28" width="6" height="24" fill="#fbbf24" rx="2" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Analytics & Reports</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-              Track performance, conversions & deep client ROI.
-            </p>
-            <div className="text-cyan-500 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
-              View Reports <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { icon: Target, title: "Higher Conversion", desc: "Response time under 5 minutes increases conversion rates by up to 391%. We make it happen every time.", color: "text-emerald-500" },
+              { icon: ShieldCheck, title: "Zero Leakage", desc: "Every lead is accounted for. No more 'I forgot to call' or 'The lead was lost in my WhatsApp'.", color: "text-blue-500" },
+              { icon: BarChart3, title: "ROI Clarity", desc: "Know exactly which ad campaign or source is generating your actual revenue, not just clicks.", color: "text-indigo-500" },
+              { icon: Zap, title: "Team Performance", desc: "Gamify your sales team with clear leaderboard metrics based on follow-up speed and closure rates.", color: "text-amber-500" },
+              { icon: Globe, title: "White-Label Ready", desc: "Perfect for Agencies. Provide a high-tier revenue operating system to your clients under your own brand.", color: "text-rose-500" },
+              { icon: Layers, title: "Scale Without Chaos", desc: "Manage 10 or 10,000 leads with the same level of discipline and automated precision.", color: "text-cyan-500" }
+            ].map((item, i) => (
+              <div key={i} className="bg-white dark:bg-slate-900/40 p-10 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all group">
+                <div className={`w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-8 group-hover:bg-slate-900 dark:group-hover:bg-white transition-colors`}>
+                  <item.icon className="w-6 h-6 text-slate-400 group-hover:text-white dark:group-hover:text-slate-900 transition-colors" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.title}</h3>
+                <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
-
-          {/* Card 5 */}
-          <div className="bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-10 border border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all duration-300 group shadow-sm hover:shadow-xl">
-            <div className="w-16 h-16 mb-8 flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 rounded-2xl group-hover:scale-110 transition-transform">
-              <svg viewBox="0 0 64 64" fill="none" className="w-10 h-10">
-                <circle cx="20" cy="32" r="8" fill="#22d3ee" />
-                <circle cx="44" cy="32" r="8" fill="#34d399" />
-                <path d="M28 32 L36 32" stroke="#fbbf24" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Domain & Links</h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-              Custom domains, short links & campaign tracking.
-            </p>
-            <div className="text-amber-500 flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
-              Link Domains <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
-            </div>
-          </div>
-
         </div>
+
       </div>
     </div>
   );
