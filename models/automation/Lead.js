@@ -22,7 +22,7 @@ const LeadSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   whatsapp: {
@@ -33,7 +33,7 @@ const LeadSchema = new mongoose.Schema({
   // Lead Information
   source: {
     type: String,
-    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'other'],
+    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'manual', 'bulk', 'other'],
     default: 'website'
   },
   sourceDetails: {

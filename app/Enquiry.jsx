@@ -24,13 +24,13 @@ const LeadForGrowWidget = () => {
   };
 
   useEffect(() => {
-    startTimer(30000000);
+    startTimer(12000);
     return () => clearTimeout(timerRef.current);
   }, [isSubmitted, isOpen]);
 
   const handleClose = () => {
     setIsOpen(false);
-    if (!isSubmitted) startTimer(450000);
+    if (!isSubmitted) startTimer(45000);
   };
 
   const handleSubmit = async (e) => {
@@ -49,7 +49,7 @@ const LeadForGrowWidget = () => {
       if (res.success) {
         setIsSubmitted(true);
         setSuccess(true);
-        setTimeout(() => setIsOpen(false), 3000000);
+        setTimeout(() => setIsOpen(false), 45000);
       } else {
         alert(res.error || 'Failed to send');
       }

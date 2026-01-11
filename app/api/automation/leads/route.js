@@ -96,11 +96,11 @@ export async function POST(request) {
     const { user, business } = result;
     const body = await request.json();
     
-    // Validate required fields
-    if (!body.name || !body.phone) {
+    // Validate required fields (Allow name + phone OR name + email)
+    if (!body.name || (!body.phone && !body.email)) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Missing required fields: name and phone' 
+        error: 'Missing required fields: name and (phone or email)' 
       }, { status: 400 });
     }
     
@@ -129,9 +129,11 @@ export async function POST(request) {
     };
     
     // Process lead through centralized processor
+    console.log(`[API Leads] Creating lead for business ${business._id}:`, leadData.name);
     const processResult = await processNewLead(leadData, business._id);
     
     if (!processResult.success) {
+      console.error(`[API Leads] Processor failed for ${leadData.name}:`, processResult.message);
       if (processResult.isDuplicate) {
         return NextResponse.json({
           success: true,
@@ -145,6 +147,8 @@ export async function POST(request) {
         error: processResult.message || 'Failed to create lead'
       }, { status: 500 });
     }
+    
+    console.log(`[API Leads] Successfully processed lead: ${processResult.lead._id}`);
     
     // Trigger automation asynchronously
     setTimeout(() => {

@@ -121,13 +121,22 @@ export default function LeadsPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Leads</h1>
           <p className="text-slate-600">Manage all your customer enquiries</p>
         </div>
-        <button
-          onClick={() => router.push('/automation/leads/new')}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Lead
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push('/automation/leads/bulk')}
+            className="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Bulk Upload
+          </button>
+          <button
+            onClick={() => router.push('/automation/leads/new')}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Lead
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

@@ -7,6 +7,20 @@ export default function page() {
     <div>
       <UserHome></UserHome>
       <LeadForGrowWidget></LeadForGrowWidget>
+      <div className="flex justify-center py-8">
+        <a 
+          href="https://www.producthunt.com/products/leadforgrow?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-leadforgrow" 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          <img 
+            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1061110&theme=dark&t=1768075503703" 
+            alt="LeadForGrow - The missing layer between enquiry and revenue. | Product Hunt" 
+            width="250" 
+            height="54" 
+          />
+        </a>
+      </div>
     </div>
   );
 }

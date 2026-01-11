@@ -9,7 +9,7 @@ import { ingestLead } from '@/lib/leadProcessor';
  */
 export async function POST(request, { params }) {
   try {
-    const { secret } = params;
+    const { secret } = await params;
     const payload = await request.json();
 
     if (!secret || !payload) {
@@ -56,7 +56,7 @@ export async function POST(request, { params }) {
 
     // If we have a secret, we can try to log the error to the specific business
     try {
-      const { secret } = params;
+      const { secret } = await params;
       const biz = await Business.findOne({ webhookSecret: secret });
       if (biz) {
         biz.integrationHealth.webhooks.status = 'error';
