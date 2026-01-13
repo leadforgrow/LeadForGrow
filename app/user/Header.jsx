@@ -7,33 +7,56 @@ const UserNavbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [userPlan, setUserPlan] = useState(null); // Track user's plan
+  const [userPlan, setUserPlan] = useState(null);
+
+  const isPaid = isLoggedIn && userPlan && userPlan !== 'free';
 
   // Check for userid and fetch user plan on mount
   useEffect(() => {
     const userid = localStorage.getItem("userid");
+    console.log('Header Mount: userid from localStorage:', userid);
     if (userid) {
       setIsLoggedIn(true);
-      // Fetch user plan from backend
+      // Check localStorage first for immediate state
+      const storedPlan = localStorage.getItem("userPlan");
+      console.log('Header Mount: storedPlan from localStorage:', storedPlan);
+      if (storedPlan) {
+        setUserPlan(storedPlan);
+      }
       fetchUserPlan(userid);
     } else {
       setIsLoggedIn(false);
+      setUserPlan(null);
     }
   }, []);
 
   // Fetch user plan from backend
   const fetchUserPlan = async (userId) => {
     try {
+      console.log('Fetching plan for userId:', userId);
       const response = await fetch(`/api/user/profile/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setUserPlan(data.plan || 'free'); // Default to 'free' if no plan
+        console.log('Profile API response data:', data);
+        const plan = (data.plan || 'free').toLowerCase();
+        console.log('Setting userPlan to:', plan);
+        setUserPlan(plan);
+        localStorage.setItem("userPlan", plan);
+      } else {
+        console.error('Profile API failed with status:', response.status);
       }
     } catch (error) {
       console.error('Failed to fetch user plan:', error);
-      setUserPlan('free'); // Default to free on error
+      if (!localStorage.getItem("userPlan")) {
+        console.log('Setting userPlan to free due to error');
+        setUserPlan('free');
+      }
     }
   };
+
+  useEffect(() => {
+    console.log('Header State Update: isLoggedIn:', isLoggedIn, 'userPlan:', userPlan, 'isPaid:', isPaid);
+  }, [isLoggedIn, userPlan]);
 
   // Handle scroll detection
   useEffect(() => {
@@ -48,6 +71,7 @@ const UserNavbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("userid");
     localStorage.removeItem("userToken");
+    localStorage.removeItem("userPlan");
     setIsLoggedIn(false);
     setIsMenuOpen(false);
     window.location.href = "/";
@@ -63,7 +87,7 @@ const UserNavbar = () => {
     }
   };
 
-  // Dropdown data for PUBLIC navbar
+  // Dropdown data for PUBLIC/FREE navbar
   const productDropdown = [
     { label: "Website & Funnel Builder", href: "/product/builder" },
     { label: "Lead Capture Forms", href: "/product/forms" },
@@ -98,26 +122,26 @@ const UserNavbar = () => {
     { label: "Help Center", href: "/resources/help" },
   ];
 
-  // Dropdown data for AUTHENTICATED navbar
-  const createDropdown = [
-    { label: "Create Website", href: "/website-funnel" },
-    { label: "Create Form", href: "/forms/create" },
-    { label: "Request DFU Service", href: "/services/request" },
-  ];
-
-  const authenticatedNavItems = [
+  // Dropdown data for PAID NAVIGATION
+  const paidnavitem = [
     { label: "Dashboard", href: "/website-funnel/dashboard" },
     { label: "Websites", href: "/websites" },
     { label: "Forms", href: "/forms" },
     { label: "Leads", href: "/leads" },
     { label: "Automation", href: "/automation" },
     { label: "Analytics", href: "/analytics" },
-    { label: "Clients", href: "/clients" },
+    { label: "Clients", href: "/user/clients" },
+  ];
+
+  const createDropdown = [
+    { label: "Create Website", href: "/website-funnel" },
+    { label: "Create Form", href: "/forms/create" },
+    { label: "Add New Client", href: "/user/clients?action=new" },
+    { label: "Request DFU Service", href: "/services/request" },
   ];
 
   const DropdownMenu = ({ items, isOpen }) => {
     if (!isOpen) return null;
-
     return (
       <div className="absolute top-full left-0 mt-3 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-3 z-50 backdrop-blur-xl">
         {items.map((item, idx) => (
@@ -127,11 +151,6 @@ const UserNavbar = () => {
             className="block px-6 py-3.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 dark:hover:from-slate-800 dark:hover:to-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 rounded-lg mx-2"
           >
             {item.label}
-            {item.badge && (
-              <span className="ml-2 text-[10px] px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full uppercase tracking-wider font-semibold">
-                {item.badge}
-              </span>
-            )}
           </a>
         ))}
       </div>
@@ -145,7 +164,7 @@ const UserNavbar = () => {
       }`}>
       <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex items-center justify-between h-24">
-          {/* Logo - Left Side */}
+          {/* Logo */}
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center gap-3 group">
               <img src="/image.png" alt="Logo" className="w-12 h-12 transition-transform group-hover:scale-105" />
@@ -157,75 +176,53 @@ const UserNavbar = () => {
 
           {/* Navigation - Center */}
           <div className="hidden lg:flex flex-1 justify-center">
-            {(!isLoggedIn || userPlan === 'free' || userPlan === null) ? (
-              // PUBLIC NAVIGATION
+            {isPaid ? (
+              // PAID NAVIGATION
               <div className="flex items-center space-x-10">
-                {/* Product Dropdown */}
-                <div
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown('product')}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <button className="flex items-center gap-1 text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                {paidnavitem.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider font-medium"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              // PUBLIC/FREE NAVIGATION
+              <div className="flex items-center space-x-10">
+                <div className="relative" onMouseEnter={() => setOpenDropdown('product')} onMouseLeave={() => setOpenDropdown(null)}>
+                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                     Product <ChevronDown className="w-4 h-4" />
                   </button>
                   <DropdownMenu items={productDropdown} isOpen={openDropdown === 'product'} />
                 </div>
 
-                {/* Services Dropdown */}
-                <div
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown('services')}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <button className="flex items-center gap-1 text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <div className="relative" onMouseEnter={() => setOpenDropdown('services')} onMouseLeave={() => setOpenDropdown(null)}>
+                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                     Services <ChevronDown className="w-4 h-4" />
                   </button>
                   <DropdownMenu items={servicesDropdown} isOpen={openDropdown === 'services'} />
                 </div>
 
-                {/* For Agencies Dropdown */}
-                <div
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown('agencies')}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <button className="flex items-center gap-1 text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <div className="relative" onMouseEnter={() => setOpenDropdown('agencies')} onMouseLeave={() => setOpenDropdown(null)}>
+                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                     For Agencies <ChevronDown className="w-4 h-4" />
                   </button>
                   <DropdownMenu items={agenciesDropdown} isOpen={openDropdown === 'agencies'} />
                 </div>
 
-                {/* Pricing Link */}
-                <a href="/#pricing" className="text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <a href="/#pricing" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                   Pricing
                 </a>
 
-                {/* Resources Dropdown */}
-                <div
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown('resources')}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <button className="flex items-center gap-1 text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <div className="relative" onMouseEnter={() => setOpenDropdown('resources')} onMouseLeave={() => setOpenDropdown(null)}>
+                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                     Resources <ChevronDown className="w-4 h-4" />
                   </button>
                   <DropdownMenu items={resourcesDropdown} isOpen={openDropdown === 'resources'} />
                 </div>
-
-              </div>
-            ) : (
-              // AUTHENTICATED NAVIGATION
-              <div className="flex items-center space-x-10">
-                {authenticatedNavItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className="text-sm  text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider"
-                  >
-                    {item.label}
-                  </a>
-                ))}
               </div>
             )}
           </div>
@@ -235,44 +232,25 @@ const UserNavbar = () => {
             <div className="flex items-center space-x-6">
               {!isLoggedIn ? (
                 <>
-                  <a
-                    href="/user/login"
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium"
-                  >
+                  <a href="/user/login" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
                     Login
                   </a>
-                  <a
-                    href="/user/register"
-                    className="px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105"
-                  >
+                  <a href="/user/register" className="px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
                     Get Started
                   </a>
                 </>
               ) : (
                 <>
-                  {/* Create Dropdown */}
-                  <div
-                    className="relative"
-                    onMouseEnter={() => setOpenDropdown('create')}
-                    onMouseLeave={() => setOpenDropdown(null)}
-                  >
+                  <div className="relative" onMouseEnter={() => setOpenDropdown('create')} onMouseLeave={() => setOpenDropdown(null)}>
                     <button className="flex items-center gap-2 px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
                       <Plus className="w-4 h-4" /> Create <ChevronDown className="w-4 h-4" />
                     </button>
                     <DropdownMenu items={createDropdown} isOpen={openDropdown === 'create'} />
                   </div>
-
-                  <button
-                    onClick={handleProfileClick}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium"
-                  >
+                  <button onClick={handleProfileClick} className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
                     Profile
                   </button>
-
-                  <button
-                    onClick={handleLogout}
-                    className="px-8 py-3.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105"
-                  >
+                  <button onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
                     Logout
                   </button>
                 </>
@@ -282,186 +260,81 @@ const UserNavbar = () => {
 
           {/* Mobile menu button */}
           <div className="lg:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
-            >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
+              {isMenuOpen ? (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      <div
-        className={`lg:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen
-          ? "max-h-screen opacity-100 visible"
-          : "max-h-0 opacity-0 invisible overflow-hidden"
-          }`}
-      >
+      <div className={`lg:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
         <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
-          {(!isLoggedIn || userPlan === 'free' || userPlan === null) ? (
+          {isPaid ? (
             <>
-              {/* Product Section */}
-              <div className="space-y-1">
-                <div className="text-xs  text-slate-400 uppercase tracking-widest px-4 py-2">Product</div>
-                {productDropdown.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.href}
-                    className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-
-              {/* Services Section */}
-              <div className="space-y-1 pt-4">
-                <div className="text-xs  text-slate-400 uppercase tracking-widest px-4 py-2">Services</div>
-                {servicesDropdown.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.href}
-                    className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                    {item.badge && <span className="ml-2 text-[10px] text-indigo-600 dark:text-indigo-400">({item.badge})</span>}
-                  </a>
-                ))}
-              </div>
-
-              {/* For Agencies Section */}
-              <div className="space-y-1 pt-4">
-                <div className="text-xs  text-slate-400 uppercase tracking-widest px-4 py-2">For Agencies</div>
-                {agenciesDropdown.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.href}
-                    className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-
-              {/* Resources Section */}
-              <div className="space-y-1 pt-4">
-                <div className="text-xs  text-slate-400 uppercase tracking-widest px-4 py-2">Resources</div>
-                {resourcesDropdown.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.href}
-                    className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-
-              {/* Pricing & Contact */}
-              <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <a
-                  href="/#pricing"
-                  className="block px-4 py-3 text-base  text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Pricing
+              {paidnavitem.map((item, idx) => (
+                <a key={idx} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  {item.label}
                 </a>
-              </div>
-
-              {/* Auth Buttons */}
-              <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <a
-                  href="/user/login"
-                  className="block px-4 py-3 text-center  text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </a>
-                <a
-                  href="/user/register"
-                  className="block px-4 py-3 text-center  text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-lg shadow-indigo-500/20"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Get Started
-                </a>
+              ))}
+              <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Create</div>
+                {createDropdown.map((item, idx) => (
+                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    {item.label}
+                  </a>
+                ))}
               </div>
             </>
           ) : (
             <>
-              {/* Authenticated Mobile Menu */}
-              {authenticatedNavItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="block px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
-
-              {/* Create Section */}
-              <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <div className="text-xs  text-slate-400 uppercase tracking-widest px-4 py-2">Create</div>
-                {createDropdown.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.href}
-                    className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+              <div className="space-y-1">
+                <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Product</div>
+                {productDropdown.map((item, idx) => (
+                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {item.label}
                   </a>
                 ))}
               </div>
-
-              {/* Profile & Logout */}
-              <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  onClick={() => {
-                    handleProfileClick();
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  Profile
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
+              <div className="space-y-1 pt-4 text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Services</div>
+              {servicesDropdown.map((item, idx) => (
+                <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  {item.label}
+                </a>
+              ))}
+              <a href="/#pricing" className="block px-4 py-3 text-base text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                Pricing
+              </a>
+              {!isLoggedIn && (
+                <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <a href="/user/login" className="block px-4 py-3 text-center text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    Login
+                  </a>
+                  <a href="/user/register" className="block px-4 py-3 text-center text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-lg shadow-indigo-500/20" onClick={() => setIsMenuOpen(false)}>
+                    Get Started
+                  </a>
+                </div>
+              )}
             </>
+          )}
+
+          {isLoggedIn && (
+            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <button onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                Profile
+              </button>
+              <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                Logout
+              </button>
+            </div>
           )}
         </div>
       </div>

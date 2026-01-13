@@ -14,7 +14,8 @@ import {
   CreditCard,
   HelpCircle,
   ChevronRight,
-  FileText
+  FileText,
+  PhoneCall
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -55,6 +56,7 @@ export default function Sidebar() {
     { name: 'Website & Integrations', href: '/automation/integrations', icon: Globe, role: 'owner' },
     { name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner' },
     { name: 'Billing & Plan', href: '/automation/billing', icon: CreditCard, role: 'owner' },
+    { name: 'Call Integration', href: '/automation/call-integration', icon: PhoneCall },
     { name: 'Help & Support', href: '/automation/help', icon: HelpCircle }
   ];
 

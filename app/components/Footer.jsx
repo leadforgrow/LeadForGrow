@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -61,11 +61,31 @@ export default function Footer() {
             </p>
             <a
               href="mailto:sales@leadforgrow.online"
-              className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium"
+              className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium mb-8"
             >
               <Mail className="w-5 h-5" />
               sales@leadforgrow.online
             </a>
+
+            <div className="flex items-center gap-4">
+              {[
+                { icon: Twitter, href: 'https://x.com/leadforgrow', label: 'X (Twitter)' },
+                { icon: Instagram, href: 'https://www.instagram.com/leadforgrow/', label: 'Instagram' },
+                { icon: Youtube, href: 'https://www.youtube.com/@ScaleDeskTechnologies', label: 'YouTube' },
+                { icon: Linkedin, href: 'https://www.linkedin.com/showcase/leadforgrow', label: 'LinkedIn' },
+              ].map((social, i) => (
+                <a
+                  key={i}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white transition-all transform hover:-translate-y-1"
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-5 h-5" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* COLUMN 2 - Product */}

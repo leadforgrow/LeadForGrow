@@ -43,6 +43,24 @@ const BusinessSettingsSchema = new mongoose.Schema({
       type: String,
       default: 'Thank you {{name}} for your interest in {{serviceInterest}}. We will get back to you shortly!'
     }
+  },
+
+  // Call Automation Settings
+  callAutomation: {
+    enabled: { type: Boolean, default: true },
+    voiceId: { type: String, default: 'en-US-Neural2-F' }, // Default Google/Twilio voice
+    recordCalls: { type: Boolean, default: false },
+    maxDurationSeconds: { type: Number, default: 60 },
+    greetingMessage: { type: String, default: 'Hello, I am the AI assistant for {{businessName}}.' },
+    enableSmsFollowup: { type: Boolean, default: true },
+    
+    // Telephony Provider Credentials (Secure)
+    telephony: {
+      provider: { type: String, enum: ['vapi', 'retell', 'twilio'], default: 'vapi' },
+      apiKey: { type: String, select: false }, // Private key, don't expose by default
+      assistantId: { type: String }, // For Vapi/Retell
+      phoneNumberId: { type: String } // For Twilio/Vapi
+    }
   }
 }, { _id: false });
 
@@ -122,7 +140,9 @@ const BusinessSchema = new mongoose.Schema({
     maxForms: { type: Number, default: 1 }, // Free: 1, Growth: 10, Enterprise: unlimited
     maxTeamMembers: { type: Number, default: 1 },
     maxAutomationRules: { type: Number, default: 3 },
-    maxLeadsPerMonth: { type: Number, default: 100 }
+    maxLeadsPerMonth: { type: Number, default: 100 },
+    maxCallbacks: { type: Number, default: 5 },
+    maxCallSeconds: { type: Number, default: 300 }
   },
   
   // Usage Tracking
@@ -263,18 +283,24 @@ BusinessSchema.pre('save', async function() {
         this.quotas.maxTeamMembers = 1;
         this.quotas.maxAutomationRules = 3;
         this.quotas.maxLeadsPerMonth = 100;
+        this.quotas.maxCallbacks = 5;
+        this.quotas.maxCallSeconds = 300;
         break;
       case 'growth':
         this.quotas.maxForms = 10;
         this.quotas.maxTeamMembers = 10;
         this.quotas.maxAutomationRules = 20;
         this.quotas.maxLeadsPerMonth = 1000;
+        this.quotas.maxCallbacks = 50;
+        this.quotas.maxCallSeconds = 3000;
         break;
       case 'enterprise':
         this.quotas.maxForms = 999999;
         this.quotas.maxTeamMembers = 999999;
         this.quotas.maxAutomationRules = 999999;
         this.quotas.maxLeadsPerMonth = 999999;
+        this.quotas.maxCallbacks = 999999;
+        this.quotas.maxCallSeconds = 999999;
         break;
     }
   }
