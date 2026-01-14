@@ -43,7 +43,7 @@ export async function POST(request) {
 
     await onboardingCall.save();
 
-    // Send emails using nodemailer
+    // Send emails using Resend
     const emailResults = await Promise.allSettled([
       sendUserConfirmationEmail(user.name, user.email, meetLink),
       sendInternalNotification(user.name, user.email, user.phone, meetLink, planId),

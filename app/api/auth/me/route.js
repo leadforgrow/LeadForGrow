@@ -16,7 +16,7 @@ export async function GET(request) {
 
     const user = await User.findById(userId).select('-password');
     if (!user) {
-      return { authorized: false, error: 'User not found' };
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     const Business = mongoose.models.Business || (await import('@/models/Business')).default;

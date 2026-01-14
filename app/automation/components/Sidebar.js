@@ -56,7 +56,7 @@ export default function Sidebar() {
     { name: 'Website & Integrations', href: '/automation/integrations', icon: Globe, role: 'owner' },
     { name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner' },
     { name: 'Billing & Plan', href: '/automation/billing', icon: CreditCard, role: 'owner' },
-    { name: 'Call Integration', href: '/automation/call-integration', icon: PhoneCall },
+    { name: 'Call Recovery', href: '/automation/call-integration', icon: PhoneCall },
     { name: 'Help & Support', href: '/automation/help', icon: HelpCircle }
   ];
 
@@ -81,8 +81,8 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto p-6">
+        <div className="space-y-2">
           {filteredNavigation.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -91,20 +91,20 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
+                className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-none'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'}`} />
-                  <span className={`font-medium text-sm ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                <div className="flex items-center gap-4">
+                  <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500'}`} />
+                  <span className={`font-semibold text-sm tracking-tight transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-900'}`}>
                     {item.name}
                   </span>
                 </div>
                 {isActive && (
-                  <ChevronRight className="w-4 h-4 text-white" />
+                  <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full shadow-[0_0_8px_rgba(79,70,229,0.4)]"></div>
                 )}
               </Link>
             );

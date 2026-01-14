@@ -140,9 +140,7 @@ const BusinessSchema = new mongoose.Schema({
     maxForms: { type: Number, default: 1 }, // Free: 1, Growth: 10, Enterprise: unlimited
     maxTeamMembers: { type: Number, default: 1 },
     maxAutomationRules: { type: Number, default: 3 },
-    maxLeadsPerMonth: { type: Number, default: 100 },
-    maxCallbacks: { type: Number, default: 5 },
-    maxCallSeconds: { type: Number, default: 300 }
+    maxLeadsPerMonth: { type: Number, default: 100 }
   },
   
   // Usage Tracking
@@ -283,24 +281,18 @@ BusinessSchema.pre('save', async function() {
         this.quotas.maxTeamMembers = 1;
         this.quotas.maxAutomationRules = 3;
         this.quotas.maxLeadsPerMonth = 100;
-        this.quotas.maxCallbacks = 5;
-        this.quotas.maxCallSeconds = 300;
         break;
       case 'growth':
         this.quotas.maxForms = 10;
         this.quotas.maxTeamMembers = 10;
         this.quotas.maxAutomationRules = 20;
         this.quotas.maxLeadsPerMonth = 1000;
-        this.quotas.maxCallbacks = 50;
-        this.quotas.maxCallSeconds = 3000;
         break;
       case 'enterprise':
         this.quotas.maxForms = 999999;
         this.quotas.maxTeamMembers = 999999;
         this.quotas.maxAutomationRules = 999999;
         this.quotas.maxLeadsPerMonth = 999999;
-        this.quotas.maxCallbacks = 999999;
-        this.quotas.maxCallSeconds = 999999;
         break;
     }
   }

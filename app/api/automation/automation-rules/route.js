@@ -18,20 +18,20 @@ export async function GET(request) {
           {
             businessId,
             name: 'Instant Lead Acknowledgement',
-            description: 'Send a personalized Email & WhatsApp message to the customer immediately.',
+            description: 'Send a professional Email & WhatsApp greeting immediately to build trust.',
             type: 'instant_acknowledgement',
             enabled: true,
             config: { 
               channel: 'both',
-              messageTemplate: 'Hi {{name}}, thank you for your interest in {{serviceInterest}}! We have received your query and our team will contact you shortly.',
-              emailSubject: 'We received your inquiry!'
+              messageTemplate: 'Hi {{name}}, thank you for choosing us! 🚀 We have received your interest in {{serviceInterest}}. Our top strategist is reviewing your details and will call you shortly to discuss how we can help you grow. Stay tuned!',
+              emailSubject: 'Thank you for your interest, {{name}}! We are reviewing your inquiry.'
             },
             triggers: { onLeadReceived: true }
           },
           {
             businessId,
             name: 'Notify Team on New Lead',
-            description: 'Send notification to assigned team member when new lead arrives',
+            description: 'Zapier-style instant notification to the assigned team member.',
             type: 'notify_team',
             enabled: true,
             config: { delayHours: 0 },
@@ -40,7 +40,7 @@ export async function GET(request) {
           {
             businessId,
             name: 'Auto-Assign Leads',
-            description: 'Automatically assign new leads to team members using round-robin',
+            description: 'High-performance round-robin lead distribution for maximum efficiency.',
             type: 'auto_assign',
             enabled: false,
             config: { assignmentRule: 'round-robin' },
@@ -49,7 +49,7 @@ export async function GET(request) {
           {
             businessId,
             name: 'Follow-up Reminder',
-            description: 'Create follow-up task if lead is not contacted within 24 hours',
+            description: 'Smart fallback: Automatically create a task if a lead stays stale for 24h.',
             type: 'follow_up_reminder',
             enabled: true,
             config: { delayHours: 24 },

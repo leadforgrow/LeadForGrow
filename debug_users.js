@@ -8,16 +8,22 @@ async function debugUsers() {
     await mongoose.connect(MONGODB_URI);
     const db = mongoose.connection.db;
     
-    const businesses = await db.collection('businesses').find().toArray();
-    console.log('--- BUSINESSES ---');
-    businesses.forEach(b => {
-      console.log(`ID: ${b._id}, Owner: ${b.ownerId}, Name: ${b.name}`);
+    console.log('--- USERS ---');
+    const users = await db.collection('users').find().toArray();
+    users.forEach(u => {
+      console.log(`User ID: ${u._id}`);
+      console.log(`Email: ${u.email}`);
+      console.log(`BusinessId: ${u.businessId}`);
+      console.log(`Role: ${u.role}`);
+      console.log('---');
     });
 
-    const users = await db.collection('users').find().toArray();
-    console.log('\n--- USERS ---');
-    users.forEach(u => {
-      console.log(`ID: ${u._id}, Email: ${u.email}, BusinessId: ${u.businessId}, Role: ${u.role}, LastActivity: ${u.lastActivityAt}`);
+    console.log('\n--- BUSINESSES ---');
+    const businesses = await db.collection('businesses').find().toArray();
+    businesses.forEach(b => {
+      console.log(`Business ID: ${b._id}`);
+      console.log(`Name: ${b.name}`);
+      console.log('---');
     });
 
     await mongoose.disconnect();

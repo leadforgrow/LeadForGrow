@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from "@/lib/mongodb";
 import Business from '@/models/Business';
 import { withPlanAccess } from '@/lib/accessControl';
+import { encrypt, isEncrypted } from '@/lib/encryption';
 
 // GET - Fetch business settings and integrations
 export async function GET(request) {
@@ -56,6 +57,15 @@ export async function PUT(request) {
       
       // Update Integrations if provided (Crucial for SMTP/WhatsApp)
       if (integrationCredentials) {
+        // Encrypt email password if provided and not already encrypted
+        if (integrationCredentials.email?.password) {
+          const password = integrationCredentials.email.password;
+          if (!isEncrypted(password)) {
+            console.log('[BusinessSettings] Encrypting email password...');
+            integrationCredentials.email.password = encrypt(password);
+          }
+        }
+        
         business.integrationCredentials = { ...business.integrationCredentials, ...integrationCredentials };
       }
 

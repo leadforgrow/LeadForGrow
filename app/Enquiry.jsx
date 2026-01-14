@@ -12,8 +12,8 @@ const LeadForGrowWidget = () => {
   const timerRef = useRef(null);
 
   const config = {
-    token: "lfg_form_2c34f1daed079fdd7a8188c8c779e9a6cafaf736c278b8a851f4b25008ccd208",
-    baseUrl: "https://www.leadforgrow.com"
+    token: "lfg_form_e73dc629991e4a26dc6fb74351c4cf388d3d211437338d93e0365f6aa8ae7bdd",
+    baseUrl: "http://localhost:3000"
   };
 
   const startTimer = (delay) => {
@@ -24,7 +24,7 @@ const LeadForGrowWidget = () => {
   };
 
   useEffect(() => {
-    startTimer(12000);
+    startTimer(30000);
     return () => clearTimeout(timerRef.current);
   }, [isSubmitted, isOpen]);
 
@@ -49,7 +49,7 @@ const LeadForGrowWidget = () => {
       if (res.success) {
         setIsSubmitted(true);
         setSuccess(true);
-        setTimeout(() => setIsOpen(false), 45000);
+        setTimeout(() => setIsOpen(false), 3000);
       } else {
         alert(res.error || 'Failed to send');
       }

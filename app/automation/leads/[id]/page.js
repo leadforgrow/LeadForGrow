@@ -400,11 +400,15 @@ export default function LeadDetailPage({ params }) {
                 </button>
 
                 {showTemplateDropdown && (
-                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden animate-in slide-in-from-bottom-2 duration-200">
-                    <div className="p-4 bg-slate-50 border-b border-slate-100">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Select a Template</p>
+                  <div className="absolute bottom-full left-0 right-0 mb-4 bg-white rounded-[32px] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[100] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                    <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Smart Engine</p>
+                        <h4 className="text-sm font-black text-slate-900 italic">Select Response Template</h4>
+                      </div>
+                      <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto p-2 space-y-1">
                       {templates.length > 0 ? (
                         templates.map((rule) => (
                           <button
@@ -414,25 +418,30 @@ export default function LeadDetailPage({ params }) {
                               handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
                               setShowTemplateDropdown(false);
                             }}
-                            className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group"
+                            className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex gap-4 items-start"
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-xs">{rule.name}</span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                                rule.config?.channel === 'whatsapp' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
-                              }`}>
-                                {rule.config?.channel || 'whatsapp'}
-                              </span>
+                            <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors ${
+                              rule.config?.channel === 'email' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
+                            }`}>
+                              {rule.config?.channel === 'email' ? <Mail className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-2 italic">
-                              "{rule.config?.messageTemplate}"
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{rule.name}</span>
+                              </div>
+                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                {rule.config?.messageTemplate || 'No message defined'}
+                              </p>
+                            </div>
                           </button>
                         ))
                       ) : (
-                        <div className="p-6 text-center">
-                          <p className="text-sm text-slate-400">No active automation templates found.</p>
-                          <button onClick={() => router.push('/automation/automation-rules')} className="text-xs font-bold text-indigo-600 mt-2 hover:underline">Setup Templates</button>
+                        <div className="p-8 text-center">
+                          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                            <Layout className="w-6 h-6 text-slate-300" />
+                          </div>
+                          <p className="text-sm text-slate-500 font-medium">No active templates found.</p>
+                          <button onClick={() => router.push('/automation/automation-rules')} className="text-xs font-bold text-indigo-600 mt-3 hover:underline">Configure Automation</button>
                         </div>
                       )}
                     </div>

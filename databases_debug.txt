@@ -1,4 +1,4 @@
 Databases on Cluster:
-- test (1646592 bytes)
-- admin (364544 bytes)
-- local (14952808448 bytes)
+- test (2764800 bytes)
+- admin (360448 bytes)
+- local (14943260672 bytes)
