@@ -1,3 +1,5 @@
+
+"use client"
 import React, { useState, useEffect, useRef } from 'react';
 
 // Copy this component to your React project
