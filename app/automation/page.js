@@ -6,14 +6,15 @@ import {
   Users, 
   AlertCircle, 
   Clock, 
-  TrendingUp, 
-  TrendingDown,
+  TrendingUp,
   Phone,
-  Eye,
   CheckCircle2,
   ArrowRight,
-  Globe,
-  MessageCircle
+  Zap,
+  Target,
+  Flame,
+  Snowflake,
+  Wind
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -24,7 +25,7 @@ export default function AutomationDashboard() {
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [setupStatus, setSetupStatus] = useState({
-    onboardingComplete: true // Default to true to prevent flicker
+    onboardingComplete: true
   });
 
   const [stats, setStats] = useState({
@@ -71,10 +72,16 @@ export default function AutomationDashboard() {
       });
       const data = await res.json();
       if (data.success) {
-        // Update local state
         setRecentLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'contacted' } : l));
-        // Refresh stats
         fetchDashboardData();
+        toast.success('Lead marked as contacted', {
+          icon: '✓',
+          style: {
+            borderRadius: '12px',
+            background: '#10b981',
+            color: '#fff',
+          },
+        });
       }
     } catch (error) {
       console.error('Error marking lead as contacted:', error);
@@ -90,7 +97,6 @@ export default function AutomationDashboard() {
         return;
       }
 
-      // Fetch leads
       const leadsRes = await fetch(`/api/automation/leads?userId=${userId}`);
       const leadsData = await leadsRes.json();
       
@@ -102,7 +108,6 @@ export default function AutomationDashboard() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Calculate stats
       const newLeadsToday = allLeads.filter(lead => {
         const leadDate = new Date(lead.receivedAt);
         return leadDate >= today;
@@ -112,7 +117,6 @@ export default function AutomationDashboard() {
       const converted = allLeads.filter(lead => lead.status === 'converted').length;
       const lost = allLeads.filter(lead => lead.status === 'lost').length;
 
-      // Fetch tasks for today
       const tasksRes = await fetch(`/api/automation/tasks?userId=${userId}`);
       const tasksData = await tasksRes.json();
       const followUpsDueToday = tasksData.success ? tasksData.data.length : 0;
@@ -125,10 +129,9 @@ export default function AutomationDashboard() {
         lost
       });
 
-      // Get recent leads (last 5)
       const recentLeads = allLeads
         .sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt))
-        .slice(0, 5)
+        .slice(0, 8)
         .map(lead => ({
           ...lead,
           id: lead._id,
@@ -149,24 +152,75 @@ export default function AutomationDashboard() {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     
-    if (hours > 0) return `${hours}h ${minutes}m ago`;
+    if (hours > 24) return `${Math.floor(hours / 24)}d ago`;
+    if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
   };
 
+  const getPriorityBadge = (lead) => {
+    const hoursSince = Math.floor((new Date() - lead.receivedAt) / (1000 * 60 * 60));
+    
+    if (lead.status === 'new' && hoursSince < 2) {
+      return { label: 'HOT', color: 'bg-red-500 text-white', icon: Flame };
+    } else if (lead.status === 'new' && hoursSince < 24) {
+      return { label: 'WARM', color: 'bg-orange-500 text-white', icon: Wind };
+    } else if (lead.status === 'new') {
+      return { label: 'COLD', color: 'bg-slate-400 text-white', icon: Snowflake };
+    }
+    return null;
+  };
+
+  const getRecommendedAction = (lead) => {
+    const hoursSince = Math.floor((new Date() - lead.receivedAt) / (1000 * 60 * 60));
+    
+    if (lead.status === 'new' && hoursSince < 2) {
+      return 'Call now';
+    } else if (lead.status === 'new' && hoursSince < 24) {
+      return 'Send WhatsApp';
+    } else if (lead.status === 'new') {
+      return 'Follow up required';
+    } else if (lead.status === 'contacted') {
+      return 'Auto-follow-up running';
+    }
+    return 'Review';
+  };
+
+  const getAIInsight = (lead) => {
+    const hoursSince = Math.floor((new Date() - lead.receivedAt) / (1000 * 60 * 60));
+    
+    if (lead.status === 'new' && hoursSince < 1) {
+      return 'Response within 5 min increases conversion by 400%';
+    } else if (lead.status === 'new' && hoursSince < 2) {
+      return 'Contact within 2h = 60% higher close rate';
+    } else if (lead.status === 'new' && hoursSince < 24) {
+      return 'Same-day contact = 7x more likely to convert';
+    } else if (lead.status === 'new' && hoursSince >= 24) {
+      return 'Risk: Conversion drops 80% after 24h';
+    } else if (lead.status === 'contacted') {
+      return 'Follow-up scheduled automatically';
+    }
+    return 'Review recommended';
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-900 font-medium">Loading dashboard...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 text-sm font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
+  const hotLeadsCount = recentLeads.filter(lead => {
+    const hoursSince = Math.floor((new Date() - lead.receivedAt) / (1000 * 60 * 60));
+    return lead.status === 'new' && hoursSince < 2;
+  }).length;
+
   return (
-    <div className="p-8">
+    <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
       {showOnboarding && (
         <OnboardingFlow onComplete={() => {
           setShowOnboarding(false);
@@ -174,244 +228,175 @@ export default function AutomationDashboard() {
         }} />
       )}
 
-      {/* Setup Reminder Banner */}
-      {!setupStatus.onboardingComplete && !showOnboarding && localStorage.getItem('userRole') === 'owner' && (
-        <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl p-6 mb-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-orange-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-              <AlertCircle className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">You're almost ready!</h2>
-              <p className="text-orange-50">Connect where leads come from to go live.</p>
-            </div>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-7">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-semibold text-slate-900">
+              {localStorage.getItem('userRole') === 'owner' ? 'Sales Command Center' : 'Your Dashboard'}
+            </h1>
+            {setupStatus.onboardingComplete && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-medium text-xs border border-emerald-100">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                Live
+              </div>
+            )}
           </div>
-          <button 
-            onClick={() => setShowOnboarding(true)}
-            className="px-8 py-3 bg-white text-orange-600 rounded-xl font-bold hover:bg-orange-50 transition-colors"
+          <p className="text-slate-500 text-sm">Never miss a lead. Close faster.</p>
+        </div>
+
+       
+
+        {/* Action Cards - Insight-Driven with Numbers, Urgency, Consequence */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-7">
+          <button
+            onClick={() => router.push('/automation/leads?filter=new')}
+            className="bg-white rounded-lg p-5 border border-slate-200/80 hover:border-indigo-200 hover:shadow-md transition-all duration-150 text-left group shadow-sm"
           >
-            Finish Setup
+            <div className="flex items-start justify-between mb-3.5">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-150">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <ArrowRight className="w-4.5 h-4.5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all duration-150" />
+            </div>
+            <div className="mb-2">
+              <div className="flex items-baseline gap-2 mb-1">
+                <h3 className="text-base font-semibold text-slate-900">Call High-Intent Leads</h3>
+                <span className="text-lg font-bold text-indigo-600">{hotLeadsCount}</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">Leads received in last 2 hours</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-orange-600 font-medium">
+              <Clock className="w-3 h-3" />
+              <span>60% higher close rate if contacted now</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => router.push('/automation/tasks')}
+            className="bg-white rounded-lg p-5 border border-slate-200/80 hover:border-emerald-200 hover:shadow-md transition-all duration-150 text-left group shadow-sm"
+          >
+            <div className="flex items-start justify-between mb-3.5">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-150">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <ArrowRight className="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all duration-150" />
+            </div>
+            <div className="mb-2">
+              <div className="flex items-baseline gap-2 mb-1">
+                <h3 className="text-base font-semibold text-slate-900">Complete Follow-ups</h3>
+                <span className="text-lg font-bold text-emerald-600">{stats.followUpsDueToday}</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">Tasks scheduled for today</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-red-600 font-medium">
+              <AlertCircle className="w-3 h-3" />
+              <span>Delayed follow-ups reduce conversion by 50%</span>
+            </div>
           </button>
         </div>
-      )}
 
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1>
-          <p className="text-slate-600">
-            {localStorage.getItem('userRole') === 'owner' ? 'Your business at a glance' : 'Focus on your assigned work'}
-          </p>
-        </div>
-        {setupStatus.onboardingComplete && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl font-bold text-sm">
-            <CheckCircle2 className="w-4 h-4" />
-            SYSTEM LIVE
-          </div>
-        )}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* New Leads Today */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Users className="w-6 h-6 text-indigo-600" />
-            </div>
-            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-              TODAY
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.newLeadsToday}</h3>
-          <p className="text-sm text-slate-600 font-medium">
-            {localStorage.getItem('userRole') === 'owner' ? 'New Leads Today' : 'Your New Leads Today'}
-          </p>
-        </div>
-
-        {/* Not Contacted */}
-        <div className="bg-white rounded-2xl p-6 border-2 border-orange-200 bg-orange-50/30 hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-orange-600" />
-            </div>
-            <span className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full">
-              ACTION NEEDED
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-orange-900 mb-1">{stats.notContacted}</h3>
-          <p className="text-sm text-orange-700 font-medium">
-            {localStorage.getItem('userRole') === 'owner' ? 'Leads Not Contacted' : 'Your Leads Not Contacted'}
-          </p>
-        </div>
-
-        {/* Follow-ups Due */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Clock className="w-6 h-6 text-purple-600" />
-            </div>
-            <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-              DUE TODAY
-            </span>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900 mb-1">{stats.followUpsDueToday}</h3>
-          <p className="text-sm text-slate-600 font-medium">
-            {localStorage.getItem('userRole') === 'owner' ? 'Follow-ups Due' : 'Your Follow-ups Due'}
-          </p>
-        </div>
-
-        {/* Conversion Stats */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-emerald-600" />
-            </div>
-          </div>
-          <div className="flex items-end gap-4">
-            <div>
-              <h3 className="text-3xl font-bold text-emerald-600 mb-1">{stats.converted}</h3>
-              <p className="text-sm text-slate-600 font-medium">Converted</p>
-            </div>
-            <div className="pb-1">
-              <h3 className="text-2xl font-bold text-red-600 mb-1">{stats.lost}</h3>
-              <p className="text-xs text-slate-500 font-medium">Lost</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <button
-          onClick={() => router.push('/automation/leads?filter=new')}
-          className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-2xl p-6 hover:shadow-2xl hover:shadow-indigo-200 transition-all group text-left"
-        >
-          <Eye className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold mb-2">View My Leads</h3>
-          <p className="text-indigo-100 text-sm mb-4">See your assigned leads</p>
-          <div className="flex items-center gap-2 text-sm font-bold">
-            Open Leads <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        <button
-          onClick={() => router.push('/automation/tasks')}
-          className="bg-white border-2 border-purple-200 rounded-2xl p-6 hover:shadow-xl transition-all group text-left"
-        >
-          <CheckCircle2 className="w-8 h-8 text-purple-600 mb-4 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">My Tasks</h3>
-          <p className="text-slate-600 text-sm mb-4">Follow up with your leads</p>
-          <div className="flex items-center gap-2 text-sm font-bold text-purple-600">
-            View Tasks <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-
-        <button
-          onClick={() => router.push('/automation/leads?filter=not-contacted')}
-          className="bg-white border-2 border-orange-200 rounded-2xl p-6 hover:shadow-xl transition-all group text-left"
-        >
-          <Phone className="w-8 h-8 text-orange-600 mb-4 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Call Now</h3>
-          <p className="text-slate-600 text-sm mb-4">Contact pending leads immediately</p>
-          <div className="flex items-center gap-2 text-sm font-bold text-orange-600">
-            Start Calling <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </button>
-      </div>
-
-      {/* Recent Leads */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Recent Leads</h2>
-              <p className="text-sm text-slate-600 mt-1">Latest enquiries received</p>
-            </div>
-            <button
-              onClick={() => router.push('/automation/leads')}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium text-sm hover:bg-indigo-700 transition-colors"
-            >
-              View All
-            </button>
-          </div>
-        </div>
-
-        <div className="divide-y divide-slate-100">
-          {recentLeads.length === 0 ? (
-            <div className="p-12 text-center">
-              <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 font-medium">No leads yet</p>
-              <p className="text-sm text-slate-400 mt-1">New leads will appear here</p>
-            </div>
-          ) : (
-            recentLeads.map((lead) => (
-              <div
-                key={lead.id}
-                className={`p-6 hover:bg-slate-50 transition-colors cursor-pointer relative group ${
-                  lead.status === 'new' ? 'bg-orange-50/20' : ''
-                }`}
-                onClick={() => router.push(`/automation/leads/${lead.id}`)}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-bold text-slate-900 truncate">{lead.name}</h3>
-                      <span className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase tracking-wider ${
-                        lead.status === 'new' 
-                          ? 'bg-orange-100 text-orange-700' 
-                          : 'bg-indigo-100 text-indigo-700'
-                      }`}>
-                        {lead.status === 'new' ? 'Action Needed' : lead.status}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-slate-900 font-bold mb-3 flex items-center gap-2">
-                       <span className="text-slate-400 font-medium">Interested in:</span> {lead.serviceInterest}
-                    </p>
-
-                    <div className="flex items-center gap-6 text-xs">
-                      <span className="flex items-center gap-1.5 text-slate-500">
-                        <Globe className="w-3.5 h-3.5" />
-                        {lead.source}
-                      </span>
-                      <span className="flex items-center gap-1.5 text-orange-600 font-bold">
-                        <Clock className="w-3.5 h-3.5" />
-                        {getTimeSince(lead.receivedAt)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <a 
-                      href={`tel:${lead.phone}`}
-                      onClick={() => markLeadAsContacted(lead.id)}
-                      className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
-                      title="Call Now"
-                    >
-                      <Phone className="w-5 h-5" />
-                    </a>
-                    <a 
-                      href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => markLeadAsContacted(lead.id)}
-                      className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all shadow-sm"
-                      title="WhatsApp"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                    </a>
-                    <button 
-                      onClick={() => router.push(`/automation/leads/${lead.id}`)}
-                      className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-slate-800 transition-all shadow-sm"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+        {/* Intelligent Leads Queue - Increased Density */}
+        <div className="bg-white rounded-lg border border-slate-200/80 overflow-hidden shadow-sm">
+          <div className="px-5 py-3.5 border-b border-slate-200/60 bg-slate-50/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Lead Queue</h2>
+                <p className="text-[11px] text-slate-500 mt-0.5">Prioritized by urgency and intent</p>
               </div>
-            ))
-          )}
+              <button
+                onClick={() => router.push('/automation/leads')}
+                className="px-3.5 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
+              >
+                View All
+              </button>
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100/60">
+            {recentLeads.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-7 h-7 text-slate-400" />
+                </div>
+                <p className="text-slate-600 font-medium text-sm mb-1">No leads yet</p>
+                <p className="text-xs text-slate-400">New leads will appear here automatically</p>
+              </div>
+            ) : (
+              recentLeads.map((lead) => {
+                const priority = getPriorityBadge(lead);
+                const action = getRecommendedAction(lead);
+                const aiInsight = getAIInsight(lead);
+                const PriorityIcon = priority?.icon;
+                
+                return (
+                  <div
+                    key={lead.id}
+                    className="px-4 py-2.5 hover:bg-slate-50/50 transition-all duration-100 cursor-pointer group"
+                    onClick={() => router.push(`/automation/leads/${lead.id}`)}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        {/* Priority Badge */}
+                        {priority && (
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${priority.color} text-[10px] font-bold shrink-0`}>
+                            {PriorityIcon && <PriorityIcon className="w-2.5 h-2.5" />}
+                            {priority.label}
+                          </div>
+                        )}
+
+                        {/* Lead Info - Increased Density */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="text-sm font-semibold text-slate-900 truncate">{lead.name}</h3>
+                            <span className="text-xs text-slate-300">•</span>
+                            <span className="text-xs text-slate-500 truncate">{lead.serviceInterest}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                            <span className="flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5" />
+                              {getTimeSince(lead.receivedAt)}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="truncate">{lead.source}</span>
+                            <span className="text-slate-300">•</span>
+                            {/* AI Insight Inline */}
+                            <span className="text-indigo-600 font-medium italic truncate">
+                              💡 {aiInsight}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Recommended Action */}
+                        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100/80 rounded-md shrink-0">
+                          <Zap className="w-3 h-3 text-slate-600" />
+                          <span className="text-[11px] font-medium text-slate-700">{action}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <a 
+                          href={`tel:${lead.phone}`}
+                          onClick={() => markLeadAsContacted(lead.id)}
+                          className="w-8 h-8 bg-slate-100 rounded-md flex items-center justify-center text-slate-600 hover:bg-indigo-600 hover:text-white transition-all duration-150 hover:scale-105"
+                          title="Call Now"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <button 
+                          onClick={() => router.push(`/automation/leads/${lead.id}`)}
+                          className="w-8 h-8 bg-slate-900 text-white rounded-md flex items-center justify-center hover:bg-slate-800 transition-all duration-150 opacity-0 group-hover:opacity-100"
+                        >
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>

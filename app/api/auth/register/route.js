@@ -100,12 +100,20 @@ export async function POST(req) {
         </div>
       `;
 
-      sendResendEmail({
-        to: email,
-        from: 'LeadForGrow <info@leadforgrow.com>',
-        subject: 'Welcome to LeadForGrow! 🚀',
-        html: welcomeTemplate
-      }).catch(err => console.error('[WelcomeEmail] Failed:', err));
+      // 4. Send Welcome Email (Awaited to ensure delivery)
+      console.log('[Register] Sending welcome email to:', email);
+      try {
+        await sendResendEmail({
+          to: email,
+          from: 'LeadForGrow <info@leadforgrow.com>',
+          subject: 'Welcome to LeadForGrow! 🚀',
+          html: welcomeTemplate
+        });
+        console.log('[Register] Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('[Register] Failed to send welcome email:', emailError);
+        // Don't fail the registration if email fails, but log it
+      }
 
       return NextResponse.json({ 
         success: true, 
