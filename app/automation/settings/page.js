@@ -25,7 +25,8 @@ export default function SettingsPage() {
             icon: Bell,
             title: 'Notifications',
             description: 'Configure how and when you receive notifications',
-            color: 'purple'
+            color: 'purple',
+            link: '/automation/settings/notifications'
           },
           {
             icon: Globe,
