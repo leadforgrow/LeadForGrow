@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  X
+  X,
+  Globe
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -448,6 +449,8 @@ const LeadForGrowWidget = () => {
 
 export default LeadForGrowWidget;`;
 
+  const hostedLink = `${baseUrl}/test-form.html?token=${form.token}`;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -478,8 +481,65 @@ export default LeadForGrowWidget;`;
           >
             API / WEBHOOK
           </button>
+          <button 
+            onClick={() => setTab('hosted')}
+            className={`pb-3 font-bold text-sm transition-all ${tab === 'hosted' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400'}`}
+          >
+            HOSTED LINK
+          </button>
         </div>
         
+        {tab === 'hosted' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
+                  <Globe className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-slate-900">Public Form Link</h3>
+                    <div className="group relative">
+                      <AlertCircle className="w-4 h-4 text-slate-400 cursor-help" />
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-xl z-50 pointer-events-none">
+                        This is a standalone link for your form. You can use it in ads, social media bios, or emails. No website integration needed.
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 bg-slate-900 rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Use this link for Facebook ads, Instagram ads, WhatsApp, Google ads, or anywhere you can share a link. No website required.
+                  </p>
+                  
+                  <div className="bg-white border border-indigo-200 p-3 rounded-lg flex items-center gap-2 mb-3">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={hostedLink} 
+                      className="flex-1 text-sm text-slate-600 bg-transparent outline-none font-mono"
+                    />
+                    <button
+                      onClick={() => onCopy(hostedLink)}
+                      className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                  
+                  <a 
+                    href={hostedLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  >
+                    Test Link <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {tab === 'html' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mb-6">

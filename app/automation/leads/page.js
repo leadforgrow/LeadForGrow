@@ -404,6 +404,12 @@ export default function LeadsPage() {
                                 <Clock className="w-3.5 h-3.5" />
                                 {getTimeSince(lead.receivedAt)}
                               </span>
+                              {lead.assignedTo && (
+                                <span className="flex items-center gap-1.5 text-indigo-600 font-medium">
+                                  <Users className="w-3.5 h-3.5" />
+                                  {lead.assignedTo.email}
+                                </span>
+                              )}
                             </div>
 
                             {/* Recommended Action */}
