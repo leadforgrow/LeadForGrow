@@ -324,7 +324,7 @@ export default function LeadsPage() {
                 placeholder="Search leads..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-900"
               />
             </div>
 

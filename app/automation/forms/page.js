@@ -299,7 +299,7 @@ function CreateFormModal({ onClose, onCreate }) {
               type="text"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
               placeholder="e.g., Contact Form, Quote Request"
               required
             />
@@ -309,7 +309,7 @@ function CreateFormModal({ onClose, onCreate }) {
             <textarea
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
               placeholder="Describe what this form is for..."
               rows="3"
             />

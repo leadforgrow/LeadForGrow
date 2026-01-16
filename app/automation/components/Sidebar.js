@@ -79,6 +79,7 @@ export default function Sidebar() {
     { name: 'Leads', href: '/automation/leads', icon: Users },
     { name: 'Tasks & Follow-ups', href: '/automation/tasks', icon: CheckSquare },
     { name: 'Automation', href: '/automation/automation-rules', icon: Zap },
+    { name: 'Email Templates', href: '/automation/templates', icon: FileText },
     { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' },
     { name: 'Team & Roles', href: '/automation/team', icon: UserCog, role: 'owner' },
     { name: 'Reports', href: '/automation/reports', icon: BarChart3 },
