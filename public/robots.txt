@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Allow: /logo.png
+
+Sitemap: https://www.leadforgrow.com/sitemap.xml

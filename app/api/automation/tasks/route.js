@@ -89,7 +89,7 @@ export async function POST(request) {
     
     const { business } = result;
     const body = await request.json();
-    const { leadId, type, title, description, dueDate, assignedTo } = body;
+    const { leadId, type, title, description, dueDate, assignedTo, autoSend, messageContent } = body;
     
     if (!leadId || !type || !title || !dueDate || !assignedTo) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
@@ -103,7 +103,9 @@ export async function POST(request) {
       description,
       dueDate: new Date(dueDate),
       assignedTo,
-      status: 'pending'
+      status: 'pending',
+      autoSend: !!autoSend,
+      messageContent
     });
     
     const populatedTask = await Task.findById(task._id)

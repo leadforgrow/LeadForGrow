@@ -110,7 +110,7 @@ const UserNavbar = () => {
     { label: "Agency Platform Overview", href: "/agencies/overview" },
     { label: "Manage Multiple Clients", href: "/agencies/clients" },
     { label: "White-Label Solution", href: "/agencies/white-label" },
-    { label: "Agency Pricing", href: "/agencies/pricing" },
+    { label: "Agency Pricing", href: "/pricing" },
     { label: "Become a Partner", href: "/agencies/partner" },
   ];
 
@@ -124,7 +124,7 @@ const UserNavbar = () => {
 
   // Dropdown data for PAID NAVIGATION
   const paidnavitem = [
-    { label: "Dashboard", href: "/website-funnel/dashboard" },
+    // { label: "Dashboard", href: "/website-funnel/dashboard" },
     { label: "Websites", href: "/websites" },
     { label: "Forms", href: "/forms" },
     { label: "Leads", href: "/leads" },
@@ -213,7 +213,7 @@ const UserNavbar = () => {
                   <DropdownMenu items={agenciesDropdown} isOpen={openDropdown === 'agencies'} />
                 </div>
 
-                <a href="/#pricing" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <a href="/pricing" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                   Pricing
                 </a>
 
@@ -310,7 +310,7 @@ const UserNavbar = () => {
                   {item.label}
                 </a>
               ))}
-              <a href="/#pricing" className="block px-4 py-3 text-base text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <a href="/pricing" className="block px-4 py-3 text-base text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Pricing
               </a>
               {!isLoggedIn && (

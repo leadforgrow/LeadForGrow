@@ -13,7 +13,7 @@ export async function PUT(request, { params }) {
       const { id } = await params;
       const businessId = user.businessId;
       const body = await request.json();
-      const { performedBy, status, dueDate, notes } = body;
+      const { performedBy, status, dueDate, notes, autoSend, messageContent } = body;
       
       const task = await Task.findOne({ _id: id, businessId });
       if (!task) {
@@ -59,6 +59,8 @@ export async function PUT(request, { params }) {
         // But usually rescheduling happens for pending tasks.
       }
       if (notes) updates.notes = notes;
+      if (autoSend !== undefined) updates.autoSend = autoSend;
+      if (messageContent !== undefined) updates.messageContent = messageContent;
       
       const updatedTask = await Task.findByIdAndUpdate(id, updates, { new: true })
         .populate('leadId', 'name phone serviceInterest')

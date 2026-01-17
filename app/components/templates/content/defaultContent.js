@@ -1,596 +1,660 @@
+export const healthcareTemplate = {
+  settings: {
+    fontFamily: 'Inter',
+    borderRadius: '1rem',
+    navbar: {
+      items: [
+        { text: 'Services', link: '#services' },
+        { text: 'Doctors', link: '#doctors' },
+        { text: 'Contact', link: '#contact' }
+      ],
+      ctaText: 'Book Appointment',
+      ctaLink: '#contact',
+      ctaColor: '#0ea5e9',
+      transparent: false,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'Modern Medical Care You Can Trust',
+        subheadline: 'Providing comprehensive healthcare services with a team of experienced professionals dedicated to your well-being.',
+        ctaText: 'Schedule a Visit',
+        ctaLink: '#contact',
+        darkText: true,
+        backgroundType: 'gradient', // gradient, image, solid
+        backgroundColor: '#f0f9ff',
+        showDoctorImage: true,
+        image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800'
+      }
+    },
+    {
+      id: 'services-1',
+      type: 'services',
+      active: true,
+      content: {
+        title: 'Our Medical Services',
+        subtitle: 'We offer a wide range of specialized treatments to meet all your healthcare needs.',
+        layout: 'grid',
+        items: [
+          { name: 'General Consultation', description: 'Comprehensive health assessments and personalized treatment plans for adults and children.', icon: 'Stethoscope' },
+          { name: 'Pediatrics', description: 'Specialized healthcare for infants, children, and adolescents in a friendly environment.', icon: 'Baby' },
+          { name: 'Laboratory Tests', description: 'Advanced diagnostic testing and fast, accurate results to monitor your health.', icon: 'FlaskConical' }
+        ]
+      }
+    },
+    {
+      id: 'doctors-1',
+      type: 'doctors',
+      active: true,
+      content: {
+        title: 'Meet Our Specialists',
+        subtitle: 'Our team of board-certified doctors is here to provide you with the best medical care.',
+        items: [
+          { name: 'Dr. Sarah Wilson', designation: 'Senior Cardiologist', experience: '15+ Years', photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400' },
+          { name: 'Dr. Michael Chen', designation: 'Pediatric Surgeon', experience: '12+ Years', photo: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Book Your Appointment',
+        subtitle: 'Select a time that works for you and our team will confirm your visit.',
+        formId: '', // To be selected from existing forms
+        buttonText: 'Submit Inquiry',
+        backgroundColor: '#ffffff'
+      }
+    }
+  ]
+};
+
+export const educationTemplate = {
+  settings: {
+    fontFamily: 'Inter',
+    borderRadius: '1.5rem',
+    navbar: {
+      items: [
+        { text: 'Programs', link: '#courses' },
+        { text: 'About Us', link: '#about' },
+        { text: 'Faculty', link: '#faculty' },
+        { text: 'Testimonials', link: '#testimonials' }
+      ],
+      ctaText: 'Apply Now',
+      ctaLink: '#contact',
+      ctaColor: '#4f46e5',
+      transparent: false,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'Empowering Minds For A Brighter Future',
+        subheadline: 'Join our world-class academic programs designed to unlock your potential and prepare you for global success.',
+        ctaText: 'Explore Programs',
+        ctaLink: '#courses',
+        darkText: true,
+        backgroundType: 'gradient',
+        backgroundColor: '#f8fafc',
+        showDoctorImage: true,
+        image: 'https://images.unsplash.com/photo-1523050335192-ce1dee71a01f?auto=format&fit=crop&q=80&w=800'
+      }
+    },
+    {
+      id: 'courses-1',
+      type: 'courses',
+      active: true,
+      content: {
+        title: 'Our Featured Programs',
+        subtitle: 'Comprehensive courses tailored to industry standards and academic excellence.',
+        items: [
+          { name: 'Computer Science', duration: '4 Years', description: 'Advanced studies in algorithms, software engineering, and artificial intelligence.', icon: 'Laptop' },
+          { name: 'Business Management', duration: '3 Years', description: 'Mastering leadership, finance, and marketing strategies for the modern world.', icon: 'BarChart' },
+          { name: 'Digital Arts', duration: '2 Years', description: 'Unleashing creativity through modern design tools and visual storytelling.', icon: 'Palette' }
+        ]
+      }
+    },
+    {
+      id: 'features-1',
+      type: 'features',
+      active: true,
+      content: {
+        title: 'Why Choose Our Institute?',
+        items: [
+          { title: 'Expert Faculty', description: 'Learn from industry veterans and PhD holders with years of academic experience.', icon: 'Star' },
+          { title: 'Infrastructure', description: 'Modern classrooms, high-tech labs, and a vibrant campus life for rounded growth.', icon: 'Shield' },
+          { title: 'Proven Results', description: 'Over 95% placement rate and alumni working in top global companies.', icon: 'Target' }
+        ]
+      }
+    },
+    {
+      id: 'faculty-1',
+      type: 'faculty',
+      active: true,
+      content: {
+        title: 'Meet Our Distinguished Faculty',
+        subtitle: 'Our mentors bring academic rigor and practical insights to the classroom.',
+        items: [
+          { name: 'Prof. John Doe', designation: 'Head of AI Dept', experience: '20+ Years', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400', subject: 'Artificial Intelligence' },
+          { name: 'Dr. Emily Smith', designation: 'Senior Lecturer', experience: '15+ Years', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400', subject: 'Quantum Physics' }
+        ]
+      }
+    },
+    {
+      id: 'testimonials-1',
+      type: 'testimonials',
+      active: true,
+      content: {
+        title: 'Student Success Stories',
+        subtitle: 'Hear from our alumni who are making an impact across the globe.',
+        items: [
+          { name: 'Alex Johnson', text: 'This institute gave me the foundation I needed to excel in my career at Google.', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200' },
+          { name: 'Sarah Miller', text: 'The hands-on projects and faculty support were instrumental in my growth.', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Apply For Admission',
+        subtitle: 'Fill out the form below to start your journey with us today.',
+        formId: '',
+        buttonText: 'Submit Application',
+        backgroundColor: '#ffffff'
+      }
+    }
+  ]
+};
+
+export const realEstateTemplate = {
+  settings: {
+    fontFamily: 'Outfit',
+    borderRadius: '0.25rem',
+    navbar: {
+      items: [
+        { text: 'Projects', link: '#projects' },
+        { text: 'Amenities', link: '#amenities' },
+        { text: 'Location', link: '#location' },
+        { text: 'Gallery', link: '#gallery' }
+      ],
+      ctaText: 'Enquire Now',
+      ctaLink: '#contact',
+      ctaColor: '#1a1a1a',
+      transparent: true,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'Discover Luxury Living At Its Finest',
+        subheadline: 'A curated collection of bespoke residences designed for the discerning few. Experience architectural excellence and unparalleled comfort.',
+        ctaText: 'View Residences',
+        ctaLink: '#projects',
+        backgroundType: 'image',
+        backgroundImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000',
+        showDoctorImage: false,
+        image: ''
+      }
+    },
+    {
+      id: 'projects-1',
+      type: 'projects',
+      active: true,
+      content: {
+        title: 'Our Signature Projects',
+        subtitle: 'Explore our portfolio of premium developments across prime locations.',
+        items: [
+          { name: 'Azure Heights', location: 'Downtown Central', price: 'Starting $2.5M', status: 'Ready to Move', photo: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800' },
+          { name: 'Botanica Residences', location: 'Green Valley', price: 'Starting $1.8M', status: 'New Launch', photo: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800' },
+          { name: 'The Onyx Tower', location: 'Marina District', price: 'Starting $3.2M', status: 'Upcoming', photo: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&q=80&w=800' }
+        ]
+      }
+    },
+    {
+      id: 'highlights-1',
+      type: 'features',
+      active: true,
+      content: {
+        title: 'Unmatched Lifestyle Amenities',
+        items: [
+          { title: 'Infinity Pool', description: 'Temperature-controlled pool with panoramic city views.', icon: 'Waves' },
+          { title: 'Private Cinema', description: 'State-of-the-art screening room for exclusive entertainment.', icon: 'Film' },
+          { title: 'Concierge 24/7', description: 'Personalized assistance for your every need, anytime.', icon: 'UserCheck' }
+        ]
+      }
+    },
+    {
+      id: 'gallery-1',
+      type: 'gallery',
+      active: true,
+      content: {
+        title: 'Visual Journey',
+        subtitle: 'Take a closer look at the craftsmanship and detail in every corner.',
+        items: [
+          'https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&q=80&w=800',
+          'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&q=80&w=800',
+          'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=800',
+          'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?auto=format&fit=crop&q=80&w=800'
+        ]
+      }
+    },
+    {
+      id: 'location-1',
+      type: 'map',
+      active: true,
+      content: {
+        title: 'The Perfect Location',
+        address: 'Prime District 1, Luxury Street, Metro City',
+        mapEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.15830869428!2d-74.119763973046!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sin!4v1672300000000!5m2!1sen!2sin',
+        nearby: [
+          { name: 'International Airport', distance: '15 Mins' },
+          { name: 'Business Hub', distance: '10 Mins' },
+          { name: 'Top Schools', distance: '5 Mins' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Interest Registration',
+        subtitle: 'Our luxury consultants will get in touch for a private viewing.',
+        formId: '',
+        buttonText: 'Request Brochure',
+        backgroundColor: '#1a1a1a'
+      }
+    }
+  ]
+};
+
+export const professionalServicesTemplate = {
+  settings: {
+    fontFamily: 'Inter',
+    borderRadius: '0.5rem',
+    navbar: {
+      items: [
+        { text: 'Services', link: '#services' },
+        { text: 'Expertise', link: '#expertise' },
+        { text: 'Team', link: '#team' },
+        { text: 'Reviews', link: '#testimonials' }
+      ],
+      ctaText: 'Book Consultation',
+      ctaLink: '#contact',
+      ctaColor: '#1e293b',
+      transparent: false,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'Strategic Guidance For Your Business Growth',
+        subheadline: 'We help organizations navigate complex challenges with data-driven insights and professional expertise.',
+        ctaText: 'Get Started',
+        ctaLink: '#contact',
+        secondaryCtaText: 'Our Expertise',
+        secondaryCtaLink: '#expertise',
+        tagline: '• Expert Advisory',
+        darkText: true,
+        backgroundType: 'gradient',
+        backgroundColor: '#f8fafc',
+        showDoctorImage: false
+      }
+    },
+    {
+      id: 'services-1',
+      type: 'services',
+      active: true,
+      content: {
+        title: 'Our Specialist Services',
+        items: [
+          { name: 'Business Strategy', description: 'Developing long-term roadmaps for sustainable growth and competitive advantage.', icon: 'Briefcase' },
+          { name: 'Financial Advisory', description: 'Optimizing fiscal health with expert accounting and tax planning services.', icon: 'BarChart3' },
+          { name: 'Legal Consulting', description: 'Comprehensive legal support for corporate compliance and risk management.', icon: 'Scale' }
+        ]
+      }
+    },
+    {
+      id: 'expertise-1',
+      type: 'features',
+      active: true,
+      content: {
+        title: 'Our Pillar of Expertise',
+        items: [
+          { title: 'Industry Experience', description: 'Over 20 years of collective experience across diverse sectors.', icon: 'GraduationCap' },
+          { title: 'Global Network', description: 'Access to international markets and strategic partnerships.', icon: 'Globe' },
+          { title: 'Client First', description: 'Tailored solutions that prioritize your unique business objectives.', icon: 'Heart' }
+        ]
+      }
+    },
+    {
+      id: 'team-1',
+      type: 'faculty',
+      active: true,
+      content: {
+        title: 'Meet Our Advisors',
+        items: [
+          { name: 'Robert Vance', designation: 'Managing Partner', photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400' },
+          { name: 'Sarah Jenkins', designation: 'Financial Director', photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400' }
+        ]
+      }
+    },
+    {
+      id: 'testimonials-1',
+      type: 'testimonials',
+      active: true,
+      content: {
+        title: 'Client Success Stories',
+        subtitle: 'Hear from the leaders we have partnered with to drive impact.',
+        items: [
+          { name: 'James Wilson', text: 'Their strategic insights transformed our operational efficiency within months.', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Strategic Consultation',
+        subtitle: 'Request a preliminary meeting to discuss your business goals.',
+        formId: '',
+        buttonText: 'Book Now'
+      }
+    }
+  ]
+};
+
+export const localServicesTemplate = {
+  settings: {
+    fontFamily: 'Inter',
+    borderRadius: '0.75rem',
+    navbar: {
+      items: [
+        { text: 'Services', link: '#services' },
+        { text: 'Process', link: '#process' },
+        { text: 'Area', link: '#area' },
+        { text: 'Reviews', link: '#reviews' }
+      ],
+      ctaText: 'Call Now',
+      ctaLink: 'tel:+1234567890',
+      ctaColor: '#dc2626',
+      transparent: false,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'Reliable Repair Services In Your Neighborhood',
+        subheadline: 'Expert technicians available 24/7 for all your home and office maintenance needs.',
+        ctaText: 'Schedule Service',
+        ctaLink: '#contact',
+        secondaryCtaText: 'Call Now',
+        secondaryCtaLink: 'tel:+1234567890',
+        tagline: '• 24/7 Support',
+        darkText: true,
+        backgroundType: 'gradient',
+        backgroundColor: '#fffbeb',
+        showDoctorImage: false
+      }
+    },
+    {
+      id: 'services-1',
+      type: 'services',
+      active: true,
+      content: {
+        title: 'Expert Solutions',
+        items: [
+          { name: 'Emergency Repairs', description: 'Fast response for urgent issues that need immediate attention.', icon: 'Zap' },
+          { name: 'Scheduled Maintenance', description: 'Regular check-ups to keep your systems running efficiently.', icon: 'Clock' },
+          { name: 'Installations', description: 'Professional setup of new equipment with quality guarantee.', icon: 'Wrench' }
+        ]
+      }
+    },
+    {
+      id: 'area-1',
+      type: 'map',
+      active: true,
+      content: {
+        title: 'We Serve Your Area',
+        address: 'Covering Downtown, West Side, and surrounding suburbs.',
+        mapEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.15830869428!2d-74.119763973046!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sin!4v1672300000000!5m2!1sen!2sin',
+        nearby: [
+          { name: 'Downtown Core', distance: '15 Min Response' },
+          { name: 'North Suburbs', distance: '30 Min Response' }
+        ]
+      }
+    },
+    {
+      id: 'trust-1',
+      type: 'features',
+      active: true,
+      content: {
+        title: 'Why Neighbors Trust Us',
+        items: [
+          { title: 'Licensed & Insured', description: 'Fully certified professionals you can rely on.', icon: 'ShieldCheck' },
+          { title: 'Fast Response', description: 'Were always nearby and ready to help.', icon: 'Zap' },
+          { title: 'Fair Pricing', description: 'Transparent quotes with no hidden costs.', icon: 'Tag' }
+        ]
+      }
+    },
+    {
+      id: 'reviews-1',
+      type: 'testimonials',
+      active: true,
+      content: {
+        title: 'Customer Reviews',
+        subtitle: 'See what your neighbors are saying about our work.',
+        items: [
+          { name: 'Linda K.', text: 'Fast, professional, and very reasonably priced. Highly recommended!', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Get A Free Quote',
+        subtitle: 'Tell us about your project and we will get back to you immediately.',
+        formId: '',
+        buttonText: 'Get Quote'
+      }
+    }
+  ]
+};
+
+export const eventTemplate = {
+  settings: {
+    fontFamily: 'Outfit',
+    borderRadius: '2rem',
+    navbar: {
+      items: [
+        { text: 'Speakers', link: '#speakers' },
+        { text: 'Agenda', link: '#agenda' },
+        { text: 'Venue', link: '#venue' }
+      ],
+      ctaText: 'Register Now',
+      ctaLink: '#contact',
+      ctaColor: '#8b5cf6',
+      transparent: true,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'The Annual Tech Innovation Summit',
+        subheadline: 'Join 500+ leaders and pioneers for a day of transformative ideas and networking. October 15-16, City Hall.',
+        ctaText: 'Claim Your Seat',
+        ctaLink: '#contact',
+        secondaryCtaText: 'View Agenda',
+        secondaryCtaLink: '#agenda',
+        tagline: '• Oct 15-16',
+        backgroundType: 'image',
+        backgroundImage: 'https://images.unsplash.com/photo-1540575861501-7ad0582373f2?auto=format&fit=crop&q=80&w=2000',
+        showDoctorImage: false
+      }
+    },
+    {
+      id: 'speakers-1',
+      type: 'faculty',
+      active: true,
+      content: {
+        title: 'Featured Speakers',
+        items: [
+          { name: 'Dr. Jane Foster', designation: 'CTO, TechCorp', photo: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=400' },
+          { name: 'Mark Stevens', designation: 'Futurist & Author', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400' }
+        ]
+      }
+    },
+    {
+      id: 'agenda-1',
+      type: 'agenda',
+      active: true,
+      content: {
+        title: 'Event Agenda',
+        subtitle: 'A full day of learning, sharing, and innovation.',
+        items: [
+          { time: '09:00 AM', title: 'Opening Keynote', description: 'Future of Technology in the Modern Age by Dr. Jane Foster.' },
+          { time: '11:30 AM', title: 'Panel Discussion', description: 'Adapting to AI-driven markets with industry leaders.' },
+          { time: '02:00 PM', title: 'Workshop Sessions', description: 'Hands-on training in strategic brand positioning.' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Secure Your Pass',
+        subtitle: 'Final few seats available. Register today for early-bird pricing.',
+        formId: '',
+        buttonText: 'Register Now'
+      }
+    }
+  ]
+};
+
+export const agencyTemplate = {
+  settings: {
+    fontFamily: 'Outfit',
+    borderRadius: '0',
+    navbar: {
+      items: [
+        { text: 'Work', link: '#portfolio' },
+        { text: 'Services', link: '#services' },
+        { text: 'About', link: '#about' }
+      ],
+      ctaText: 'Get Proposal',
+      ctaLink: '#contact',
+      ctaColor: '#000000',
+      transparent: true,
+      sticky: true
+    }
+  },
+  sections: [
+    {
+      id: 'hero-1',
+      type: 'hero',
+      active: true,
+      content: {
+        headline: 'We Build Brands That Demand Attention',
+        subheadline: 'A creative agency focusing on high-end design, digital experiences, and strategic growth.',
+        ctaText: 'Get Proposal',
+        ctaLink: '#contact',
+        secondaryCtaText: 'Our Services',
+        secondaryCtaLink: '#services',
+        tagline: '• Award Winning',
+        backgroundType: 'image',
+        backgroundImage: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2000',
+        showDoctorImage: false
+      }
+    },
+    {
+      id: 'portfolio-1',
+      type: 'projects',
+      active: true,
+      content: {
+        title: 'Selected Works',
+        items: [
+          { name: 'Nike Vision', location: 'Brand Identity', price: '2023', photo: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800' },
+          { name: 'Apple Ecosystem', location: 'UI/UX Design', price: '2023', photo: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800' }
+        ]
+      }
+    },
+    {
+      id: 'stats-1',
+      type: 'results',
+      active: true,
+      content: {
+        items: [
+          { label: 'Revenue Growth', value: '450%' },
+          { label: 'Clients Served', value: '120+' },
+          { label: 'Awards Won', value: '15' },
+          { label: 'Campaigns Run', value: '2k' }
+        ]
+      }
+    },
+    {
+      id: 'testimonials-1',
+      type: 'testimonials',
+      active: true,
+      content: {
+        title: 'Partners in Success',
+        subtitle: 'Innovative brands we have helped scale.',
+        items: [
+          { name: 'Michael Ross', text: 'Their creative approach redefined our brand identity for the better.', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200' }
+        ]
+      }
+    },
+    {
+      id: 'form-1',
+      type: 'form',
+      active: true,
+      content: {
+        title: 'Start Your Growth Journey',
+        subtitle: 'Tell us about your brand and let us build something amazing together.',
+        formId: '',
+        buttonText: 'Book Discovery Call'
+      }
+    }
+  ]
+};
+
 export const defaultContent = {
-  'leadboost-funnel': {
-    hero: {
-      heading: "Grow your business with high-quality leads",
-      subheading: "Stop wasting time on lukewarm prospects. Our lead generation system fuels your sales pipeline with precision.",
-      ctaText: "Get My Free Quote",
-      ctaHref: "#contact",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80'
-    },
-    problemSolution: {
-      title: "Why most businesses struggle with growth",
-      text: "The old way of cold calling and door-knocking is dead. Today, your customers are searching for solutions online. If you're not capturing them at the moment of intent, you're losing money.\n\nOur LeadBoost system positions your brand directly in front of your ideal audience and converts them into tangible business opportunities.",
-      reversed: true,
-      visualUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80'
-    },
-    benefits: {
-      title: "How we help you win",
-      items: [
-        { icon: 'Zap', title: "Instant Delivery", description: "Leads are delivered to your inbox the moment they show interest." },
-        { icon: 'Target', title: "Highly Targeted", description: "We filter for quality so you only talk to people ready to buy." },
-        { icon: 'Shield', title: "Verified Data", description: "Every lead is checked for authenticity and contact accuracy." }
-      ]
-    },
-    form: {
-      title: "Ready to scale?",
-      subtitle: "Just leave your details and we'll show you how many leads we can drive to your business this month.",
-      buttonText: "Request Strategy Call",
-      fields: [
-        { label: "Full Name", placeholder: "John Doe" },
-        { label: "Business Email", placeholder: "john@acme.com", type: 'email' },
-        { label: "Monthly Target", placeholder: "e.g. 50+ leads" },
-        { label: "Phone Number", placeholder: "+1 (555) 000-0000" }
-      ]
-    },
-    trust: {
-      title: "JOIN 500+ FAST-GROWING COMPANIES",
-      type: 'logos',
-      items: [
-        'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
-        'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-        'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
-        'https://upload.wikimedia.org/wikipedia/commons/b/b9/Slack_Technologies_Logo.svg'
-      ]
-    },
-    footer: {
-      companyName: "LeadBoost Agency",
-      links: [{ label: "Privacy", href: "#" }, { label: "Terms", href: "#" }, { label: "Contact", href: "#" }],
-      contactInfo: { email: "hello@leadboost.io", phone: "+1 (888) LEAD-NOW" }
-    },
-    navbar: {
-      links: [
-        { label: "Benefits", href: "#benefits" },
-        { label: "About", href: "#about" },
-        { label: "Contact", href: "#contact" }
-      ],
-      ctaText: "Get Started",
-      ctaHref: "#contact"
-    },
-    theme: {
-      primaryColor: "#2563eb",
-      secondaryColor: "#1d4ed8",
-      backgroundColor: "#ffffff",
-      textColor: "#1e293b",
-      accentColor: "#f59e0b",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  },
-
-  'quicklead-page': {
-    hero: {
-      heading: "Fast Inquiries for Fast Results",
-      subheading: "Need customers quickly? Our light-weight high-speed page is optimized for one thing: getting you noticed.",
-      ctaText: "Learn More Below",
-      ctaHref: "#about",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80'
-    },
-    description: {
-      title: "Simplified Capture",
-      text: "No fluff, no distractions. We present your value proposition clearly and provide a friction-less path for your customers to reach out.\n\nPerfect for local businesses and small service providers who want to start getting calls today.",
-      reversed: false,
-      visualUrl: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Get in touch in seconds",
-      subtitle: "Tell us what you need and we will get back to you within 24 hours.",
-      buttonText: "Send Inquiry",
-      fields: [
-        { label: "Your Name", placeholder: "Jane Doe" },
-        { label: "Email Address", placeholder: "jane@example.com", type: 'email' },
-        { label: "Message", placeholder: "How can we help?" }
-      ]
-    },
-    footer: {
-      companyName: "QuickLead",
-      links: [{ label: "Home", href: "#" }, { label: "Support", href: "#" }],
-      contactInfo: { email: "fast@quicklead.io", phone: "+1 (555) QUICK" }
-    },
-    navbar: {
-      links: [
-        { label: "About", href: "#about" },
-        { label: "Contact", href: "#contact" }
-      ],
-      ctaText: "Inquire Now",
-      ctaHref: "#contact"
-    },
-    theme: {
-      primaryColor: "#0f172a",
-      secondaryColor: "#1e293b",
-      backgroundColor: "#ffffff",
-      textColor: "#1e293b",
-      accentColor: "#6366f1",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  },
-
-  'servicepro-website': {
-    hero: {
-      heading: "Professional Services for Modern Brands",
-      subheading: "We handle the complexity so you can focus on what matters most—running your business.",
-      ctaText: "View Our Services",
-      ctaHref: "#services",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1454165833267-31976092e02f?auto=format&fit=crop&q=80'
-    },
-    services: {
-      title: "Expertise you can count on",
-      items: [
-        { title: "Consulting", description: "Strategic advice to help you navigate market challenges and find new growth paths." },
-        { title: "Development", description: "Custom technical solutions built with modern technology and scale in mind." },
-        { title: "Design", description: "Creative brand experiences that resonate with your audience and leave a lasting mark." },
-        { title: "Strategy", description: "Data-driven roadmaps that align your team and resources for maximum impact." }
-      ]
-    },
-    steps: {
-      title: "How we work together",
-      items: [
-        { title: "Discovery", description: "We sit down to understand your goals, challenges, and vision for the future." },
-        { title: "Execution", description: "Our expert team builds, designs, and deploys your solution with precision." },
-        { title: "Growth", description: "Continuous optimization and support to ensure long-term success and scaling." }
-      ]
-    },
-    about: {
-      title: "About the Team",
-      text: "We are a group of passionate experts dedicated to excellence. Our background spans across industries, giving us a unique perspective on solving complex problems.",
-      reversed: true,
-      visualUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Let's start your project",
-      subtitle: "We're currently accepting new clients for the next quarter. Book your spot today.",
-      buttonText: "Check Availability",
-      fields: [
-        { label: "Name", placeholder: "Alice Smith" },
-        { label: "Service Needed", placeholder: "Design, Strategy, etc." },
-        { label: "Project Budget", placeholder: "$5,000 - $10,000" }
-      ]
-    },
-    footer: {
-      companyName: "ServicePro Inc.",
-      links: [{ label: "Team", href: "#" }, { label: "Careers", href: "#" }, { label: "Contact", href: "#" }],
-      contactInfo: { email: "pro@service.com", phone: "+1 (800) SERVICE" }
-    },
-    navbar: {
-      links: [
-        { label: "Services", href: "#services" },
-        { label: "Case Studies", href: "#work" },
-        { label: "About", href: "#about" }
-      ],
-      ctaText: "Book Call",
-      ctaHref: "#contact"
-    },
-    theme: {
-      primaryColor: "#4f46e5",
-      secondaryColor: "#4338ca",
-      backgroundColor: "#ffffff",
-      textColor: "#1e293b",
-      accentColor: "#10b981",
-      headingFont: "Outfit",
-      bodyFont: "Inter"
-    }
-  },
-
-  'localbiz-website': {
-    hero: {
-      heading: "Serving Our Community with Excellence",
-      subheading: "Quality work you can trust, right in your neighborhood. Book your appointment or visit us today!",
-      ctaText: "Call Now",
-      ctaHref: "tel:+1555LOCAL",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?auto=format&fit=crop&q=80'
-    },
-    about: {
-      title: "Trusted Locally for 20+ Years",
-      text: "We started as a small family business and have grown to serve thousands of happy customers in our city. Our commitment remains the same: honesty, quality, and fair pricing.",
-      reversed: false,
-      visualUrl: 'https://images.unsplash.com/photo-1541888941259-79974df1964a?auto=format&fit=crop&q=80'
-    },
-    services: {
-      title: "Our Main Services",
-      items: [
-        { title: "Repair & Maintenance", description: "Keeping your equipment running smoothly year-round." },
-        { title: "Installations", description: "Professional setup for all your new home or business systems." },
-        { title: "Consultations", description: "Free estimates and advice on the best solutions for your needs." }
-      ]
-    },
-    location: {
-      title: "Find Us Here",
-      text: "123 Business Lane, Suite 400\nCityville, ST 12345\n\nOpen Monday - Friday: 9 AM - 6 PM",
-      reversed: true,
-      visualUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Request a Callback",
-      subtitle: "Leave your number and we will call you back within 15 minutes during business hours.",
-      buttonText: "Call Me Back",
-      fields: [
-        { label: "Full Name", placeholder: "Bob Smith" },
-        { label: "Phone Number", placeholder: "+1 (555) 123-4567" }
-      ]
-    },
-    footer: {
-      companyName: "LocalBiz Pro",
-      links: [{ label: "About", href: "#about" }, { label: "Map", href: "#location" }],
-      contactInfo: { email: "contact@localbiz.com", phone: "+1 (555) LOCAL" }
-    },
-    navbar: {
-      links: [
-        { label: "Our Services", href: "#services" },
-        { label: "Where We Are", href: "#location" },
-        { label: "About Us", href: "#about" }
-      ],
-      ctaText: "Call Now",
-      ctaHref: "tel:+1555LOCAL"
-    },
-    theme: {
-      primaryColor: "#dc2626",
-      secondaryColor: "#991b1b",
-      backgroundColor: "#ffffff",
-      textColor: "#292524",
-      accentColor: "#fbbf24",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  },
-
-  'launchflow-funnel': {
-    hero: {
-      heading: "The Future is Finally Here.",
-      subheading: "Watch the demo below and join the thousands who have already revolutionized their workflow with LaunchFlow.",
-      ctaText: "Pre-Order Now",
-      ctaHref: "#waitlist",
-      visualType: 'youtube',
-      visualUrl: 'dQw4w9WgXcQ'
-    },
-    highlights: {
-      title: "Why it changed everything",
-      items: [
-        { icon: 'Rocket', title: "Unmatched Speed", description: "Built from the ground up for performance and low-latency execution." },
-        { icon: 'Star', title: "Elegance by Design", description: "An interface so intuitive, it feels like it knows what you're thinking." },
-        { icon: 'Zap', title: "AI Integration", description: "Smart features that automate your most tedious daily tasks." }
-      ]
-    },
-    whyMatters: {
-      title: "Built for creators, by creators.",
-      text: "We spent three years refining every detail to ensure that nothing gets between you and your work. LaunchFlow isn't just a tool; it's a teammate.\n\nFrom solo developers to enterprise agencies, we provide the power you need to ship faster and better.",
-      reversed: false,
-      visualUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Join the Early Access",
-      subtitle: "We're rolling out access in weekly batches. Leave your email to secure your spot in the queue.",
-      buttonText: "Join Waitlist",
-      fields: [
-        { label: "Full Name", placeholder: "Dave" },
-        { label: "Email Address", placeholder: "dave@example.com", type: 'email' }
-      ]
-    },
-    footer: {
-      companyName: "LaunchFlow Inc.",
-      links: [{ label: "Docs", href: "#" }, { label: "Blog", href: "#" }],
-      contactInfo: { email: "launch@flow.com", phone: "+1 (800) FLOW" }
-    },
-    navbar: {
-      links: [
-        { label: "Features", href: "#highlights" },
-        { label: "Why Us", href: "#whyMatters" }
-      ],
-      ctaText: "Get Access",
-      ctaHref: "#waitlist"
-    },
-    theme: {
-      primaryColor: "#8b5cf6",
-      secondaryColor: "#7c3aed",
-      backgroundColor: "#000000",
-      textColor: "#ffffff",
-      accentColor: "#06b6d4",
-      headingFont: "Space Grotesk",
-      bodyFont: "Inter"
-    }
-  },
-
-  'waitlistpro-page': {
-    hero: {
-      heading: "Something Big is Coming.",
-      subheading: "We're building the ultimate tool for productivity. Be the first to know when we launch and get exclusive early-bird benefits.",
-      ctaText: "Sign Me Up",
-      ctaHref: "#waitlist",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80'
-    },
-    valueProp: {
-      title: "The Problem We're Solving",
-      text: "Most people lose 2 hours a day switching between fragmented apps. We solve that by unifying your digital life into a single, cohesive command center.\n\nFocus on what you do best. Let us handle the rest.",
-      reversed: true,
-      visualUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Don't miss the launch",
-      subtitle: "Drop your email below and we'll send you a special gift on launch day.",
-      buttonText: "Get Early Access",
-      fields: [
-        { label: "Email Address", placeholder: "you@awesome.com", type: 'email' }
-      ]
-    },
-    footer: {
-      companyName: "WaitlistPro",
-      links: [{ label: "Terms", href: "#" }],
-      contactInfo: { email: "soon@waitlist.io", phone: "N/A" }
-    },
-    navbar: {
-      links: [
-        { label: "The Problem", href: "#value" },
-        { label: "The Solution", href: "#waitlist" }
-      ],
-      ctaText: "Join Now",
-      ctaHref: "#waitlist"
-    },
-    theme: {
-      primaryColor: "#111827",
-      secondaryColor: "#1f2937",
-      backgroundColor: "#ffffff",
-      textColor: "#111827",
-      accentColor: "#ef4444",
-      headingFont: "Outfit",
-      bodyFont: "Inter"
-    }
-  },
-
-  'agencyprime-website': {
-    hero: {
-      heading: "We Build Digital Brands That Scale",
-      subheading: "Prime results for top-tier companies. We combine creative design with engineering excellence.",
-      ctaText: "Start a Conversation",
-      ctaHref: "#contact",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80'
-    },
-    services: {
-      title: "Our Expertise",
-      items: [
-        { title: "Brand Identity", description: "Unique and memorable branding that tells your story effectively." },
-        { title: "SaaS Development", description: "Scalable software products built on modern architecture." },
-        { title: "Growth Marketing", description: "Data-driven strategies that actually drive revenue and user base." }
-      ]
-    },
-    about: {
-      title: "Why Prime?",
-      text: "We don't just take orders; we act as partners. Our focus is on ROI, not just KPIs. If it doesn't move the needle for your business, we don't do it.\n\nOur portfolio spans from Series A startups to Fortune 500 giants.",
-      reversed: false,
-      visualUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80'
-    },
-    form: {
-      title: "Work with us",
-      subtitle: "Interested in partnering with Prime? Fill out the form and our head of strategy will reach out.",
-      buttonText: "Request Proposal",
-      fields: [
-        { label: "Your Name", placeholder: "CEO of Acme" },
-        { label: "Company URL", placeholder: "https://acme.inc" },
-        { label: "Project Brief", placeholder: "What are you looking to achieve?" }
-      ]
-    },
-    footer: {
-      companyName: "AgencyPrime",
-      links: [{ label: "Work", href: "#services" }, { label: "Contact", href: "#contact" }],
-      contactInfo: { email: "hello@prime.agency", phone: "+1 (888) PRIME" }
-    },
-    navbar: {
-      links: [
-        { label: "Work", href: "#services" },
-        { label: "Process", href: "#about" }
-      ],
-      ctaText: "Hire Us",
-      ctaHref: "#contact"
-    },
-    theme: {
-      primaryColor: "#000000",
-      secondaryColor: "#171717",
-      backgroundColor: "#ffffff",
-      textColor: "#000000",
-      accentColor: "#fbbf24",
-      headingFont: "Playfair Display",
-      bodyFont: "Inter"
-    }
-  },
-
-  'businessbrand-website': {
-    hero: {
-      heading: "Innovating for a Better Tomorrow",
-      subheading: "A global leader in sustainable solutions and corporate excellence. Meet the company behind the change.",
-      ctaText: "Learn About Us",
-      ctaHref: "#about",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80'
-    },
-    about: {
-      title: "Our Corporate Mission",
-      text: "Founded in 1995, we have consistently pushed the boundaries of what's possible in the corporate sector. Our values are rooted in integrity, innovation, and impact.\n\nWith over 5,000 employees worldwide, we are driving the future of industry.",
-      reversed: true,
-      visualUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80'
-    },
-    services: {
-      title: "Core Business Areas",
-      items: [
-        { title: "Infrastructure", description: "Building the backbone of modern cities and industries." },
-        { title: "Technology", description: "Research and development in groundbreaking digital fields." },
-        { title: "Logistics", description: "Global supply chain management at its most efficient level." }
-      ]
-    },
-    form: {
-      title: "Contact Corporate Office",
-      subtitle: "For media inquiries, partnerships, or general information, please use the form below.",
-      buttonText: "Submit Inquiry",
-      fields: [
-        { label: "Name", placeholder: "Corporate Rep" },
-        { label: "Organization", placeholder: "ABC Group" },
-        { label: "Inquiry Type", placeholder: "Media, Partnership, etc." }
-      ]
-    },
-    footer: {
-      companyName: "BusinessBrand Group",
-      links: [{ label: "Investor Relations", href: "#" }, { label: "Governance", href: "#" }],
-      contactInfo: { email: "office@businessbrand.com", phone: "+1 (444) CORP" }
-    },
-    navbar: {
-      links: [
-        { label: "Corporate", href: "#about" },
-        { label: "Sustainability", href: "#services" }
-      ],
-      ctaText: "Newsroom",
-      ctaHref: "#news"
-    },
-    theme: {
-      primaryColor: "#1e40af",
-      secondaryColor: "#1e3a8a",
-      backgroundColor: "#ffffff",
-      textColor: "#1e293b",
-      accentColor: "#22c55e",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  },
-  'hospital': {
-    hero: {
-      heading: "Compassionate Care, Advanced Medicine",
-      subheading: "World-class healthcare services for you and your family. Our specialists are here to provide personalized treatments.",
-      ctaText: "Book Appointment",
-      ctaHref: "#booking",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80'
-    },
-    services: {
-      title: "Our Specializations",
-      items: [
-        { title: "Cardiology", description: "Comprehensive heart care using the latest diagnostic tools." },
-        { title: "Neurology", description: "Expert treatment for brain and nervous system disorders." },
-        { title: "Pediatrics", description: "Specialized care for infants, children, and adolescents." },
-        { title: "Orthopedics", description: "Advanced surgical and non-surgical bone and joint care." }
-      ]
-    },
-    booking: {
-      title: "Schedule Your Visit",
-      subtitle: "Select a department and date that works best for you.",
-      buttonText: "Confirm Booking",
-      fields: [
-        { label: "Patient Name", placeholder: "Full Name" },
-        { label: "Department", placeholder: "e.g. Cardiology" },
-        { label: "Preferred Date", placeholder: "Select Date", type: 'date' }
-      ]
-    },
-    doctors: {
-      title: "Meet Our Experts",
-      items: [
-        { name: "Dr. Sarah Johnson", role: "Chief Cardiologist", image: "https://images.unsplash.com/photo-1559839734-2b71f1e59816?auto=format&fit=crop&q=80" },
-        { name: "Dr. Michael Chen", role: "Neurosurgeon", image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80" }
-      ]
-    },
-    footer: {
-      companyName: "City General Hospital",
-      links: [{ label: "Find a Doctor", href: "#" }, { label: "Patient Portal", href: "#" }],
-      contactInfo: { email: "care@hospital.io", phone: "+1 (555) HEALTH" }
-    },
-    navbar: {
-      links: [
-        { label: "Services", href: "#services" },
-        { label: "Doctors", href: "#doctors" },
-        { label: "About", href: "#about" }
-      ],
-      ctaText: "Emergency Call",
-      ctaHref: "tel:+1911"
-    },
-    theme: {
-      primaryColor: "#0ea5e9",
-      secondaryColor: "#0284c7",
-      backgroundColor: "#ffffff",
-      textColor: "#0f172a",
-      accentColor: "#f43f5e",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  },
-  'ecommerce': {
-    hero: {
-      heading: "New Season: Tracksuits & Essentials",
-      subheading: "Premium quality athletic wear designed for comfort and style. Shop the autumn collection now.",
-      ctaText: "Shop Collection",
-      ctaHref: "#products",
-      visualType: 'image',
-      visualUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80'
-    },
-    products: {
-      title: "Featured Fashion",
-      items: [
-        { id: '1', name: "Tech Fleece Tracksuit", price: "$129.00", image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80", description: "Our best-selling Tech Fleece set. Perfect for daily wear." },
-        { id: '2', name: "Urban Cargo Joggers", price: "$85.00", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80", description: "Durable cargo pants with a modern tapered fit." },
-        { id: '3', name: "Essential Oversized Hoodie", price: "$65.00", image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80", description: "Heavyweight cotton hoodie with a premium feel." },
-        { id: '4', name: "Signature Sport Cap", price: "$25.00", image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80", description: "Classic 6-panel cap with embroidered branding." }
-      ]
-    },
-    categories: {
-      title: "Shop by Category",
-      items: ["Activewear", "Streetwear", "Accessories", "Sale"]
-    },
-    trustBadges: {
-       items: [
-         { icon: 'Truck', title: "Free Shipping", description: "On all orders over $100" },
-         { icon: 'ShieldCheck', title: "Secure Payment", description: "SSL encrypted checkout" },
-         { icon: 'RotateCcw', title: "Easy Returns", description: "30-day money back guarantee" },
-         { icon: 'CreditCard', title: "COD Available", description: "Pay when you receive" }
-       ]
-    },
-    reviews: {
-       title: "Customer Love",
-       items: [
-         { name: "Alex M.", rating: 5, text: "The tracksuit fits perfectly! The quality of the fabric is top-notch. Highly recommend.", role: "Verified Buyer" },
-         { name: "Sarah K.", rating: 5, text: "Fast delivery and amazing customer service. The hoodie is so cozy!", role: "Verified Buyer" }
-       ]
-    },
-    whatsapp: {
-       phone: "+15550000000",
-       message: "Hello! I'm interested in your products.",
-       enabled: true
-    },
-    footer: {
-      companyName: "TrendFlow Fashion",
-      links: [
-        { label: "Privacy Policy", href: "#privacy" },
-        { label: "Shipping Policy", href: "#shipping" }, 
-        { label: "Refund Policy", href: "#refund" },
-        { label: "Contact Us", href: "#contact" }
-      ],
-      contactInfo: { email: "sales@trendflow.io", phone: "+1 (800) TRENDY" }
-    },
-    navbar: {
-      links: [
-        { label: "New Arrivals", href: "#products" },
-        { label: "Categories", href: "#categories" },
-        { label: "Reviews", href: "#reviews" }
-      ],
-      ctaText: "Cart (0)",
-      ctaHref: "#cart"
-    },
-    theme: {
-      primaryColor: "#000000",
-      secondaryColor: "#171717",
-      backgroundColor: "#ffffff",
-      textColor: "#000000",
-      accentColor: "#fbbf24",
-      headingFont: "Inter",
-      bodyFont: "Inter"
-    }
-  }
+  Healthcare: healthcareTemplate,
+  Education: educationTemplate,
+  'Real Estate': realEstateTemplate,
+  'Professional Services': professionalServicesTemplate,
+  'Local Services': localServicesTemplate,
+  Events: eventTemplate,
+  Agencies: agencyTemplate
 };

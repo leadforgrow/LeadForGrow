@@ -85,9 +85,9 @@ export default function Sidebar() {
     { name: 'Reports', href: '/automation/reports', icon: BarChart3 },
     { name: 'Website & Integrations', href: '/automation/integrations', icon: Globe, role: 'owner' },
     { name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner' },
-    { name: 'Billing & Plan', href: '/automation/billing', icon: CreditCard, role: 'owner' },
+    { name: 'Billing & Plan', href: '/pricing', icon: CreditCard, role: 'owner' },
     { name: 'Call Recovery', href: '/automation/call-integration', icon: PhoneCall },
-    { name: 'Help & Support', href: '/automation/help', icon: HelpCircle }
+    { name: 'Help & Support', href: '/contact', icon: HelpCircle }
   ];
 
   const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : 'member';

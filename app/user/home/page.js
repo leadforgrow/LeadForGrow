@@ -14,7 +14,7 @@ import UserNavbar from '../Header';
 import TrustPopup from '@/app/components/TrustPopup';
 import SuccessNotification from '@/app/components/SuccessNotification';
 import { useTheme } from '../../components/ThemeContext';
-import { Moon, Sun, X, Play, ArrowRight } from 'lucide-react';
+import { Moon, Sun, X, Play, ArrowRight, Target } from 'lucide-react';
 
 export default function LeadForGrowHeroPage() {
   const { theme, toggleTheme } = useTheme();
@@ -93,7 +93,7 @@ export default function LeadForGrowHeroPage() {
       <UserNavbar />
 
       {/* Hero Section */}
-      <div className="relative max-w-7xl mx-auto px-8 py-20 mt-35">
+      <div className="relative max-w-7xl mx-auto px-8 py-20 mt-24">
         {/* Decorative Elements */}
         <div className="absolute top-20 left-10 w-24 h-24 bg-indigo-600 rounded-full opacity-10 blur-3xl dark:opacity-20"></div>
         <div className="absolute top-40 right-32 w-16 h-16 bg-rose-500 rounded-full opacity-10 blur-3xl dark:opacity-20"></div>
@@ -111,26 +111,22 @@ export default function LeadForGrowHeroPage() {
            </div>
         </div>
 
-        {/* Theme Toggle Badge */}
+        {/* Sliding Theme Toggle - Moved further Right */}
         <div 
-          className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30 cursor-pointer group"
-          style={{marginTop:"-70px"}}
+          className="absolute top-16 right-4 lg:right-8 z-30 cursor-pointer group"
+          style={{marginTop:"-60px"}}
           onClick={toggleTheme}
         >
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-full p-1 shadow-2xl border border-white/50 dark:border-slate-700 transition-all duration-500 group-hover:scale-105 active:scale-95 w-32 h-18 relative">
-            <div className={`absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] flex items-center justify-center rounded-full transition-all duration-500 ease-in-out shadow-lg ${theme === 'dark' ? 'translate-x-full bg-indigo-600 ring-4 ring-indigo-900/20' : 'translate-x-0 bg-amber-400 ring-4 ring-amber-100'}`}>
-              {theme === 'dark' ? <Moon className="w-7 h-7 text-white" /> : <Sun className="w-7 h-7 text-white" />}
-            </div>
-            <div className="flex h-full w-full items-center justify-around px-2 opacity-30 select-none">
-                <Sun className={`w-5 h-5 ${theme === 'light' ? 'invisible' : ''} text-amber-500`} />
-                <Moon className={`w-5 h-5 ${theme === 'dark' ? 'invisible' : ''} text-indigo-400`} />
+          <div className="bg-slate-100 dark:bg-slate-800/80 backdrop-blur-md rounded-full p-1 w-14 h-8 relative shadow-inner transition-colors duration-500">
+            <div className={`absolute top-1 bottom-1 w-6 bg-white dark:bg-indigo-600 rounded-full shadow-md flex items-center justify-center transition-all duration-500 ease-in-out ${theme === 'dark' ? 'left-[calc(100%-28px)]' : 'left-1'}`}>
+              {theme === 'dark' ? <Moon className="w-3.5 h-3.5 text-white" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
             </div>
           </div>
-          <p className="text-center mt-3 text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest font-sans">Stop Revenue Leakage</p>
+          <p className="text-right mt-2 text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">Mode</p>
         </div>
 
         {/* Main Content */}
-        <div className="relative z-20 text-center pt-40" style={{marginTop:"-130px"}}>
+        <div className="relative z-20 text-center pt-28" style={{marginTop:"-135px"}}>
           <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif text-slate-900 dark:text-white leading-tight transition-colors duration-500 tracking-tight">
             Stop Losing Revenue<br />
             to Slow Follow-Ups.

@@ -13,7 +13,12 @@ import {
   Users,
   Plus,
   X,
-  Send
+  Send,
+  ChevronRight,
+  TrendingUp,
+  LayoutDashboard,
+  Zap,
+  Type
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -37,7 +42,9 @@ export default function TasksPage() {
     title: '',
     description: '',
     dueDate: '',
-    assignedTo: ''
+    assignedTo: '',
+    autoSend: false,
+    messageContent: ''
   });
   const [leads, setLeads] = useState([]); // For the create task dropdown
 
@@ -99,7 +106,10 @@ export default function TasksPage() {
       const res = await fetch(`/api/automation/tasks/${selectedTask._id}?userId=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dueDate: rescheduleDate })
+        body: JSON.stringify({ 
+          dueDate: rescheduleDate,
+          // If we add autoSend / messageContent to reschedule modal later, we'd include them here.
+        })
       });
 
       const data = await res.json();
@@ -127,7 +137,7 @@ export default function TasksPage() {
       if (data.success) {
         toast.success('Task created!');
         setShowCreateModal(false);
-        setNewTask({ leadId: '', type: 'call', title: '', description: '', dueDate: '', assignedTo: '' });
+        setNewTask({ leadId: '', type: 'call', title: '', description: '', dueDate: '', assignedTo: '', autoSend: false, messageContent: '' });
         fetchTasks();
       }
     } catch (error) {
@@ -292,6 +302,8 @@ export default function TasksPage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ml-4 ${
                         overdue ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
                       }`}>
+                        {new Date(task.dueDate).toLocaleDateString()} {new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span className="mx-2 opacity-30">|</span>
                         {getTimeUntil(task.dueDate)}
                       </span>
                     </div>
@@ -356,7 +368,14 @@ export default function TasksPage() {
                       <button
                         onClick={() => {
                           setSelectedTask(task);
-                          setRescheduleDate(task.dueDate.split('T')[0]);
+                          // Extract YYYY-MM-DDTHH:mm from ISO string
+                          const d = new Date(task.dueDate);
+                          const formatted = d.getFullYear() + '-' + 
+                                            String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+                                            String(d.getDate()).padStart(2, '0') + 'T' + 
+                                            String(d.getHours()).padStart(2, '0') + ':' + 
+                                            String(d.getMinutes()).padStart(2, '0');
+                          setRescheduleDate(formatted);
                           setShowRescheduleModal(true);
                         }}
                         className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors flex items-center gap-2"
@@ -401,7 +420,7 @@ export default function TasksPage() {
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">New Date</label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     required
                     className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                     value={rescheduleDate}
@@ -464,7 +483,7 @@ export default function TasksPage() {
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-2">Due Date</label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     required
                     className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                     value={newTask.dueDate}
@@ -492,6 +511,39 @@ export default function TasksPage() {
                   onChange={(e) => setNewTask({...newTask, description: e.target.value})}
                 />
               </div>
+
+              {/* Automation Toggle */}
+              {(newTask.type === 'email' || newTask.type === 'whatsapp') && (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                   <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                         <Zap className="w-4 h-4 text-amber-500" />
+                         <span className="text-xs font-black uppercase text-slate-400">Automated Follow-up</span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setNewTask({...newTask, autoSend: !newTask.autoSend})}
+                        className={`w-10 h-5 rounded-full relative transition-all ${newTask.autoSend ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                      >
+                         <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${newTask.autoSend ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                      </button>
+                   </div>
+                   
+                   {newTask.autoSend && (
+                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Message Content</label>
+                        <textarea 
+                          rows="4"
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 resize-none"
+                          placeholder={newTask.type === 'email' ? "Hi {{name}}, just following up on..." : "Hi {{name}}, connecting regarding..."}
+                          value={newTask.messageContent}
+                          onChange={(e) => setNewTask({...newTask, messageContent: e.target.value})}
+                        />
+                        <p className="text-[9px] text-slate-400 italic">Use {"{{name}}"} for lead name personalization.</p>
+                     </div>
+                   )}
+                </div>
+              )}
               <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
                 <Send className="w-5 h-5" />
                 Create Task

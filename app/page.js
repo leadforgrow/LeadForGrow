@@ -5,8 +5,20 @@ import LeadForGrowWidget from "./Enquiry";
 export default function page() {
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "LeadForGrow",
+            "url": "https://www.leadforgrow.com",
+            "logo": "https://www.leadforgrow.com/logo.png"
+          }),
+        }}
+      />
       <UserHome></UserHome>
-      <LeadForGrowWidget></LeadForGrowWidget>
+      {/* <LeadForGrowWidget></LeadForGrowWidget> */}
       <div className="flex justify-center py-8">
         <a 
           href="https://www.producthunt.com/products/leadforgrow?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-leadforgrow" 

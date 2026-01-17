@@ -1,8 +1,15 @@
+"use client";
+
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { Mail, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react';
 
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  // Hide the global LeadForGrow footer on public funnel pages
+  if (pathname.startsWith('/s/')) return null;
 
   const footerData = {
     product: [
@@ -24,12 +31,12 @@ export default function Footer() {
       { label: 'Agency Platform', href: '/agencies/overview' },
       { label: 'Manage Multiple Clients', href: '/agencies/clients' },
       { label: 'White-Label Solution', href: '/agencies/white-label' },
-      { label: 'Agency Pricing', href: '/agencies/pricing' },
+      { label: 'Agency Pricing', href: '/pricing' },
       { label: 'Become a Partner', href: '/agencies/partner' },
     ],
     company: [
       { label: 'About Us', href: '/about' },
-      { label: 'Pricing', href: '/#pricing' },
+      { label: 'Pricing', href: '/pricing' },
       { label: 'Case Studies', href: '/resources/case-studies' },
       { label: 'Blog', href: '/resources/blog' },
       { label: 'Contact Sales', href: '/contact' },

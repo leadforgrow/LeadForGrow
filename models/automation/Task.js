@@ -65,6 +65,16 @@ const TaskSchema = new mongoose.Schema({
     trim: true
   },
   
+  // Automation
+  autoSend: {
+    type: Boolean,
+    default: false
+  },
+  messageContent: {
+    type: String,
+    trim: true
+  },
+  
   // Reminder
   reminderSent: {
     type: Boolean,

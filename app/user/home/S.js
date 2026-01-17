@@ -90,29 +90,52 @@ export default function AgencyOSLanding() {
            </div>
         </div>
 
-        {/* SECTION 7: TRUST & PROOF */}
-        <div className="grid md:grid-cols-3 gap-12 text-center pt-20 border-t dark:border-slate-900 transition-colors duration-500">
-          <div>
-            <div className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent mb-4 tracking-tighter">
-              20M+
-            </div>
-            <div className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">Total Revenue Protected</div>
+        
+
+        {/* SECTION 8: TESTIMONIALS */}
+        <div className="pt-24 border-t dark:border-slate-800">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mb-6">What Early Users Are Saying.</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">Real outcomes from teams who stopped treating follow-up as an option.</p>
           </div>
 
-          <div>
-            <div className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent mb-4 tracking-tighter">
-              34%
-            </div>
-            <div className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">Avg. Conversion Boost (Day 45)</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {[
+              {
+                text: "Speed of response changed everything for us. We went from losing 40% of leads to 0 leakage in under a month. The discipline is now automated.",
+                author: "Rahul",
+                role: "Agency Owner"
+              },
+              {
+                text: "The automated reminders fixed our team's discipline. We don't have to 'ask' anyone to follow up anymore — the system just enforces it.",
+                author: "Sarah",
+                role: "Sales Head"
+              },
+              {
+                text: "The visibility into 'Revenue at Risk' is a game changer. We finally know exactly where our money is being lost and who is fixing it.",
+                author: "Amit",
+                role: "SMB Founder"
+              }
+            ].map((t, i) => (
+              <div key={i} className="p-8 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between group hover:shadow-lg transition-all">
+                <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic mb-8">
+                  "{t.text}"
+                </p>
+                <div>
+                  <p className="text-slate-900 dark:text-white font-bold">{t.author}</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">{t.role}</p>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <div>
-            <div className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent mb-4 tracking-tighter">
-              150+
-            </div>
-            <div className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">High-Growth Sales Teams</div>
+          
+          <div className="text-center">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
+              Feedback from pilot users and early customers.
+            </p>
           </div>
         </div>
+
       </main>
     </div>
   );

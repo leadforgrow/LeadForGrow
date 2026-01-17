@@ -1,85 +1,88 @@
-import { Check, Info, X, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Check,
+  ArrowRight,
+  Globe,
+  Info,
+  X,
+  CreditCard,
+  CheckCircle2
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-export default function PricingSection({ onGetStarted }) {
-  const [billingCycle, setBillingCycle] = useState('monthly');
+export default function PricingSection() {
+  const [growthOption, setGrowthOption] = useState('call'); // 'call' or 'whatsapp'
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const plans = [
     {
       name: 'DFY — Done For You',
-      tagline: 'one-time + managed',
+      tagline: 'managed execution',
       setupFee: '₹20,000 (Setup)',
-      priceMonthly: '₹4,999',
-      priceYearly: '₹54,999',
+      price: '₹4,999',
+      period: '/ mo',
       features: [
         'Custom DFU website built & published',
         'Product/photo upload + copywriting',
         'Domain connection + SSL set up',
         'WhatsApp / Call / Form integration',
-        'Lead capture & Leads table',
         'Daily notifications (WhatsApp/Email)',
-        '2 small changes/mo + maintenance',
-        'Priority support'
+        'Maintenance & Priority support'
       ],
-      why: 'Setup sits between common single-site build costs and agency quotes in India; monthly covers hosting, SSL, support, and the “we-manage-it” promise (ongoing DFU labor & SLAs). Maintenance cost: ₹5k.',
+      description: 'Setup sits between common single-site build costs and agency quotes; monthly covers hosting, SSL, and ongoing DFU labor & SLAs.',
       popular: true
     },
     {
-      name: 'Starter',
+      name: "Starter",
       tagline: 'for solo founders',
-      priceMonthly: '₹2,999',
-      priceYearly: '₹29,990',
+      price: "2,999",
+      period: "/ mo",
       features: [
-        '1 website (template) + hosting',
-        'Unlimited leads capture',
-        'Basic notifications (email)',
-        'Form & WhatsApp notifications',
-        'Basic analytics (visitors/submissions)',
-        '1 user account',
-        'Domain connect included',
-        'Email support (48-72 hr)'
+        "1 website with custom domain",
+        "Unlimited leads capture",
+        "Automation  (email)",
+        "call & WhatsApp manual",
+        "1 form builder",
+        "Email support"
       ],
-      why: 'Positioned below common maintenance pricing (~₹2.5k–₹7k) to get fast conversions among small Indian businesses who currently spend on maintenance.',
-      popular: false
+      description: 'Get online and start capturing enquiries professionally. Positioned for small businesses who currently spend on maintenance.'
     },
     {
-      name: 'Growth',
+      name: "Growth",
       tagline: 'for growing SMBs',
-      priceMonthly: '₹7,999',
-      priceYearly: '₹79,990',
+      price: "7,999",
+      period: "/ mo",
+      featured: true,
+      tag: "Most Popular",
       features: [
-        'Up to 3 websites / landing funnels',
-        'Full lead dashboard & form builder',
-        'Automated notifications (WA + Email)',
-        'Basic automation (assign, tag)',
-        'Analytics (page conversion)',
-        'CSV export',
-        '3 team seats',
-        'Monthly health check'
+        "Up to 3 websites / landing funnels",
+        "Full lead dashboard & form builder",
+        "Automated notifications (WA + Email)",
+        "FollowUpSure system",
+        "Lead assignment and pipelines",
+        "8 team seats"
       ],
-      why: 'Matches what Indian SMBs expect to pay for real value—a replacement for paying separate maintenance + a simple CRM.',
-      popular: false
+      description: 'Convert more enquiries by automating follow-ups and recovery. A replacement for paying separate maintenance + a simple CRM.'
     },
     {
-      name: 'Pro',
+      name: "Pro (Agency)",
       tagline: 'for agencies & teams',
-      priceMonthly: '₹14,999',
-      priceYearly: '₹149,990',
+      price: "14,999",
+      period: "/ mo",
       features: [
-        'Up to 10 sites / client accounts',
-        'Multi-client view (Clients tab)',
-        'Advanced reporting & lead lifecycle',
-        'Advanced automations & hooks',
-        'White-label options (Emails)',
-        'API access (basic)',
-        '10 team seats',
-        'Priority live support & onboarding'
+        "Up to 20 sites / client accounts",
+        "Multi-client view (Clients tab)",
+        "Advanced reporting & timelines",
+        "Advanced automations & hooks",
+        "White-label options (Emails)",
+        "20 team seats"
       ],
-      why: 'Targets agencies with higher ARPU—pricing reflects replacement of multiple tools (builder + CRM + notifications) and matches mid-market agency budgets.',
-      popular: false
+      description: 'Built for agencies managing multiple clients and teams. Reflects replacement of multiple tools and matches agency budgets.'
     }
   ];
 
@@ -88,23 +91,13 @@ export default function PricingSection({ onGetStarted }) {
     setIsModalOpen(true);
   };
 
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
   const handleConfirmPay = () => {
     setIsProcessing(true);
-
-    // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
-
-      // Store the plan name in localStorage
       localStorage.setItem('userPlan', selectedPlan.name);
-
-      toast.success(`${selectedPlan.name} plan saved successfully!`);
-
-      // Reset after 3 seconds
+      toast.success(`${selectedPlan.name} plan activated successfully!`);
       setTimeout(() => {
         setIsModalOpen(false);
         setIsSuccess(false);
@@ -113,212 +106,197 @@ export default function PricingSection({ onGetStarted }) {
   };
 
   return (
-    <div id="pricing" className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 py-24 px-8 relative overflow-hidden border-t dark:border-slate-800">
-      {/* Decorative circles */}
-      <div className="absolute top-32 left-16 w-4 h-4 bg-teal-400 rounded-full opacity-30"></div>
-      <div className="absolute top-64 right-32 w-4 h-4 bg-indigo-500 rounded-full opacity-30"></div>
-      <div className="absolute bottom-32 right-16 w-6 h-6 bg-pink-500 rounded-full opacity-30"></div>
-
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4 transition-colors">OUR PRICING</p>
-          <h2 className="text-4xl lg:text-5xl font-serif text-slate-900 dark:text-white mb-10 leading-tight transition-colors">
-            No hidden charge,<br /> Choose your plan.
+    <div id="pricing" className="bg-white dark:bg-black text-slate-600 dark:text-slate-400 antialiased py-32 border-t border-slate-50 dark:border-slate-900 transition-colors duration-500" style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      <div className="max-w-[1280px] mx-auto px-6">
+        {/* Top Section */}
+        <div className="text-center mb-24 max-w-2xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-slate-900 dark:text-white mb-6">
+            One system to capture, follow up, and manage leads
           </h2>
-          <div className="max-w-2xl mx-auto mb-16 text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic border-x border-indigo-600/20 px-8">
-            <p className="mb-4">LeadForGrow is an investment in revenue persistence. Choose the tier that matches your current growth volume.</p>
-            <p className="text-indigo-600 dark:text-indigo-400 font-bold text-lg not-italic">
-              Most teams recover the cost within their first few recovered leads.
-            </p>
-          </div>
-
-          {/* Toggle */}
-          <div className="inline-flex bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-1.5 border border-slate-100 dark:border-slate-800 transition-colors">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-10 py-3 rounded-xl font-bold text-sm tracking-widest uppercase transition-all duration-300 ${billingCycle === 'monthly'
-                ? 'bg-indigo-600 text-white shadow-xl'
-                : 'text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-10 py-3 rounded-xl font-bold text-sm tracking-widest uppercase transition-all duration-300 ${billingCycle === 'yearly'
-                ? 'bg-indigo-600 text-white shadow-xl'
-                : 'text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-            >
-              Yearly
-            </button>
-          </div>
+          <p className="text-lg text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
+            Websites, forms, automation, and recovery &mdash; designed for serious businesses.
+          </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {plans.map((plan, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 items-stretch mb-32">
+          {plans.map((plan) => (
             <div
-              key={index}
-              className={`bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-[2rem] p-8 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 relative group ${plan.popular
-                ? 'border-2 border-indigo-600 dark:border-indigo-500'
-                : 'border border-slate-100 dark:border-slate-800 hover:border-indigo-600 dark:hover:border-indigo-500'
+              key={plan.name}
+              className={`relative flex flex-col rounded-[24px] p-8 transition-all duration-500 ${plan.featured
+                ? 'bg-[#fcfcff] dark:bg-indigo-950/20 ring-1 ring-indigo-500/20 shadow-[0_20px_50px_-12px_rgba(79,70,229,0.08)]'
+                : 'bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800'
                 }`}
             >
-              {plan.popular && (
-                <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-xl uppercase tracking-widest z-10">Popular</div>
+              {plan.tag && (
+                <div className="absolute top-[-14px] left-1/2 -translate-x-1/2 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 text-slate-500 dark:text-slate-400 px-4 py-1 rounded-full text-[11px] font-medium tracking-wide shadow-sm">
+                  {plan.tag}
+                </div>
               )}
 
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="mb-6 flex justify-between items-start">
+              <div className="mb-8">
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">{plan.name}</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{plan.tagline}</p>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{plan.name}</h3>
+                    <p className="text-[10px] uppercase font-medium tracking-widest text-slate-400 dark:text-slate-500">{plan.tagline}</p>
                   </div>
-
-                  {/* Info Tooltip */}
                   <div className="relative group/info">
-                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-indigo-600">
-                      <Info className="w-4 h-4" />
-                    </button>
-                    {/* Tooltip Content */}
-                    <div className="absolute right-0 bottom-full mb-3 w-64 p-4 bg-slate-900 dark:bg-indigo-950 text-white rounded-2xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-300 translate-y-2 group-hover/info:translate-y-0 z-50 pointer-events-none">
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-400 mb-2">Why this price?</p>
-                      <p className="text-[11px] leading-relaxed text-slate-200 italic font-medium">"{plan.why}"</p>
-                      <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-slate-900 dark:bg-indigo-950 rotate-45"></div>
+                    <Info className="w-4 h-4 text-slate-300 dark:text-slate-700 cursor-help" />
+                    <div className="absolute right-0 bottom-full mb-3 w-56 p-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl shadow-2xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-300 z-50 pointer-events-none">
+                      <p className="text-[11px] leading-relaxed text-slate-200 font-medium">
+                        {plan.description}
+                      </p>
+                      <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-slate-900 dark:bg-slate-800 rotate-45"></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-8">
-                  {plan.setupFee && (
-                    <div className="text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-tighter mb-1">{plan.setupFee}</div>
-                  )}
-                  <div className="text-3xl font-black text-slate-900 dark:text-white transition-colors">
-                    {billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly}
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                      {billingCycle === 'monthly' ? '/mo' : '/yr'}
-                    </span>
-                  </div>
+                {plan.setupFee && (
+                  <div className="text-indigo-600 dark:text-indigo-400 font-medium text-[10px] uppercase tracking-wider mb-1">{plan.setupFee}</div>
+                )}
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-3xl font-normal text-slate-900 dark:text-white tracking-tight">{plan.price}</span>
+                  <span className="text-slate-400 dark:text-slate-500 font-light text-xs">{plan.period}</span>
                 </div>
-
-                <div className="space-y-3 mb-8 flex-grow">
-                  {plan.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors">
-                        <Check className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium leading-normal">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => {
-                    if (onGetStarted) {
-                      onGetStarted(plan.name);
-                    } else {
-                      handleSelectPlan(plan);
-                    }
-                  }}
-                  className={`w-full py-4 px-6 rounded-2xl font-bold text-[10px] tracking-widest uppercase transition-all duration-300 active:scale-95 mt-auto ${plan.popular
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-200 dark:shadow-none'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-indigo-200 dark:group-hover:shadow-none'
-                    }`}
-                >
-                  Get Started
-                </button>
               </div>
+
+              {/* Growth Selector - More Compact */}
+              {plan.name === 'Growth' && (
+                <div className="mb-8 animate-in fade-in slide-in-from-top-2 duration-500 border-y border-slate-50 dark:border-slate-800/50 py-4">
+                  {/* Segmented Control */}
+                  <div className="p-1 bg-slate-50 dark:bg-black/40 rounded-xl border border-slate-100 dark:border-slate-800 flex gap-1 mb-3">
+                    <button
+                      onClick={() => setGrowthOption('call')}
+                      className={`flex-1 py-1.5 px-1 rounded-lg text-[11px] font-normal transition-all ${growthOption === 'call'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200/50 dark:border-slate-700/50'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                      AI Call
+                    </button>
+                    <button
+                      onClick={() => setGrowthOption('whatsapp')}
+                      className={`flex-1 py-1.5 px-1 rounded-lg text-[11px] font-normal transition-all ${growthOption === 'whatsapp'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200/50 dark:border-slate-700/50'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                    >
+                      WhatsApp
+                    </button>
+                  </div>
+
+                  <div className="min-h-[44px]">
+                    <div className="p-2.5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100/30 dark:border-emerald-900/20">
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 leading-normal font-medium">
+                        {growthOption === 'call'
+                          ? 'Includes 150 AI call minutes.'
+                          : 'Includes 1,000 WhatsApp messages.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Features - Slimmed down font size */}
+              <div className="flex-1 space-y-3.5 mb-8">
+                {plan.features.map((feature, i) => {
+                  const isGreen = [
+                    'FollowUpSure system',
+                    'Multi-client view (Clients tab)',
+                    'White-label options (Emails)',
+                    'Up to 20 sites / client accounts',
+                    'Automated notifications (WA + Email)',
+                    'Unlimited leads capture'
+                  ].includes(feature);
+
+                  return (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <Check className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5 opacity-60" />
+                      <span className={`text-[13px] font-normal leading-tight ${isGreen ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                        {feature}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => handleSelectPlan(plan)}
+                className={`w-full py-3.5 rounded-xl font-normal text-[14px] transition-all flex items-center justify-center gap-2 ${plan.featured
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-600/10 dark:shadow-none'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700'
+                  }`}
+              >
+                Get Started
+              </button>
+              {plan.name === 'Pro (Agency)' && (
+                <div className="mt-4 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100/30 dark:border-emerald-800/30">
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium leading-relaxed">
+                    Recommended for agencies looking to scale client delivery and white-label operations.
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Enterprise Section */}
+        <div className="text-center pt-16 mt-16 max-w-xl mx-auto border-t border-slate-50 dark:border-slate-900">
+          <p className="text-[15px] text-slate-500 dark:text-slate-400 mb-8 font-normal">
+            Need custom workflows, limits, or enterprise support?
+          </p>
+          <a
+            href="mailto:sales@leadforgrow.online"
+            className="inline-flex items-center gap-2 text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium px-8 py-3 rounded-full bg-slate-50 dark:bg-slate-900 ring-1 ring-slate-200/50 dark:ring-slate-800"
+          >
+            Contact Sales <ArrowRight className="w-4 h-4 ml-1" />
+          </a>
+        </div>
       </div>
 
-      {/* Payment Transition Modal */}
+      {/* Re-integrated Payment Modal with Dark Mode Support */}
       {isModalOpen && selectedPlan && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setIsModalOpen(false)}
-          />
-          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
-            {/* Close Button */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+            <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-2 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
-
-            <div className="p-8 sm:p-12">
+            <div className="p-10 sm:p-12">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center border border-indigo-100 dark:border-indigo-800">
                   <CreditCard className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Order Summary</h3>
-                  <p className="text-2xl font-serif text-slate-900 dark:text-white leading-tight">Secure Checkout</p>
+                  <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">Secure Payment</h3>
+                  <p className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Activate {selectedPlan.name}</p>
                 </div>
               </div>
 
-              <div className="space-y-6 mb-10">
-                <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Selected Plan</span>
-                    <span className="text-slate-900 dark:text-white font-bold">{selectedPlan.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                    <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Billing Cycle</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-bold uppercase text-xs tracking-widest">
-                      {billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4">
-                    <span className="text-slate-900 dark:text-white font-bold">Total Amount</span>
-                    <span className="text-2xl font-black text-slate-900 dark:text-white">
-                      {billingCycle === 'monthly' ? selectedPlan.priceMonthly : selectedPlan.priceYearly}
-                    </span>
-                  </div>
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Selected Tier</span>
+                  <span className="text-slate-900 dark:text-white font-bold">{selectedPlan.name}</span>
                 </div>
-
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30">
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center flex-shrink-0 animate-pulse">
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                  <p className="text-xs font-medium leading-relaxed">
-                    We are moving to payment... Hang tight while we prepare your secure connection.
-                  </p>
+                <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-900 dark:text-white font-bold">Total Amount</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                    {selectedPlan.price}<span className="text-sm font-normal text-slate-400 ml-1">{selectedPlan.period}</span>
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
-                <button
-                  className={`w-full py-5 px-8 rounded-2xl font-bold text-sm tracking-widest uppercase transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 ${isSuccess
-                    ? 'bg-emerald-500 text-white shadow-emerald-200'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 dark:shadow-none'
-                    }`}
-                  onClick={handleConfirmPay}
-                  disabled={isProcessing || isSuccess}
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processing...
-                    </>
-                  ) : isSuccess ? (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      Plan Activated
-                    </>
-                  ) : (
-                    'Confirm & Pay'
-                  )}
-                </button>
-                <p className="text-center text-[10px] text-slate-400 font-medium uppercase tracking-widest">
-                  Secure encrypted transactions powered by LFG.
-                </p>
-              </div>
+              <button
+                className={`w-full py-5 rounded-2xl font-bold text-xs tracking-widest uppercase transition-all shadow-xl flex items-center justify-center gap-3 ${isSuccess ? 'bg-emerald-500 text-white shadow-emerald-200 dark:shadow-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100 dark:shadow-none'}`}
+                onClick={handleConfirmPay}
+                disabled={isProcessing || isSuccess}
+              >
+                {isProcessing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : isSuccess ? <CheckCircle2 className="w-5 h-5" /> : 'Confirm & Activate'}
+              </button>
+
+              <p className="mt-4 text-center text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+                Protected by 256-bit SSL encryption
+              </p>
             </div>
           </div>
         </div>
