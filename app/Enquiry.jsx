@@ -8,6 +8,7 @@ const LeadForGrowWidget = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [hasSubmittedLocally, setHasSubmittedLocally] = useState(false);
   const timerRef = useRef(null);
 
   const config = {
@@ -18,18 +19,27 @@ const LeadForGrowWidget = () => {
   const startTimer = (delay) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      if (!isSubmitted && !isOpen) setIsOpen(true);
+      if (!isSubmitted && !isOpen && !hasSubmittedLocally) setIsOpen(true);
     }, delay);
   };
 
   useEffect(() => {
-    startTimer(30000);
+    const submitted = localStorage.getItem('lfg_widget_submitted');
+    if (submitted) {
+      setHasSubmittedLocally(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasSubmittedLocally) {
+      startTimer(30000);
+    }
     return () => clearTimeout(timerRef.current);
-  }, [isSubmitted, isOpen]);
+  }, [isSubmitted, isOpen, hasSubmittedLocally]);
 
   const handleClose = () => {
     setIsOpen(false);
-    if (!isSubmitted) startTimer(45000);
+    if (!isSubmitted && !hasSubmittedLocally) startTimer(45000);
   };
 
   const handleSubmit = async (e) => {
@@ -48,6 +58,7 @@ const LeadForGrowWidget = () => {
       if (res.success) {
         setIsSubmitted(true);
         setSuccess(true);
+        localStorage.setItem('lfg_widget_submitted', 'true');
         setTimeout(() => setIsOpen(false), 3000);
       } else {
         alert(res.error || 'Failed to send');
@@ -58,6 +69,8 @@ const LeadForGrowWidget = () => {
       setIsSending(false);
     }
   };
+
+  if (hasSubmittedLocally && !isSubmitted) return null;
 
   return (
     <>
