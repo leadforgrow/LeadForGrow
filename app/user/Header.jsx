@@ -3,91 +3,16 @@ import { useState, useEffect } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 
 const UserNavbar = () => {
+  // 1. State Hooks
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [userPlan, setUserPlan] = useState(null);
+  const [businessPlan, setBusinessPlan] = useState(null);
+  const [hasAgency, setHasAgency] = useState(false);
+  const [context, setContext] = useState('business');
 
-  const isPaid = isLoggedIn && userPlan && userPlan !== 'free';
-
-  // Check for userid and fetch user plan on mount
-  useEffect(() => {
-    const userid = localStorage.getItem("userid");
-    console.log('Header Mount: userid from localStorage:', userid);
-    if (userid) {
-      setIsLoggedIn(true);
-      // Check localStorage first for immediate state
-      const storedPlan = localStorage.getItem("userPlan");
-      console.log('Header Mount: storedPlan from localStorage:', storedPlan);
-      if (storedPlan) {
-        setUserPlan(storedPlan);
-      }
-      fetchUserPlan(userid);
-    } else {
-      setIsLoggedIn(false);
-      setUserPlan(null);
-    }
-  }, []);
-
-  // Fetch user plan from backend
-  const fetchUserPlan = async (userId) => {
-    try {
-      console.log('Fetching plan for userId:', userId);
-      const response = await fetch(`/api/user/profile/${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Profile API response data:', data);
-        const plan = (data.plan || 'free').toLowerCase();
-        console.log('Setting userPlan to:', plan);
-        setUserPlan(plan);
-        localStorage.setItem("userPlan", plan);
-      } else {
-        console.error('Profile API failed with status:', response.status);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user plan:', error);
-      if (!localStorage.getItem("userPlan")) {
-        console.log('Setting userPlan to free due to error');
-        setUserPlan('free');
-      }
-    }
-  };
-
-  useEffect(() => {
-    console.log('Header State Update: isLoggedIn:', isLoggedIn, 'userPlan:', userPlan, 'isPaid:', isPaid);
-  }, [isLoggedIn, userPlan]);
-
-  // Handle scroll detection
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("userid");
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("userPlan");
-    setIsLoggedIn(false);
-    setIsMenuOpen(false);
-    window.location.href = "/";
-  };
-
-  // Handle profile click
-  const handleProfileClick = () => {
-    const userid = localStorage.getItem("userid");
-    if (userid) {
-      window.location.href = `/user/profile/${userid}`;
-    } else {
-      window.location.href = "/user/register";
-    }
-  };
-
-  // Dropdown data for PUBLIC/FREE navbar
+  // 2. Constants & Dropdowns
   const productDropdown = [
     { label: "Website & Funnel Builder", href: "/product/builder" },
     { label: "Lead Capture Forms", href: "/product/forms" },
@@ -122,23 +47,94 @@ const UserNavbar = () => {
     { label: "Help Center", href: "/resources/help" },
   ];
 
-  // Dropdown data for PAID NAVIGATION
-  const paidnavitem = [
-    // { label: "Dashboard", href: "/website-funnel/dashboard" },
-    { label: "Websites", href: "/websites" },
-    { label: "Forms", href: "/forms" },
-    { label: "Leads", href: "/leads" },
-    { label: "Automation", href: "/automation" },
-    { label: "Analytics", href: "/analytics" },
-    { label: "Clients", href: "/user/clients" },
-  ];
+  const isPaid = isLoggedIn && businessPlan && businessPlan !== 'free';
 
-  const createDropdown = [
-    { label: "Create Website", href: "/website-funnel" },
-    { label: "Create Form", href: "/forms/create" },
-    { label: "Add New Client", href: "/user/clients?action=new" },
-    { label: "Request DFU Service", href: "/services/request" },
-  ];
+  // 3. Action Handlers
+  const handleProfileClick = () => {
+    const userid = localStorage.getItem("userid");
+    if (userid) {
+      window.location.href = `/user/profile/${userid}`;
+    } else {
+      window.location.href = "/user/register";
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    window.location.href = "/";
+  };
+
+  const fetchSession = async (userId) => {
+    try {
+      const response = await fetch(`/api/user/profile/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const plan = (data.businessPlan || 'free').toLowerCase();
+        setBusinessPlan(plan);
+        setHasAgency(data.hasAgency);
+        localStorage.setItem("businessPlan", plan);
+        localStorage.setItem("hasAgency", data.hasAgency);
+      }
+    } catch (error) {
+      console.error('Failed to fetch session:', error);
+    }
+  };
+
+  // 4. Effects
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.includes('/agency/clients/')) setContext('client');
+    else if (path.startsWith('/agency')) setContext('agency');
+    else setContext('business');
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+
+    const userid = localStorage.getItem("userid");
+    if (userid) {
+      setIsLoggedIn(true);
+      const storedPlan = localStorage.getItem("businessPlan");
+      const storedHasAgency = localStorage.getItem("hasAgency") === 'true';
+      if (storedPlan) setBusinessPlan(storedPlan);
+      setHasAgency(storedHasAgency);
+      fetchSession(userid);
+    }
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 5. Navigation Items logic
+  let activePaidItems = [];
+  if (context === 'client') {
+    activePaidItems = [
+      { label: "Business Home", icon: "Home", href: "/", special: true },
+      { label: "Leads", href: "#leads" },
+      { label: "Financials", href: "#invoices" },
+      { label: "Overview", href: "#overview" }
+    ];
+  } else if (isPaid) {
+    activePaidItems = [
+      { label: "Websites", href: "/websites" },
+      { label: "Forms", href: "/forms" },
+      { label: "Leads", href: "/leads" },
+      { label: "Automation", href: "/automation" },
+      { label: "Analytics", href: "/analytics" }
+    ];
+    if (hasAgency) {
+      activePaidItems.push({ label: "Clients / Agency", href: "/agency", highlighted: true });
+    }
+  }
+
+  const activeCreateItems = (hasAgency && isPaid)
+    ? [
+      { label: "Create Website", href: "/website-funnel" },
+      { label: "Add New Client", href: "/agency/clients" }
+    ]
+    : [
+      { label: "Create Website", href: "/website-funnel" },
+      { label: "Create Form", href: "/forms/create" }
+    ];
 
   const DropdownMenu = ({ items, isOpen }) => {
     if (!isOpen) return null;
@@ -176,14 +172,19 @@ const UserNavbar = () => {
 
           {/* Navigation - Center */}
           <div className="hidden lg:flex flex-1 justify-center">
-            {isPaid ? (
-              // PAID NAVIGATION
-              <div className="flex items-center space-x-10">
-                {paidnavitem.map((item) => (
+            {isLoggedIn && (isPaid || context === 'client') ? (
+              // PAID OR CONTEXTUAL NAVIGATION
+              <div className="flex items-center space-x-8">
+                {activePaidItems.map((item) => (
                   <a
                     key={item.href}
                     href={item.href}
-                    className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider font-medium"
+                    className={`text-[12px] transition-all uppercase tracking-widest font-bold flex items-center gap-2 ${item.special
+                      ? 'bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 active:scale-95 shadow-lg shadow-slate-200'
+                      : item.highlighted
+                        ? 'text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-md border border-indigo-100'
+                        : 'text-slate-500 hover:text-slate-900'
+                      }`}
                   >
                     {item.label}
                   </a>
@@ -245,7 +246,7 @@ const UserNavbar = () => {
                     <button className="flex items-center gap-2 px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
                       <Plus className="w-4 h-4" /> Create <ChevronDown className="w-4 h-4" />
                     </button>
-                    <DropdownMenu items={createDropdown} isOpen={openDropdown === 'create'} />
+                    <DropdownMenu items={activeCreateItems} isOpen={openDropdown === 'create'} />
                   </div>
                   <button onClick={handleProfileClick} className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
                     Profile
@@ -278,16 +279,16 @@ const UserNavbar = () => {
       {/* Mobile menu */}
       <div className={`lg:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
         <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
-          {isPaid ? (
+          {isLoggedIn && (isPaid || context === 'client') ? (
             <>
-              {paidnavitem.map((item, idx) => (
+              {activePaidItems.map((item, idx) => (
                 <a key={idx} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                   {item.label}
                 </a>
               ))}
               <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Create</div>
-                {createDropdown.map((item, idx) => (
+                {activeCreateItems.map((item, idx) => (
                   <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {item.label}
                   </a>

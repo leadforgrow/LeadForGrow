@@ -23,25 +23,49 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Fetch business information
-    const business = await Business.findById(user.businessId);
-    if (!business) {
-      return NextResponse.json({ success: false, error: "Business not found. Please contact support." }, { status: 500 });
+    // Fetch PRIMARY Business information first
+    let workspace = null;
+    if (user.businessId) {
+      const business = await Business.findById(user.businessId);
+      if (business) {
+        workspace = {
+          id: business._id,
+          name: business.businessName,
+          plan: business.plan,
+          type: 'business',
+          onboardingComplete: business.onboardingComplete,
+          onboardingStep: business.onboardingStep,
+          agencyId: user.agencyId || null // Capability attached to business
+        };
+      }
+    }
+
+    // Fallback if businessId is missing but user exists (legacy support)
+    if (!workspace && user.agencyId) {
+      const agency = (await import("@/models/Agency")).default;
+      const agencyDoc = await agency.findById(user.agencyId);
+      if (agencyDoc) {
+        workspace = {
+          id: agencyDoc.businessId || 'legacy', 
+          agencyId: agencyDoc._id,
+          name: agencyDoc.agencyName,
+          plan: 'agency',
+          type: 'business'
+        };
+      }
+    }
+
+    if (!workspace) {
+      return NextResponse.json({ success: false, error: "Business account not found. Please contact support." }, { status: 500 });
     }
 
     return NextResponse.json({ 
       success: true, 
       data: { 
         userId: user._id,
-        businessId: business._id,
         email: user.email,
         role: user.role,
-        business: {
-          name: business.businessName,
-          plan: business.plan,
-          onboardingComplete: business.onboardingComplete,
-          onboardingStep: business.onboardingStep
-        },
+        business: workspace, // Keeping 'business' key for frontend compatibility
         token: "dummy-token-" + user._id 
       } 
     });

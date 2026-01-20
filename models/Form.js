@@ -37,11 +37,23 @@ const FormFieldSchema = new mongoose.Schema({
 }, { _id: false });
 
 const FormSchema = new mongoose.Schema({
-  // Business Context
+  // Context (Solo Business or Agency Client)
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Business',
-    required: true,
+    required: false, // Optional if it's an agency client
+    index: true
+  },
+  
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    index: true
+  },
+  
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
     index: true
   },
   

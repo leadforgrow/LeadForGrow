@@ -16,34 +16,52 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Fetch business and usage stats
-    const business = await Business.findById(user.businessId);
-    
-    // Fetch real counts
-    const websiteCount = await Website.countDocuments({ owner: user._id });
-    const totalLeads = await Lead.countDocuments({ businessId: user.businessId });
+    // 1. Fetch PRIMARY Business
+    let business = null;
+    let businessPlan = 'free';
+    if (user.businessId) {
+      business = await Business.findById(user.businessId);
+      if (business) {
+        businessPlan = business.plan || 'free';
+      }
+    }
 
-    // Return user data with plan info and stats
+    // 2. Fetch Agency Capability (if exists)
+    let agency = null;
+    if (user.agencyId) {
+      const AgencyModel = (await import("@/models/Agency")).default;
+      agency = await AgencyModel.findById(user.agencyId);
+    }
+    
+    // Fetch stats
+    const websiteCount = await Website.countDocuments({ owner: user._id });
+    const totalLeads = user.businessId ? await Lead.countDocuments({ businessId: user.businessId }) : 0;
+
+    // Return combined context
     return NextResponse.json({
       _id: user._id,
       email: user.email,
       name: user.fullName || user.firstName || user.email.split('@')[0],
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
       role: user.role,
       businessId: user.businessId,
+      agencyId: user.agencyId,
+      businessPlan: businessPlan, // This determines the navbar (paid/free)
+      hasAgency: !!agency && agency.status === 'active',
       active: user.active,
       createdAt: user.createdAt,
       business: business ? {
         name: business.businessName,
-        industry: business.industry,
-        website: business.website,
-        plan: business.plan,
-        usage: business.usage,
-        quotas: business.quotas,
+        industry: business.industry || '',
+        website: business.website || '',
+        plan: businessPlan,
+        usage: business.usage || {},
+        quotas: business.limits || {},
       } : null,
-      plan: business ? business.plan : 'free',
+      agency: agency ? {
+        name: agency.agencyName,
+        plan: agency.planName,
+        status: agency.status
+      } : null,
       stats: {
         websiteCount,
         totalLeads,

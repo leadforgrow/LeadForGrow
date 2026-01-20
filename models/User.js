@@ -13,11 +13,16 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please provide a password'],
   },
   
-  // Multi-tenant: User belongs to a Business
+  // Multi-tenant: User belongs to a Business or an Agency
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Business',
-    required: true
+    required: false
+  },
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    required: false
   },
   
   // User Role within the Business

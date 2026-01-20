@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Building2, ArrowRight, Eye, EyeOff, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, Building2, ArrowRight, Eye, EyeOff, CheckCircle2, ChevronLeft, Briefcase } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState('register'); // 'register' | 'login' | 'forgot'
+  const [accountType, setAccountType] = useState('business'); // 'business' | 'agency'
   
   // Handle initial mode from URL
   useEffect(() => {
@@ -53,7 +54,8 @@ export default function AuthPage() {
         body: JSON.stringify({
           companyName: formData.companyName,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          isAgency: accountType === 'agency'
         })
       });
 
@@ -65,7 +67,13 @@ export default function AuthPage() {
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
         toast.success('Account created successfully!');
-        router.push('/automation');
+        
+        // Redirect based on plan
+        if (data.data.business.plan.toLowerCase().includes('agency')) {
+          router.push('/agency');
+        } else {
+          router.push('/automation');
+        }
       } else {
         toast.error(data.error || 'Registration failed');
       }
@@ -97,7 +105,13 @@ export default function AuthPage() {
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
         toast.success('Logged in successfully!');
-        router.push('/automation');
+        
+        // Redirect based on plan
+        if (data.data.business.plan.toLowerCase().includes('agency')) {
+          router.push('/agency');
+        } else {
+          router.push('/automation');
+        }
       } else {
         toast.error(data.error || 'Login failed');
       }
@@ -143,7 +157,7 @@ export default function AuthPage() {
             </span>
           </h3>
           <p className="text-lg text-slate-300 max-w-lg mb-8">
-            The all-in-one operating system for agencies to capture, track, and close leads without the chaos.
+            The all-in-one operating system for {accountType === 'agency' ? 'agencies' : 'businesses'} to capture, track, and close leads without the chaos.
           </p>
           
           <div className="flex flex-wrap gap-6">
@@ -173,7 +187,7 @@ export default function AuthPage() {
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           {/* Header */}
-          <div className="mb-10">
+          <div className="mb-8">
             {mode === 'forgot' && (
               <button 
                 onClick={() => setMode('login')}
@@ -188,12 +202,32 @@ export default function AuthPage() {
             </h1>
             <p className="text-slate-500">
               {mode === 'register' 
-                ? 'Join 500+ agencies scaling with LFG.' 
+                ? `Join 500+ ${accountType === 'agency' ? 'agencies' : 'businesses'} scaling with LFG.` 
                 : mode === 'login' 
                   ? 'Sign in to access your dashboard.' 
                   : 'Enter your email to receive a reset link.'}
             </p>
           </div>
+
+          {/* Account Type Toggle - NEW TOP LEVEL TOGGLE */}
+          {mode !== 'forgot' && (
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-8 border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setAccountType('business')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${accountType === 'business' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Briefcase className="w-4 h-4" />
+                Business
+              </button>
+              <button
+                onClick={() => setAccountType('agency')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${accountType === 'agency' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Building2 className="w-4 h-4" />
+                Agency
+              </button>
+            </div>
+          )}
 
           {/* Social Login */}
           {mode !== 'forgot' && (
@@ -218,14 +252,16 @@ export default function AuthPage() {
             
             {mode === 'register' && (
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 ml-1">Company Name</label>
+                <label className="text-sm font-semibold text-slate-700 ml-1">
+                  {accountType === 'agency' ? 'Agency Name' : 'Business Name'}
+                </label>
                 <div className="relative group">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                   <input 
                     type="text"
                     required
-                    placeholder="Your Agency Name"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black"
+                    placeholder={accountType === 'agency' ? "Enter your agency name" : "Enter your business name"}
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.companyName}
                     onChange={(e) => setFormData({...formData, companyName: e.target.value})}
                   />
@@ -241,7 +277,7 @@ export default function AuthPage() {
                   type="email"
                   required
                   placeholder="name@company.com"
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black"
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
@@ -268,7 +304,7 @@ export default function AuthPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black"
+                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                   />
@@ -292,7 +328,7 @@ export default function AuthPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                   />

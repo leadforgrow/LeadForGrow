@@ -40,8 +40,16 @@ export default function SettingsPage() {
             title: 'Data Export',
             description: 'Download your leads and activity data',
             color: 'blue'
+          },
+          {
+            icon: Shield,
+            title: 'Agency Automation SDK',
+            description: 'Deploy global workflows across all client nodes',
+            color: 'rose',
+            link: '/agency/automation',
+            agencyOnly: true
           }
-        ].map((item, idx) => {
+        ].filter(i => !i.agencyOnly || (typeof window !== 'undefined' && localStorage.getItem('userPlan')?.toLowerCase().includes('agency'))).map((item, idx) => {
           const Icon = item.icon;
           return (
             <div 

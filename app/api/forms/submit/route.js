@@ -46,7 +46,8 @@ export async function POST(request) {
     const sourcePage = request.headers.get('referer') || '';
 
     // 3. Hand off to the Unified Ingestion Engine
-    const result = await ingestLead(formData, form.businessId, {
+    const workspaceId = form.businessId || form.clientId;
+    const result = await ingestLead(formData, workspaceId, {
       source: 'form',
       sourceDetails: `Form: ${form.name}`,
       formId: form._id,

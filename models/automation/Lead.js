@@ -1,11 +1,24 @@
 import mongoose from 'mongoose';
 
 const LeadSchema = new mongoose.Schema({
-  // Business Context (Multi-tenant)
+  // Business Context (Optional - for solo businesses)
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Business',
-    required: true,
+    required: false,
+    index: true
+  },
+  
+  // Agency Context (Optional - for agency users only)
+  agencyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Agency',
+    index: true
+  },
+  
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
     index: true
   },
   
@@ -129,6 +142,10 @@ LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
+
+// Agency-specific indexes (for agency users)
+LeadSchema.index({ agencyId: 1, clientId: 1 });
+LeadSchema.index({ agencyId: 1, status: 1 });
 
 export default mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
 
