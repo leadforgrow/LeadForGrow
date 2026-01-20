@@ -133,7 +133,7 @@ const UserNavbar = () => {
     ]
     : [
       { label: "Create Website", href: "/website-funnel" },
-      { label: "Create Form", href: "/forms/create" }
+      { label: "Create Form", href: "/automation/forms" }
     ];
 
   const DropdownMenu = ({ items, isOpen }) => {
