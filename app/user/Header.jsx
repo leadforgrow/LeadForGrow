@@ -163,7 +163,7 @@ const UserNavbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center gap-3 group">
-              <img src="/image.png" alt="Logo" className="w-12 h-12 transition-transform group-hover:scale-105" />
+              <img src="/image.png" alt="Logo" className="w-14 h-12 transition-transform group-hover:scale-105" />
               <span className="text-2xl text-slate-900 dark:text-white tracking-tight font-semibold">
                 LeadForGrow
               </span>
