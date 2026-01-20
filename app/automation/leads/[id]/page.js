@@ -349,10 +349,17 @@ export default function LeadDetailPage({ params }) {
                 </div>
                 <div className="col-span-2">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Source Page</p>
-                  <p className="text-sm text-slate-900 font-bold truncate" title={lead.sourcePage}>
-                    {lead.sourcePage || 'Unknown'}
+                  <p className="text-sm text-slate-900 font-bold truncate " title={lead.sourcePage}>
+                    <a  href={lead.sourcePage}>{lead.sourcePage}</a>
                   </p>
                 </div>
+                   <div className="col-span-2">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">message</p>
+                  <p className="text-sm text-slate-900 font-bold truncate" title={lead.message}>
+                    <a href={lead.message}>{lead.message}</a>
+                  </p>
+                </div>
+
                 <div>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">IP Address</p>
                   <p className="text-sm text-slate-600 font-mono">{lead.ipAddress || 'Not logged'}</p>
