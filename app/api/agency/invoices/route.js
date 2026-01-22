@@ -42,7 +42,14 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       invoices,
-      total: invoices.length
+      total: invoices.length,
+      agency: {
+        name: agency.agencyName,
+        email: agency.contactEmail,
+        phone: agency.contactPhone,
+        address: agency.metadata?.get('address') || '',
+        website: agency.metadata?.get('website') || ''
+      }
     });
     
   } catch (error) {
@@ -72,7 +79,18 @@ export async function POST(request) {
     
     // Parse request body
     const body = await request.json();
-    const { clientId, amount, currency, billingPeriod, lineItems, notes, dueDate } = body;
+    const { 
+      clientId, 
+      amount, 
+      currency, 
+      billingPeriod, 
+      lineItems, 
+      notes, 
+      dueDate,
+      projectTitle,
+      agencyDetails,
+      clientDetails
+    } = body;
     
     // Validate required fields
     if (!clientId || !amount || !billingPeriod) {
@@ -80,7 +98,7 @@ export async function POST(request) {
         error: 'Client ID, amount, and billing period are required'
       }, { status: 400 });
     }
-    
+
     // Verify client belongs to agency
     const isOwner = await verifyClientOwnership(clientId, agency._id.toString());
     if (!isOwner) {
@@ -88,6 +106,9 @@ export async function POST(request) {
         error: 'Client not found or does not belong to your agency'
       }, { status: 404 });
     }
+
+    // Get client details for snapshot
+    const clientData = await Client.findById(clientId);
     
     // Generate invoice number
     const invoiceNumber = await generateInvoiceNumber(agency._id.toString());
@@ -106,7 +127,19 @@ export async function POST(request) {
       lineItems: lineItems || [],
       notes,
       dueAt: dueDate ? new Date(dueDate) : null,
-      status: 'draft'
+      status: 'draft',
+      projectTitle,
+      agencyDetails: agencyDetails || {
+        name: agency.agencyName,
+        email: agency.contactEmail,
+        phone: agency.contactPhone,
+        address: agency.metadata?.get('address') || ''
+      },
+      clientDetails: clientDetails || {
+        name: clientData.clientName,
+        email: clientData.primaryContact?.email,
+        address: clientData.metadata?.get('address') || ''
+      }
     });
     
     return NextResponse.json({

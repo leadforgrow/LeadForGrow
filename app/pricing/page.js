@@ -7,13 +7,16 @@ import {
   Globe,
   Briefcase,
   Building2,
-  Info
+  Mail,
+  X
 } from 'lucide-react';
 import UserNavbar from '@/app/user/Header';
 import Footer from '@/app/components/Footer';
 
 export default function PricingPage() {
   const [planType, setPlanType] = useState('business');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   const businessPlans = [
     {
@@ -210,8 +213,11 @@ export default function PricingPage() {
                 })}
               </div>
 
-              <a 
-                href="/user/register"
+              <button 
+                onClick={() => {
+                  setSelectedPlan(plan);
+                  setShowModal(true);
+                }}
                 className={`w-full py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 ${
                   plan.featured
                   ? 'bg-slate-900 text-white hover:bg-black shadow-2xl shadow-slate-200'
@@ -219,7 +225,7 @@ export default function PricingPage() {
                 }`}
               >
                 {plan.cta} <ArrowRight className="w-4 h-4" />
-              </a>
+              </button>
             </div>
           ))}
         </div>
@@ -229,16 +235,68 @@ export default function PricingPage() {
           <p className="text-sm text-slate-500 mb-8 font-bold uppercase tracking-widest">
             Custom needs?
           </p>
-          <a 
-            href="mailto:sales@leadforgrow.com"
+          <button 
+            onClick={() => {
+              setSelectedPlan({ name: 'Custom Enterprise' });
+              setShowModal(true);
+            }}
             className="inline-flex items-center gap-3 text-slate-900 hover:text-indigo-600 transition-colors text-xs font-black uppercase tracking-widest bg-slate-50 px-10 py-5 rounded-2xl ring-1 ring-slate-200"
           >
             Connect With Agency Specialist <ArrowRight className="w-4 h-4" />
-          </a>
+          </button>
         </div>
       </main>
 
       <Footer />
+
+      {/* Contact Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-10 text-center relative">
+              <button 
+                onClick={() => setShowModal(false)}
+                className="absolute top-8 right-8 text-slate-400 hover:text-slate-900 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <Mail className="w-10 h-10 text-indigo-600" />
+              </div>
+
+              <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Ready to Scale?</h3>
+              <p className="text-[15px] text-slate-500 font-medium mb-10 leading-relaxed max-w-[320px] mx-auto">
+                Please reach out to our team to activate <span className="text-indigo-600 font-bold">{selectedPlan?.name}</span> and discuss your requirements.
+              </p>
+
+              <div className="space-y-4">
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Primary Contact</p>
+                  <a href="mailto:contact@leadforgrow.com" className="text-xl font-black text-indigo-600 hover:underline">
+                    contact@leadforgrow.com
+                  </a>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                   <a 
+                    href={`mailto:contact@leadforgrow.com?subject=Inquiry for ${selectedPlan?.name} Plan&body=Hi LeadForGrow Team,%0A%0AI'm interested in the ${selectedPlan?.name} plan. My business needs are: %0A%0A [Tell us your need here]`}
+                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-3 active:scale-95"
+                  >
+                    Send Email Now <ArrowRight className="w-4 h-4" />
+                  </a>
+                  <button 
+                    onClick={() => setShowModal(false)}
+                    className="w-full py-4 text-slate-400 text-[11px] font-black uppercase tracking-widest hover:text-slate-600 transition-colors"
+                  >
+                    Back to Plans
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

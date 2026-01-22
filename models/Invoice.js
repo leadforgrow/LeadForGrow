@@ -100,6 +100,26 @@ const InvoiceSchema = new mongoose.Schema({
       required: true
     }
   }],
+
+  // Professional Invoice Details (Snapshot at creation)
+  agencyDetails: {
+    name: String,
+    address: String,
+    phone: String,
+    email: String,
+    website: String
+  },
+  
+  clientDetails: {
+    name: String,
+    address: String,
+    email: String
+  },
+  
+  projectTitle: {
+    type: String,
+    trim: true
+  },
   
   // Notes
   notes: {

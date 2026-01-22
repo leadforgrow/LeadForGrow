@@ -7,7 +7,7 @@ import {
   Globe,
   Info,
   X,
-  CreditCard,
+  Mail,
   CheckCircle2,
   Briefcase,
   Building2
@@ -16,11 +16,8 @@ import { toast } from 'react-hot-toast';
 
 export default function PricingSection() {
   const [planType, setPlanType] = useState('business'); // 'business' or 'agency'
-  const [growthOption, setGrowthOption] = useState('call'); // 'call' or 'whatsapp'
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const businessPlans = [
     {
@@ -143,20 +140,6 @@ export default function PricingSection() {
     setIsModalOpen(true);
   };
 
-  const handleConfirmPay = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
-      localStorage.setItem('userPlan', selectedPlan.name);
-      toast.success(`${selectedPlan.name} plan activated!`);
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setIsSuccess(false);
-      }, 3000);
-    }, 2000);
-  };
-
   return (
     <div id="pricing" className="bg-white dark:bg-black text-slate-600 dark:text-slate-400 antialiased py-32 border-t border-slate-50 dark:border-slate-900 transition-colors duration-500" style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       <div className="max-w-[1280px] mx-auto px-6">
@@ -272,16 +255,19 @@ export default function PricingSection() {
           <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">
             Need custom workflows, specialized limits, or enterprise support?
           </p>
-          <a
-            href="mailto:sales@leadforgrow.com"
+          <button
+            onClick={() => {
+              setSelectedPlan({ name: 'Custom Enterprise' });
+              setIsModalOpen(true);
+            }}
             className="inline-flex items-center gap-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-10 py-5 rounded-2xl font-semibold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl"
           >
             Connect With Sales <ArrowRight className="w-5 h-5" />
-          </a>
+          </button>
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* Payment Modal Refactored to Contact Modal */}
       {isModalOpen && selectedPlan && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)} />
@@ -289,47 +275,38 @@ export default function PricingSection() {
             <button onClick={() => setIsModalOpen(false)} className="absolute top-10 right-10 p-3 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               <X className="w-6 h-6" />
             </button>
-            <div className="p-12 sm:p-16">
-              <div className="flex items-center gap-6 mb-10">
-                <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center border border-indigo-100 dark:border-indigo-800">
-                  <CreditCard className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-slate-400 dark:text-slate-500 text-[11px] font-semibold uppercase tracking-[0.3em]">Checkout</h3>
-                  <p className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">{selectedPlan.name}</p>
-                </div>
+            <div className="p-12 sm:p-16 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center border border-indigo-100 dark:border-indigo-800 mx-auto mb-10">
+                <Mail className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
               </div>
 
-              <div className="p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 mb-10">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-widest">Plan Cost</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-semibold text-slate-900 dark:text-white">₹{selectedPlan.price}</span>
-                    <span className="text-xs font-medium text-slate-400 block tracking-tight">{selectedPlan.period}</span>
-                  </div>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter">Ready to Scale?</h3>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400 font-medium mb-10 leading-relaxed max-w-[320px] mx-auto">
+                Please reach out to our team to activate <span className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedPlan.name}</span> and discuss your requirements.
+              </p>
+
+              <div className="space-y-6">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 mb-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-3">Primary Contact</p>
+                  <a href="mailto:contact@leadforgrow.com" className="text-xl font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                    contact@leadforgrow.com
+                  </a>
                 </div>
-                {selectedPlan.setupFee && (
-                  <div className="flex justify-between items-center pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-widest">Setup One-time</span>
-                    <span className="text-xl font-medium text-indigo-600 dark:text-indigo-400">{selectedPlan.setupFee.split(' ')[0]}</span>
-                  </div>
-                )}
-              </div>
 
-              <button
-                className={`w-full py-6 rounded-2xl font-semibold text-xs tracking-[0.2em] uppercase transition-all shadow-2xl flex items-center justify-center gap-4 ${isSuccess ? 'bg-emerald-500 text-white shadow-emerald-200 dark:shadow-none' : 'bg-slate-900 dark:bg-indigo-600 hover:bg-black dark:hover:bg-indigo-700 text-white shadow-slate-200 dark:shadow-none'}`}
-                onClick={handleConfirmPay}
-                disabled={isProcessing || isSuccess}
-              >
-                {isProcessing ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : isSuccess ? <CheckCircle2 className="w-6 h-6" /> : 'Confirm Activation'}
-              </button>
-
-              <div className="mt-8 flex items-center justify-center gap-2 opacity-40">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                <p className="text-center text-[8px] text-slate-400 font-semibold uppercase tracking-[0.4em]">
-                  Encrypted via 256-bit SSL
-                </p>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                <div className="flex flex-col gap-4">
+                  <a
+                    href={`mailto:contact@leadforgrow.com?subject=Inquiry for ${selectedPlan.name} Plan&body=Hi LeadForGrow Team,%0A%0AI'm interested in the ${selectedPlan.name} plan. My business needs are: %0A%0A [Tell us your need here]`}
+                    className="w-full py-6 bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 active:scale-95"
+                  >
+                    Send Email Now <ArrowRight className="w-4 h-4" />
+                  </a>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-full py-4 text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-widest hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  >
+                    Back to Plans
+                  </button>
+                </div>
               </div>
             </div>
           </div>

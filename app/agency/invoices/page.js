@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, FileText, Check, Clock, AlertCircle, Ban, Loader2, Settings } from 'lucide-react';
+import { Plus, Search, FileText, Check, Clock, AlertCircle, Ban, Loader2, Settings, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -11,6 +15,7 @@ export default function InvoicesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterClient, setFilterClient] = useState('all');
+  const [agencyInfo, setAgencyInfo] = useState(null);
   
   const [formData, setFormData] = useState({
     clientId: '',
@@ -18,7 +23,11 @@ export default function InvoicesPage() {
     currency: 'INR',
     billingPeriod: { startDate: '', endDate: '' },
     notes: '',
-    dueDate: ''
+    dueDate: '',
+    projectTitle: '',
+    lineItems: [{ description: '', quantity: 1, unitPrice: 0, total: 0 }],
+    agencyDetails: { name: '', address: '', phone: '', email: '', website: '' },
+    clientDetails: { name: '', address: '', email: '' }
   });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +46,10 @@ export default function InvoicesPage() {
       const invData = await invRes.json();
       const cliData = await cliRes.json();
       
-      if (invData.success) setInvoices(invData.invoices);
+      if (invData.success) {
+        setInvoices(invData.invoices);
+        setAgencyInfo(invData.agency);
+      }
       if (cliData.success) setClients(cliData.clients.filter(c => c.status === 'active'));
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -89,6 +101,204 @@ export default function InvoicesPage() {
     }
   };
 
+  const generatePDF = (invoice) => {
+    const doc = new jsPDF();
+    const primaryColor = [15, 23, 42]; // slate-900
+    const secondaryColor = [100, 116, 139]; // slate-500
+    const accentColor = [241, 245, 249]; // slate-100
+    const lineColor = [226, 232, 240]; // slate-200
+
+    // Helper: Formatter
+    const currencyCode = invoice.currency || 'INR';
+    const currencySymbol = currencyCode === 'USD' ? '$' : 'Rs.';
+    const fmtMoney = (amt) => `${currencySymbol} ${(amt || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+    // --- 1. Top Bar (Brand & Invoice ID) ---
+    const agency = invoice.agencyDetails || agencyInfo || {};
+    
+    // Left: Agency Name
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(...primaryColor);
+    doc.text(agency.name || 'Agency Name', 14, 20);
+
+    // Right: Invoice Label & Number
+    doc.setFontSize(24);
+    doc.text('INVOICE', 196, 20, { align: 'right' });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...secondaryColor);
+    doc.text(`# ${invoice.invoiceNumber}`, 196, 26, { align: 'right' });
+
+    // --- 2. Context Bar (Dates & Status) ---
+    const topMetaY = 35;
+    doc.setDrawColor(...lineColor);
+    doc.line(14, topMetaY, 196, topMetaY);
+    
+    const metaY = topMetaY + 5;
+    
+    // Status
+    const statusColor = invoice.status === 'paid' ? [16, 185, 129] : [100, 116, 139];
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...secondaryColor);
+    doc.text('STATUS', 14, metaY + 4);
+    doc.setTextColor(...statusColor);
+    doc.text(invoice.status.toUpperCase(), 14, metaY + 9);
+
+    // Issue Date
+    doc.setTextColor(...secondaryColor);
+    doc.text('ISSUED', 50, metaY + 4);
+    doc.setTextColor(...primaryColor);
+    doc.text(new Date(invoice.createdAt).toLocaleDateString(), 50, metaY + 9);
+
+    // Due Date
+    doc.setTextColor(...secondaryColor);
+    doc.text('DUE', 90, metaY + 4);
+    doc.setTextColor(...primaryColor);
+    doc.text(invoice.dueAt ? new Date(invoice.dueAt).toLocaleDateString() : 'On Receipt', 90, metaY + 9);
+
+    // Amount Due (highlight)
+    doc.setTextColor(...secondaryColor);
+    doc.text('AMOUNT DUE', 196, metaY + 4, { align: 'right' });
+    doc.setFontSize(12);
+    doc.setTextColor(...primaryColor);
+    doc.text(fmtMoney(invoice.amount), 196, metaY + 9, { align: 'right' });
+
+    doc.line(14, metaY + 14, 196, metaY + 14);
+
+    // --- 3. Addresses Section ---
+    const addrY = metaY + 25;
+    
+    // From (Agency)
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...secondaryColor);
+    doc.text('FROM', 14, addrY);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(...primaryColor);
+    doc.text(agency.name || '', 14, addrY + 5);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(...secondaryColor);
+    let fromY = addrY + 10;
+    if (agency.address) {
+       const lines = doc.splitTextToSize(agency.address, 80);
+       doc.text(lines, 14, fromY);
+       fromY += (lines.length * 4);
+    }
+    if (agency.email) { doc.text(agency.email, 14, fromY); fromY += 4; }
+    if (agency.phone) { doc.text(agency.phone, 14, fromY); fromY += 4; }
+
+    // To (Client)
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...secondaryColor);
+    doc.text('BILL TO', 110, addrY);
+
+    const client = invoice.clientDetails || {};
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(...primaryColor);
+    doc.text(client.name || 'Client Name', 110, addrY + 5);
+
+    doc.setFontSize(9);
+    doc.setTextColor(...secondaryColor);
+    let toY = addrY + 10;
+    if (client.address) {
+        const lines = doc.splitTextToSize(client.address, 80);
+        doc.text(lines, 110, toY);
+        toY += (lines.length * 4);
+    }
+    if (client.email) { doc.text(client.email, 110, toY); toY += 4; }
+    
+    // Project Context
+    const contextY = Math.max(fromY, toY) + 10;
+    if (invoice.projectTitle) {
+      doc.setFontSize(9);
+      doc.setTextColor(...secondaryColor);
+      doc.text(`Project: ${invoice.projectTitle}`, 14, contextY);
+    }
+
+    // --- 4. Items Table ---
+    const tableHeaders = [['Description', 'Qty', 'Rate', 'Amount']];
+    const tableData = (invoice.lineItems && invoice.lineItems.length > 0) 
+      ? invoice.lineItems.map(item => [
+          item.description, 
+          item.quantity, 
+          fmtMoney(item.unitPrice), 
+          fmtMoney(item.total)
+        ])
+      : [['General Service', 1, fmtMoney(invoice.amount), fmtMoney(invoice.amount)]];
+
+    autoTable(doc, {
+      startY: contextY + 10,
+      head: tableHeaders,
+      body: tableData,
+      theme: 'plain',
+      headStyles: { 
+          fillColor: accentColor, 
+          textColor: secondaryColor,
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'left',
+          cellPadding: { top: 2, bottom: 2, left: 2, right: 2 }
+      },
+      styles: { 
+          font: 'helvetica',
+          fontSize: 9, 
+          cellPadding: 3, 
+          textColor: primaryColor,
+          lineColor: lineColor,
+          lineWidth: { bottom: 0.1 }
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' }, 
+        1: { halign: 'center', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 35 },
+        3: { halign: 'right', fontStyle: 'bold', cellWidth: 35 }
+      }
+    });
+
+    // --- 5. Totals & Footer ---
+    const finalY = doc.lastAutoTable.finalY + 5;
+    const rightEdge = 196;
+
+    // Totals Block
+    doc.setFontSize(9);
+    doc.setTextColor(...secondaryColor);
+    doc.text('Subtotal', rightEdge - 40, finalY + 5, { align: 'right' });
+    doc.setTextColor(...primaryColor);
+    doc.text(fmtMoney(invoice.amount), rightEdge, finalY + 5, { align: 'right' });
+
+    doc.setTextColor(...secondaryColor);
+    doc.text('Tax (0%)', rightEdge - 40, finalY + 10, { align: 'right' });
+    doc.setTextColor(...primaryColor);
+    doc.text(fmtMoney(0), rightEdge, finalY + 10, { align: 'right' });
+    
+    // Divider
+    doc.setDrawColor(...lineColor);
+    doc.line(rightEdge - 60, finalY + 14, rightEdge, finalY + 14);
+
+    // Total
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text('Total', rightEdge - 40, finalY + 20, { align: 'right' });
+    doc.text(fmtMoney(invoice.amount), rightEdge, finalY + 20, { align: 'right' });
+
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...secondaryColor);
+    doc.text('Thank you for your business.', 14, pageHeight - 15);
+    
+    doc.save(`Invoice_${invoice.invoiceNumber}.pdf`);
+  };
+
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.clientId?.clientName?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -118,7 +328,22 @@ export default function InvoicesPage() {
           <p className="text-[13px] text-slate-500 mt-1">Financial ledger for {invoices.length} transactions</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+             setShowModal(true);
+             // Pre-fill agency details if available
+             if (agencyInfo) {
+                setFormData(prev => ({
+                   ...prev,
+                   agencyDetails: {
+                      name: agencyInfo.name || '',
+                      address: agencyInfo.address || '',
+                      phone: agencyInfo.phone || '',
+                      email: agencyInfo.email || '',
+                      website: agencyInfo.website || ''
+                   }
+                }));
+             }
+          }}
           className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all text-[13px] font-bold active:scale-95"
         >
           <Plus className="h-4 w-4" />
@@ -201,7 +426,8 @@ export default function InvoicesPage() {
                 </td>
                 <td className="px-6 py-4 text-slate-400 text-[12px]">{new Date(inv.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4 text-right">
-                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div className="flex justify-end gap-2 text-right">
+                      <button onClick={() => generatePDF(inv)} className="p-1.5 text-slate-500 hover:text-blue-600 rounded-md transition-all bg-slate-100 hover:bg-blue-50" title="Download PDF"><Download className="w-4 h-4" /></button>
                       {inv.status === 'draft' && <button onClick={() => handleStatusChange(inv._id, 'sent')} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-md transition-all"><FileText className="w-4 h-4" /></button>}
                       {inv.status === 'sent' && <button onClick={() => handleStatusChange(inv._id, 'paid')} className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-md transition-all"><Check className="w-4 h-4" /></button>}
                       <button className="p-1.5 text-slate-400 hover:text-slate-900 rounded-md transition-all"><Settings className="w-4 h-4" /></button>
@@ -228,12 +454,52 @@ export default function InvoicesPage() {
               {error && <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-[12px] font-medium">{error}</div>}
 
               <form onSubmit={handleCreate} className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-[12px] font-bold text-slate-900 uppercase tracking-tight">Billing Profiles</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Agency Address (Optional)</label>
+                          <textarea 
+                            value={formData.agencyDetails.address} 
+                            onChange={(e) => setFormData({...formData, agencyDetails: {...formData.agencyDetails, address: e.target.value}})}
+                            placeholder="Your agency business address..."
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-20 resize-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Client Address (Optional)</label>
+                          <textarea 
+                            value={formData.clientDetails.address} 
+                            onChange={(e) => setFormData({...formData, clientDetails: {...formData.clientDetails, address: e.target.value}})}
+                            placeholder="Client's billing address..."
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-20 resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                  <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Recipient Client *</label>
                     <select
                       required
                       value={formData.clientId}
-                      onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                      onChange={(e) => {
+                         const clientId = e.target.value;
+                         const client = clients.find(c => c._id === clientId);
+                         setFormData(prev => ({
+                            ...prev, 
+                            clientId,
+                            clientDetails: client ? {
+                               name: client.clientName,
+                               email: client.primaryContact?.email || '',
+                               address: prev.clientDetails.address // Keep existing input or add logic to finding address
+                            } : prev.clientDetails
+                         }));
+                      }}
                       className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] outline-none"
                     >
                       <option value="">Select recipient...</option>
@@ -242,10 +508,10 @@ export default function InvoicesPage() {
                  </div>
 
                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                       <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Amount *</label>
-                       <input type="number" required value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
-                    </div>
+                     <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Total Amount (Auto-calculated) *</label>
+                        <input type="number" required readOnly value={formData.amount} className="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-[13px] font-bold cursor-not-allowed" />
+                     </div>
                     <div>
                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Currency</label>
                        <select value={formData.currency} onChange={(e) => setFormData({...formData, currency: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]">
@@ -255,16 +521,76 @@ export default function InvoicesPage() {
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <h3 className="text-[12px] font-bold text-slate-900 uppercase tracking-tight">Invoice Details</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Project / Service Name</label>
+                        <input type="text" value={formData.projectTitle} onChange={(e) => setFormData({...formData, projectTitle: e.target.value})} placeholder="e.g. Q1 Marketing Campaign" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Due Date</label>
+                        <input type="date" value={formData.dueDate} onChange={(e) => setFormData({...formData, dueDate: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-[12px] font-bold text-slate-900 uppercase tracking-tight">Service Breakdown</h3>
+                      <button type="button" onClick={() => setFormData({...formData, lineItems: [...formData.lineItems, { description: '', quantity: 1, unitPrice: 0, total: 0 }]})} className="text-[11px] font-bold text-indigo-600 hover:underline">+ Add Item</button>
+                    </div>
+                    {formData.lineItems.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-end">
+                        <div className="col-span-6">
+                          <label className="block text-[10px] text-slate-400 font-bold mb-1">Description</label>
+                          <input type="text" value={item.description} onChange={(e) => {
+                            const newItems = [...formData.lineItems];
+                            newItems[idx].description = e.target.value;
+                            setFormData({...formData, lineItems: newItems});
+                          }} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-[12px]" />
+                        </div>
+                        <div className="col-span-2">
+                           <label className="block text-[10px] text-slate-400 font-bold mb-1">Qty</label>
+                           <input type="number" value={item.quantity} onChange={(e) => {
+                            const newItems = [...formData.lineItems];
+                            newItems[idx].quantity = parseInt(e.target.value) || 0;
+                            newItems[idx].total = newItems[idx].quantity * newItems[idx].unitPrice;
+                            const totalAmount = newItems.reduce((sum, i) => sum + i.total, 0);
+                            setFormData({...formData, lineItems: newItems, amount: totalAmount});
+                          }} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-[12px]" />
+                        </div>
+                        <div className="col-span-3">
+                           <label className="block text-[10px] text-slate-400 font-bold mb-1">Rate</label>
+                           <input type="number" value={item.unitPrice} onChange={(e) => {
+                            const newItems = [...formData.lineItems];
+                            newItems[idx].unitPrice = parseFloat(e.target.value) || 0;
+                            newItems[idx].total = newItems[idx].quantity * newItems[idx].unitPrice;
+                            const totalAmount = newItems.reduce((sum, i) => sum + i.total, 0);
+                            setFormData({...formData, lineItems: newItems, amount: totalAmount});
+                          }} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded text-[12px]" />
+                        </div>
+                        <div className="col-span-1 pb-2">
+                           <button type="button" onClick={() => {
+                             const newItems = formData.lineItems.filter((_, i) => i !== idx);
+                             const totalAmount = newItems.reduce((sum, i) => sum + i.total, 0);
+                             setFormData({...formData, lineItems: newItems, amount: totalAmount});
+                           }} className="text-rose-500 hover:text-rose-700">✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Period Start</label>
-                       <input type="date" required value={formData.billingPeriod.startDate} onChange={(e) => setFormData({...formData, billingPeriod: {...formData.billingPeriod, startDate: e.target.value}})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Period Start</label>
+                        <input type="date" required value={formData.billingPeriod.startDate} onChange={(e) => setFormData({...formData, billingPeriod: {...formData.billingPeriod, startDate: e.target.value}})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
                     </div>
                     <div>
-                       <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Period End</label>
-                       <input type="date" required value={formData.billingPeriod.endDate} onChange={(e) => setFormData({...formData, billingPeriod: {...formData.billingPeriod, endDate: e.target.value}})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
+                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Period End</label>
+                        <input type="date" required value={formData.billingPeriod.endDate} onChange={(e) => setFormData({...formData, billingPeriod: {...formData.billingPeriod, endDate: e.target.value}})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px]" />
                     </div>
-                 </div>
+                  </div>
 
                  <div className="pt-6 border-t border-slate-100 flex gap-3">
                     <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 bg-slate-50 text-slate-600 rounded-lg text-[13px] font-bold border border-slate-200">Cancel</button>
