@@ -77,7 +77,7 @@ export default function PricingSection() {
     {
       name: "Agency Starter",
       tagline: '🟢 Freelancers / Small Agencies',
-      price: "9,999",
+      price: "$199 ",
       period: "/ mo",
       features: [
         "Up to 5 client accounts",
@@ -95,12 +95,12 @@ export default function PricingSection() {
     {
       name: "Agency Growth",
       tagline: '🔵 Best Value / Main Plan',
-      price: "14,999",
+      price: "$299",
       period: "/ mo",
       featured: true,
       tag: "Best Plan",
       features: [
-        "Up to 20 client accounts",
+        "Up to 40 client accounts",
         "Multi-client dashboard",
         "Advanced reporting & timelines",
         "Advanced follow-up automations",
@@ -116,10 +116,10 @@ export default function PricingSection() {
     {
       name: "Agency Pro",
       tagline: '🔴 Performance Agencies',
-      price: "24,999",
+      price: "$399",
       period: "/ mo",
       features: [
-        "Up to 40 client accounts",
+        "Up to 60 client accounts",
         "Everything in Growth",
         "Priority support",
         "Higher lead limits",
