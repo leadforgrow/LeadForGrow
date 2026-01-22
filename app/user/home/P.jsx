@@ -77,7 +77,7 @@ export default function PricingSection() {
     {
       name: "Agency Starter",
       tagline: '🟢 Freelancers / Small Agencies',
-      price: "$199 ",
+      price: "₹7999 ",
       period: "/ mo",
       features: [
         "Up to 5 client accounts",
@@ -95,7 +95,7 @@ export default function PricingSection() {
     {
       name: "Agency Growth",
       tagline: '🔵 Best Value / Main Plan',
-      price: "$299",
+      price: "₹14999",
       period: "/ mo",
       featured: true,
       tag: "Best Plan",
@@ -116,7 +116,7 @@ export default function PricingSection() {
     {
       name: "Agency Pro",
       tagline: '🔴 Performance Agencies',
-      price: "$399",
+      price: "₹24999",
       period: "/ mo",
       features: [
         "Up to 60 client accounts",
