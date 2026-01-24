@@ -8,7 +8,6 @@ const LeadForGrowWidget = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [hasSubmittedLocally, setHasSubmittedLocally] = useState(false);
   const timerRef = useRef(null);
 
   const config = {
@@ -19,27 +18,18 @@ const LeadForGrowWidget = () => {
   const startTimer = (delay) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      if (!isSubmitted && !isOpen && !hasSubmittedLocally) setIsOpen(true);
+      if (!isSubmitted && !isOpen) setIsOpen(true);
     }, delay);
   };
 
   useEffect(() => {
-    const submitted = localStorage.getItem('lfg_widget_submitted');
-    if (submitted) {
-      setHasSubmittedLocally(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hasSubmittedLocally) {
-      startTimer(30000);
-    }
+    startTimer(30000);
     return () => clearTimeout(timerRef.current);
-  }, [isSubmitted, isOpen, hasSubmittedLocally]);
+  }, [isSubmitted, isOpen]);
 
   const handleClose = () => {
     setIsOpen(false);
-    if (!isSubmitted && !hasSubmittedLocally) startTimer(45000);
+    if (!isSubmitted) startTimer(45000);
   };
 
   const handleSubmit = async (e) => {
@@ -58,7 +48,6 @@ const LeadForGrowWidget = () => {
       if (res.success) {
         setIsSubmitted(true);
         setSuccess(true);
-        localStorage.setItem('lfg_widget_submitted', 'true');
         setTimeout(() => setIsOpen(false), 3000);
       } else {
         alert(res.error || 'Failed to send');
@@ -70,23 +59,21 @@ const LeadForGrowWidget = () => {
     }
   };
 
-  if (hasSubmittedLocally && !isSubmitted) return null;
-
   return (
     <>
       {/* Floating Badge */}
-      <div
+      <div 
         onClick={() => setIsOpen(true)}
         style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#4F46E5', color: 'white', width: '60px', height: '60px', borderRadius: '50%', boxShadow: '0 4px 14px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 9999 }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M11.07,12.85c0.77-1.39,2.25-2.21,3.11-3.44c0.91-1.29,0.4-3.7-2.18-3.7c-1.69,0-2.52,1.28-2.87,2.34L6.54,6.96 C7.25,4.83,9.18,3,12.19,3c4.1,0,6.21,3.12,4.84,6.03l-0.01,0.01c-0.6,1.28-2.1,2.42-2.98,3.41c-0.84,0.93-0.92,1.65-1.02,2.55 h-3C11.02,14.28,11.07,13.62,11.07,12.85z M13.84,19.33c0,1.29-1.05,2.34-2.34,2.34s-2.34-1.05-2.34-2.34s1.05-2.34,2.34-2.34 S13.84,18.04,13.84,19.33z" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M11.07,12.85c0.77-1.39,2.25-2.21,3.11-3.44c0.91-1.29,0.4-3.7-2.18-3.7c-1.69,0-2.52,1.28-2.87,2.34L6.54,6.96 C7.25,4.83,9.18,3,12.19,3c4.1,0,6.21,3.12,4.84,6.03l-0.01,0.01c-0.6,1.28-2.1,2.42-2.98,3.41c-0.84,0.93-0.92,1.65-1.02,2.55 h-3C11.02,14.28,11.07,13.62,11.07,12.85z M13.84,19.33c0,1.29-1.05,2.34-2.34,2.34s-2.34-1.05-2.34-2.34s1.05-2.34,2.34-2.34 S13.84,18.04,13.84,19.33z"/></svg>
       </div>
 
       {/* Modal Overlay */}
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 9998, opacity: isOpen ? 1 : 0, visibility: isOpen ? 'visible' : 'hidden', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: 'white', borderRadius: '20px', padding: '32px', width: '90%', maxWidth: '450px', position: 'relative', boxShadow: '0 20px 60px -12px rgba(0,0,0,0.15)' }}>
           <div onClick={handleClose} style={{ position: 'absolute', top: '16px', right: '16px', cursor: 'pointer', fontSize: '24px' }}>&times;</div>
-
+          
           {success ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <h3 style={{ fontSize: '20px', fontWeight: 700 }}>✅ Success!</h3>
