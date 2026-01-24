@@ -1,6 +1,7 @@
 import React from "react";
 import UserHome from "./user/home/page";
 import LeadForGrowWidget from "./Enquiry";
+import AIChatPopup from "./components/AIChatPopup";
 
 export default function page() {
   return (
@@ -33,6 +34,7 @@ export default function page() {
           />
         </a>
       </div>
+      <AIChatPopup />
     </div>
   );
 }

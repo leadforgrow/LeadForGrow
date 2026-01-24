@@ -139,10 +139,10 @@ export default function LeadForGrowHeroPage() {
           <div className="flex flex-col items-center mt-12 mb-12">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
               <button 
-                onClick={handleGetStarted}
+                onClick={() => window.open('https://calendly.com/leadforgrow/30min', '_blank')}
                 className="w-full sm:w-auto bg-indigo-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-indigo-700 transition shadow-2xl shadow-indigo-200 dark:shadow-none active:scale-95 flex items-center justify-center gap-3"
               >
-                Fix My Follow-Up Leak <ArrowRight className="w-6 h-6" />
+                Book a Free Demo <ArrowRight className="w-6 h-6" />
               </button>
               <button 
                 onClick={() => setShowVideo(true)}
