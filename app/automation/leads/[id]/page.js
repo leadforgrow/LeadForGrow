@@ -20,9 +20,20 @@ import {
   Trophy,
   Sparkles,
   ChevronDown,
-  Layout
+  Layout,
+  AlertTriangle,
+  TrendingUp,
+  Activity,
+  Target,
+  CheckCircle,
+  Zap,
+  Shield,
+  BarChart3,
+  FileCheck,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { computeLeadIntelligence } from '@/lib/leadIntelligence';
 
 export default function LeadDetailPage({ params }) {
   const router = useRouter();
@@ -32,10 +43,8 @@ export default function LeadDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState('');
   const [updating, setUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState('activity'); // 'activity' | 'tasks'
+  const [activeTab, setActiveTab] = useState('activity');
   const [showWonModal, setShowWonModal] = useState(false);
-  
-  // Task Modal state
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTask, setNewTask] = useState({
     type: 'call',
@@ -45,6 +54,7 @@ export default function LeadDetailPage({ params }) {
   });
   const [templates, setTemplates] = useState([]);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [intelligence, setIntelligence] = useState(null);
 
   const fetchLeadDetails = async () => {
     try {
@@ -55,7 +65,12 @@ export default function LeadDetailPage({ params }) {
       }
       const res = await fetch(`/api/automation/leads/${id}?userId=${userId}`);
       const data = await res.json();
-      if (data.success) setLead(data.data);
+      if (data.success) {
+        setLead(data.data);
+        // Compute intelligence
+        const intel = computeLeadIntelligence(data.data, [], null);
+        setIntelligence(intel.intelligence);
+      }
       setLoading(false);
     } catch (error) {
       toast.error('Failed to load lead details');
@@ -110,7 +125,7 @@ export default function LeadDetailPage({ params }) {
         if (newStatus === 'converted') {
           setShowWonModal(true);
         }
-        fetchLeadDetails(); // Refetch to get updated activities and details
+        fetchLeadDetails();
       }
       setUpdating(false);
     } catch (error) {
@@ -195,11 +210,9 @@ export default function LeadDetailPage({ params }) {
 
     if (url) {
       window.open(url, '_blank');
-      // If a task was associated, complete it
       if (taskId) {
         handleCompleteTask(taskId, true);
       } else {
-        // Log activity if manually triggered without task
         handleUpdateStatus('contacted');
       }
     }
@@ -215,10 +228,67 @@ export default function LeadDetailPage({ params }) {
     });
   };
 
+  // Calculate additional intelligence metrics
+  const getLeadHealth = () => {
+    if (!intelligence) return { status: 'unknown', reason: 'Loading...', color: 'bg-slate-100 text-slate-600' };
+    
+    if (intelligence.nextAction.urgency === 'critical' || intelligence.slaStatus.breached) {
+      return { status: 'Critical', reason: intelligence.slaStatus.breached ? 'SLA breached' : 'Immediate action required', color: 'bg-red-100 text-red-700' };
+    }
+    if (intelligence.engagementScore.level === 'High' && !intelligence.slaStatus.breached) {
+      return { status: 'Healthy', reason: 'Strong engagement, on track', color: 'bg-emerald-100 text-emerald-700' };
+    }
+    if (intelligence.leadAge.classification === 'at-risk') {
+      return { status: 'At Risk', reason: 'Delayed response', color: 'bg-orange-100 text-orange-700' };
+    }
+    return { status: 'Stable', reason: 'Normal progress', color: 'bg-blue-100 text-blue-700' };
+  };
+
+  const getIntentStrength = () => {
+    if (!intelligence) return { level: 'Unknown', color: 'bg-slate-100 text-slate-600' };
+    
+    const score = intelligence.engagementScore.score;
+    if (score >= 9) return { level: 'High Intent', color: 'bg-emerald-100 text-emerald-700' };
+    if (score >= 5) return { level: 'Medium Intent', color: 'bg-yellow-100 text-yellow-700' };
+    return { level: 'Low Intent', color: 'bg-slate-100 text-slate-600' };
+  };
+
+  const getCommunicationCoverage = () => {
+    const activities = lead?.activities || [];
+    const hasCall = activities.some(a => a.type === 'call');
+    const hasWhatsApp = activities.some(a => a.type === 'whatsapp');
+    const hasEmail = activities.some(a => a.type === 'email');
+    
+    return { hasCall, hasWhatsApp, hasEmail };
+  };
+
+  const getDataCompleteness = () => {
+    let total = 0;
+    let complete = 0;
+    
+    const fields = ['name', 'phone', 'email', 'serviceInterest', 'message'];
+    fields.forEach(field => {
+      total++;
+      if (lead?.[field] && lead[field].trim()) complete++;
+    });
+    
+    const percentage = Math.round((complete / total) * 100);
+    return { percentage, missing: total - complete };
+  };
+
+  const getRiskFactors = () => {
+    const risks = [];
+    if (intelligence?.slaStatus.breached) risks.push('SLA breached');
+    if (intelligence?.engagementScore.level === 'Low') risks.push('Low engagement');
+    if (intelligence?.sourceQuality.quality === 'Low') risks.push('Poor source');
+    if (intelligence?.leadAge.classification === 'cold') risks.push('Cold lead');
+    return risks.slice(0, 3); // Max 3
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
       </div>
     );
   }
@@ -226,10 +296,10 @@ export default function LeadDetailPage({ params }) {
   if (!lead) {
     return (
       <div className="p-8 text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Lead not found</h2>
+        <h2 className="text-xl font-bold text-slate-900">Lead not found</h2>
         <button 
           onClick={() => router.push('/automation/leads')}
-          className="mt-4 text-indigo-600 font-bold hover:underline flex items-center gap-2 mx-auto"
+          className="mt-4 text-indigo-600 font-medium hover:underline flex items-center gap-2 mx-auto"
         >
           <ChevronLeft className="w-4 h-4" /> Back to Leads
         </button>
@@ -237,37 +307,42 @@ export default function LeadDetailPage({ params }) {
     );
   }
 
+  const health = getLeadHealth();
+  const intent = getIntentStrength();
+  const coverage = getCommunicationCoverage();
+  const completeness = getDataCompleteness();
+  const risks = getRiskFactors();
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-slate-50 p-6">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-6 max-w-[1800px] mx-auto">
         <button 
           onClick={() => router.push('/automation/leads')}
-          className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition-colors"
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors text-sm"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
           Back to Leads
         </button>
-        <div className="flex gap-3">
-          <button className="p-2 hover:bg-slate-200 rounded-xl text-slate-600">
-            <MoreVertical className="w-6 h-6" />
-          </button>
-        </div>
+        <button className="p-2 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors">
+          <MoreVertical className="w-5 h-5" />
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Lead Info */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 text-2xl font-bold">
+      <div className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT PANEL: Identity + Quick Actions */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+            {/* Lead Identity */}
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xl font-bold">
                 {lead.name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">{lead.name}</h1>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase mt-2 inline-block ${
-                  lead.status === 'new' ? 'bg-indigo-100 text-indigo-700' :
-                  lead.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
+                <h1 className="text-xl font-bold text-slate-900">{lead.name}</h1>
+                <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded mt-1 ${
+                  lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                  lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
                   lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
                   'bg-slate-100 text-slate-700'
                 }`}>
@@ -276,208 +351,111 @@ export default function LeadDetailPage({ params }) {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Phone</p>
-                  <p className="text-slate-900 font-bold">{lead.phone}</p>
-                </div>
+            {/* Contact Info - Compact */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-slate-400" />
+                <span className="text-sm font-medium text-slate-900">{lead.phone}</span>
               </div>
-
               {lead.email && (
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Email</p>
-                    <p className="text-slate-900 font-bold">{lead.email}</p>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-slate-600 truncate">{lead.email}</span>
                 </div>
               )}
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                  <Tag className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Service Interest</p>
-                  <p className="text-slate-900 font-bold">{lead.serviceInterest || 'Not specified'}</p>
-                </div>
+              <div className="flex items-center gap-3">
+                <Tag className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">{lead.serviceInterest || 'General Inquiry'}</span>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Received</p>
-                  <p className="text-slate-900 font-bold">{new Date(lead.receivedAt).toLocaleString()}</p>
-                </div>
-              </div>
-
-              {lead.whatsapp && lead.whatsapp !== lead.phone && (
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                    <MessageCircle className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">WhatsApp</p>
-                    <p className="text-slate-900 font-bold">{lead.whatsapp}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-indigo-600" />
-                Source Details
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-y-4">
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Source</p>
-                  <p className="text-sm text-slate-900 font-bold capitalize">{lead.source}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Campaign</p>
-                  <p className="text-sm text-slate-900 font-bold">{lead.sourceDetails || 'None'}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Source Page</p>
-                  <p className="text-sm text-slate-900 font-bold truncate " title={lead.sourcePage}>
-                    <a  href={lead.sourcePage}>{lead.sourcePage}</a>
-                  </p>
-                </div>
-                   <div className="col-span-2">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">message</p>
-                  <p className="text-sm text-slate-900 font-bold truncate" title={lead.message}>
-                    <a href={lead.message}>{lead.message}</a>
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">IP Address</p>
-                  <p className="text-sm text-slate-600 font-mono">{lead.ipAddress || 'Not logged'}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Priority</p>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                    lead.priority === 'high' ? 'bg-red-100 text-red-600' :
-                    lead.priority === 'medium' ? 'bg-amber-100 text-amber-600' :
-                    'bg-slate-100 text-slate-600'
-                  }`}>
-                    {lead.priority}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">{new Date(lead.receivedAt).toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-1 gap-3">
+            {/* Source Summary */}
+            <div className="mb-6 p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <p className="text-xs text-slate-500 mb-1">Source</p>
+              <p className="text-sm font-semibold text-slate-900 capitalize">{lead.source}</p>
+              {lead.sourceDetails && (
+                <p className="text-xs text-slate-600 mt-1">{lead.sourceDetails}</p>
+              )}
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-2 mb-6">
               <button 
                 onClick={() => handleCommunication('call')}
-                disabled={updating}
-                className="w-full py-4 bg-indigo-600 text-white rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                className="w-full py-3 bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-indigo-700 transition-colors"
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-4 h-4" />
                 Call Lead
               </button>
               <button 
                 onClick={() => handleCommunication('whatsapp')}
-                disabled={updating}
-                className="w-full py-4 bg-emerald-600 text-white rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                className="w-full py-3 bg-emerald-600 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-emerald-700 transition-colors"
               >
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-4 h-4" />
                 WhatsApp
               </button>
 
-              {/* Quick Template Selector */}
+              {/* Template Selector */}
               <div className="relative">
                 <button 
                   onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                  className="w-full py-3 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 font-bold hover:bg-slate-800 transition-all cursor-pointer active:scale-95"
+                  className="w-full py-3 bg-slate-900 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-slate-800 transition-colors"
                 >
-                  <Layout className="w-5 h-5 text-indigo-400" />
-                  Use Quick Template
+                  <Layout className="w-4 h-4" />
+                  Quick Template
                   <ChevronDown className={`w-4 h-4 transition-transform ${showTemplateDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showTemplateDropdown && (
-                  <div className="absolute bottom-full left-0 right-0 mb-4 bg-white rounded-[32px] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[100] overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-                    <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Smart Engine</p>
-                        <h4 className="text-sm font-black text-slate-900 italic">Select Response Template</h4>
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg border border-slate-200 shadow-lg z-50 max-h-80 overflow-y-auto">
+                    <div className="p-3 border-b border-slate-100">
+                      <p className="text-xs font-semibold text-slate-600">Select Template</p>
+                    </div>
+                    {templates.length > 0 ? (
+                      templates.map((rule) => (
+                        <button
+                          key={rule._id}
+                          onClick={() => {
+                            const msg = renderMessageFromTemplate(rule.config?.messageTemplate);
+                            handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
+                            setShowTemplateDropdown(false);
+                          }}
+                          className="w-full text-left p-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                        >
+                          <p className="text-sm font-semibold text-slate-900">{rule.name}</p>
+                          <p className="text-xs text-slate-500 line-clamp-1 mt-1">
+                            {rule.config?.messageTemplate || 'No message'}
+                          </p>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className="text-sm text-slate-500">No templates available</p>
                       </div>
-                      <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
-                    </div>
-                    <div className="max-h-80 overflow-y-auto p-2 space-y-1">
-                      {templates.length > 0 ? (
-                        templates.map((rule) => (
-                          <button
-                            key={rule._id}
-                            onClick={() => {
-                              const msg = renderMessageFromTemplate(rule.config?.messageTemplate);
-                              handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
-                              setShowTemplateDropdown(false);
-                            }}
-                            className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex gap-4 items-start"
-                          >
-                            <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors ${
-                              rule.config?.channel === 'email' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'
-                            }`}>
-                              {rule.config?.channel === 'email' ? <Mail className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{rule.name}</span>
-                              </div>
-                              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                                {rule.config?.messageTemplate || 'No message defined'}
-                              </p>
-                            </div>
-                          </button>
-                        ))
-                      ) : (
-                        <div className="p-8 text-center">
-                          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                            <Layout className="w-6 h-6 text-slate-300" />
-                          </div>
-                          <p className="text-sm text-slate-500 font-medium">No active templates found.</p>
-                          <button onClick={() => router.push('/automation/automation-rules')} className="text-xs font-bold text-indigo-600 mt-3 hover:underline">Configure Automation</button>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 relative z-10">
+            {/* Won/Lost */}
+            <div className="grid grid-cols-2 gap-2">
               <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUpdateStatus('converted');
-                }}
+                onClick={() => handleUpdateStatus('converted')}
                 disabled={updating}
-                style={{ cursor: 'pointer' }}
-                className="flex items-center justify-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-all font-bold text-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors font-semibold text-sm disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Won
               </button>
               <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUpdateStatus('lost');
-                }}
+                onClick={() => handleUpdateStatus('lost')}
                 disabled={updating}
-                style={{ cursor: 'pointer' }}
-                className="flex items-center justify-center gap-2 p-3 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-all font-bold text-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-semibold text-sm disabled:opacity-50"
               >
                 <XCircle className="w-4 h-4" />
                 Lost
@@ -486,179 +464,249 @@ export default function LeadDetailPage({ params }) {
           </div>
         </div>
 
-        {/* Right Column: Timeline & Notes */}
+        {/* RIGHT PANEL: Intelligence + History */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex gap-4 border-b border-slate-200">
-            <button 
-              onClick={() => setActiveTab('activity')}
-              className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${
-                activeTab === 'activity' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              Activity & Notes
-            </button>
-            <button 
-              onClick={() => setActiveTab('tasks')}
-              className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 flex items-center gap-2 ${
-                activeTab === 'tasks' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              Follow-ups
-              {tasks.length > 0 && (
-                <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                  {tasks.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {activeTab === 'activity' ? (
-            <div className="space-y-6">
-              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
-                  <Clock className="w-6 h-6 text-indigo-600" />
-                  Activity History
-                </h2>
-
-                <div className="space-y-8 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
-                  {lead.activities?.map((activity, idx) => (
-                    <div key={idx} className="relative flex gap-6">
-                      <div className={`w-10 h-10 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 ${
-                        activity.type === 'lead_created' ? 'bg-indigo-600' :
-                        activity.type === 'status_changed' ? 'bg-amber-500' :
-                        activity.type === 'note_added' ? 'bg-blue-500' :
-                        'bg-slate-400'
-                      }`}>
-                        {activity.type === 'lead_created' && <Plus className="w-4 h-4 text-white" />}
-                        {activity.type === 'status_changed' && <Calendar className="w-4 h-4 text-white" />}
-                        {activity.type === 'note_added' && <Send className="w-4 h-4 text-white" />}
-                      </div>
-                      <div>
-                        <p className="text-slate-900 font-bold">{activity.description}</p>
-                        <p className="text-xs text-slate-400 font-bold mt-1">
-                          {new Date(activity.performedAt || activity.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {/* 10 Intelligence Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {/* Card 1: Lead Health */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Lead Health</p>
               </div>
+              <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${health.color}`}>
+                {health.status}
+              </div>
+              <p className="text-xs text-slate-600 mt-2">{health.reason}</p>
+            </div>
 
-              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 mb-6">Internal Notes</h2>
-                <form onSubmit={handleAddNote} className="mb-8">
-                  <div className="relative">
-                    <textarea
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                      placeholder="Add a private note..."
-                      className="w-full bg-slate-50 border-0 rounded-2xl p-4 pr-12 focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-slate-900 font-medium"
-                    />
-                    <button 
-                      type="submit"
-                      disabled={updating || !newNote.trim()}
-                      className="absolute right-4 bottom-4 w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  </div>
-                </form>
+            {/* Card 2: Response Delay */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Response Time</p>
+              </div>
+              <p className="text-lg font-bold text-slate-900">{intelligence?.leadAge.displayText}</p>
+              <p className={`text-xs mt-2 font-medium ${intelligence?.slaStatus.breached ? 'text-red-600' : 'text-emerald-600'}`}>
+                {intelligence?.slaStatus.message}
+              </p>
+            </div>
 
-                <div className="space-y-4">
-                  {lead.notes?.map((note, idx) => (
-                    <div key={idx} className="bg-slate-50 rounded-2xl p-6">
-                      <p className="text-slate-900 font-medium">{note.text}</p>
-                      <div className="flex items-center gap-2 mt-4 text-xs text-slate-400 font-bold uppercase">
-                        <User className="w-3 h-3" />
-                        <span>{note.addedBy?.email || 'Team'}</span>
-                        <span className="mx-2">•</span>
-                        <Clock className="w-3 h-3" />
-                        <span>{new Date(note.addedAt).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  ))}
+            {/* Card 3: Intent Strength */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Intent</p>
+              </div>
+              <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${intent.color}`}>
+                {intent.level}
+              </div>
+              <p className="text-xs text-slate-600 mt-2">Score: {intelligence?.engagementScore.score}/14</p>
+            </div>
+
+            {/* Card 4: Follow-up Status */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Follow-up</p>
+              </div>
+              {tasks.length > 0 ? (
+                <>
+                  <p className="text-lg font-bold text-indigo-600">{tasks.length} pending</p>
+                  <p className="text-xs text-slate-600 mt-2">Next: {tasks[0]?.type}</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-bold text-slate-900">None</p>
+                  <p className="text-xs text-slate-600 mt-2">No tasks scheduled</p>
+                </>
+              )}
+            </div>
+
+            {/* Card 5: Communication Coverage */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Coverage</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs">
+                  {coverage.hasCall ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-300" />}
+                  <span className="text-slate-600">Call</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  {coverage.hasWhatsApp ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-300" />}
+                  <span className="text-slate-600">WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  {coverage.hasEmail ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-slate-300" />}
+                  <span className="text-slate-600">Email</span>
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-6 h-6 text-indigo-600" />
-                  Follow-ups
-                </h2>
-                <button 
-                  onClick={() => setShowTaskModal(true)}
-                  className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
 
-              {tasks.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-                  <p className="text-slate-600 font-bold text-sm">No pending tasks.</p>
-                  <button onClick={() => setShowTaskModal(true)} className="mt-4 text-indigo-600 text-xs font-bold hover:underline">
-                    + Add follow-up
-                  </button>
+            {/* Card 6: Source Trust */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Source Trust</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-900 capitalize">{lead.source}</p>
+              {intelligence?.sourceQuality.conversionRate ? (
+                <p className="text-xs text-slate-600 mt-2">{intelligence.sourceQuality.conversionRate}% CVR</p>
+              ) : (
+                <p className="text-xs text-slate-500 mt-2">No data</p>
+              )}
+            </div>
+
+            {/* Card 7: Owner Performance (Placeholder) */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <User className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Owner</p>
+              </div>
+              {lead.assignedTo ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-900 truncate">{lead.assignedTo.email?.split('@')[0]}</p>
+                  <p className="text-xs text-slate-600 mt-2">Active</p>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">Unassigned</p>
+              )}
+            </div>
+
+            {/* Card 8: Conversion Probability */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Conv. Probability</p>
+              </div>
+              <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                intelligence?.engagementScore.level === 'High' ? 'bg-emerald-100 text-emerald-700' :
+                intelligence?.engagementScore.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-slate-100 text-slate-600'
+              }`}>
+                {intelligence?.engagementScore.level}
+              </div>
+              <p className="text-xs text-slate-600 mt-2">Based on engagement</p>
+            </div>
+
+            {/* Card 9: Data Completeness */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileCheck className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Data Quality</p>
+              </div>
+              <p className="text-lg font-bold text-slate-900">{completeness.percentage}%</p>
+              <p className="text-xs text-slate-600 mt-2">
+                {completeness.missing > 0 ? `${completeness.missing} fields missing` : 'Complete'}
+              </p>
+            </div>
+
+            {/* Card 10: Risk Factors */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">Risk Factors</p>
+              </div>
+              {risks.length > 0 ? (
+                <div className="space-y-1">
+                  {risks.map((risk, idx) => (
+                    <p key={idx} className="text-xs text-red-600 font-medium">• {risk}</p>
+                  ))}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {tasks.map((task) => (
-                    <div key={task._id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-slate-900 font-bold mb-1">{task.title}</h3>
-                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md">{task.type}</span>
-                            <span className="text-slate-400">Due {new Date(task.dueDate).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <button onClick={() => handleCompleteTask(task._id)} className="p-2 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-lg transition-colors">
-                          <CheckCircle2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <div className="flex gap-2">
-                        {task.type === 'call' && (
-                          <button onClick={() => handleCommunication('call', task._id)} className="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
-                            Call
-                          </button>
-                        )}
-                        {task.type === 'whatsapp' && (
-                          <button onClick={() => handleCommunication('whatsapp', task._id)} className="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
-                            WhatsApp
-                          </button>
-                        )}
-                        <button onClick={() => handleCompleteTask(task._id)} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
-                          Done
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs text-emerald-600 font-medium">No major risks</p>
               )}
             </div>
-          )}
+          </div>
+
+          {/* Activity Timeline - Signal-Focused */}
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-indigo-600" />
+              Activity Timeline
+            </h2>
+
+            <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+              {lead.activities?.slice(0, 10).map((activity, idx) => (
+                <div key={idx} className="relative flex gap-4 pl-8">
+                  <div className={`absolute left-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${
+                    activity.type === 'lead_created' ? 'bg-indigo-600' :
+                    activity.type === 'status_changed' ? 'bg-amber-500' :
+                    activity.type === 'note_added' ? 'bg-blue-500' :
+                    'bg-slate-400'
+                  }`}>
+                    {activity.type === 'lead_created' && <Plus className="w-3 h-3 text-white" />}
+                    {activity.type === 'status_changed' && <Calendar className="w-3 h-3 text-white" />}
+                    {activity.type === 'note_added' && <Send className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-900">{activity.description}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {new Date(activity.performedAt || activity.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes Section - Internal Collaboration */}
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Internal Notes</h2>
+            
+            <form onSubmit={handleAddNote} className="mb-6">
+              <div className="relative">
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add internal note (private to team)..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 pr-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[80px] text-sm text-slate-900"
+                />
+                <button 
+                  type="submit"
+                  disabled={updating || !newNote.trim()}
+                  className="absolute right-3 bottom-3 w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-3">
+              {lead.notes?.map((note, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-4">
+                  <p className="text-sm text-slate-900">{note.text}</p>
+                  <div className="flex items-center gap-2 mt-3 text-xs text-slate-500">
+                    <User className="w-3 h-3" />
+                    <span>{note.addedBy?.email || 'Team'}</span>
+                    <span>•</span>
+                    <span>{new Date(note.addedAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Quick Task Modal */}
+      {/* Task Modal */}
       {showTaskModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-8 animate-in zoom-in-95 duration-200 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900">New Follow-up</h3>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-900">New Follow-up</h3>
               <button onClick={() => setShowTaskModal(false)} className="text-slate-400 hover:text-slate-600">
-                <XCircle className="w-6 h-6" />
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleCreateTask} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Type</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Type</label>
                   <select
-                    className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                     value={newTask.type}
                     onChange={(e) => setNewTask({...newTask, type: e.target.value})}
                   >
@@ -668,38 +716,38 @@ export default function LeadDetailPage({ params }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Due Date</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Due Date</label>
                   <input
                     type="date"
-                    className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                     value={newTask.dueDate}
                     onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Title</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Title</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Call to finalize quote"
-                  className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-slate-900 font-bold"
+                  placeholder="e.g. Follow-up call"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                   value={newTask.title}
                   onChange={(e) => setNewTask({...newTask, title: e.target.value})}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Instructions</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
                 <textarea
-                  placeholder="Notes for the follow-up..."
-                  className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-slate-900 font-medium min-h-[80px]"
+                  placeholder="Task instructions..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm min-h-[60px]"
                   value={newTask.description}
                   onChange={(e) => setNewTask({...newTask, description: e.target.value})}
                 />
               </div>
               <button 
                 type="submit"
-                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all"
+                className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
               >
                 Create Task
               </button>
@@ -707,33 +755,21 @@ export default function LeadDetailPage({ params }) {
           </div>
         </div>
       )}
-      {/* Won Celebration Modal */}
+
+      {/* Won Modal */}
       {showWonModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm -z-10" onClick={() => setShowWonModal(false)}></div>
-          <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300 text-center relative overflow-hidden">
-            {/* Background Sparkles */}
-            <Sparkles className="absolute top-4 left-4 w-6 h-6 text-emerald-200 animate-pulse" />
-            <Sparkles className="absolute bottom-4 right-4 w-6 h-6 text-emerald-200 animate-pulse" />
-            
-            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-              <Trophy className="w-10 h-10 text-emerald-600 relative z-10" />
-              <div className="absolute inset-0 bg-emerald-200 rounded-full animate-ping opacity-20"></div>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-8 max-w-sm w-full text-center">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-8 h-8 text-emerald-600" />
             </div>
-
-            <h2 className="text-2xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
-              <PartyPopper className="w-6 h-6 text-emerald-500" />
-              Victory!
-            </h2>
-            <p className="text-slate-600 font-medium mb-8 leading-relaxed">
-              Congrats! You got this lead for <span className="text-indigo-600 font-bold">LeadForGrow</span> service.
-            </p>
-
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Victory!</h2>
+            <p className="text-slate-600 mb-6">Lead successfully converted</p>
             <button
               onClick={() => setShowWonModal(false)}
-              className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95"
+              className="w-full py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
             >
-              Back to Business
+              Continue
             </button>
           </div>
         </div>
