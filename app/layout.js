@@ -28,37 +28,49 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <Script
-          id="interakt-sdk"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(w,d,s,c,r,a,m){
-                w['KiwiObject']=r;
-                w[r]=w[r] || function () {
-                  (w[r].q=w[r].q||[]).push(arguments)};
-                w[r].l=1*new Date();
-                a=d.createElement(s);
-                m=d.getElementsByTagName(s)[0];
-                a.async=1;
-                a.src=c;
-                m.parentNode.insertBefore(a,m)
-              })(window,document,'script',
-              "https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js",
-              'kiwi');
+    <Script
+  id="interakt-sdk"
+  strategy="afterInteractive"
+  dangerouslySetInnerHTML={{
+    __html: `
+      (function(w,d,s,c,r,a,m){
+        w['KiwiObject']=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)};
+        w[r].l=1*new Date();a=d.createElement(s);m=d.getElementsByTagName(s)[0];a.async=1;a.src=c;m.parentNode.insertBefore(a,m)
+      })(window,document,'script',"https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js",'kiwi');
+    `,
+  }}
+/>
 
-              window.addEventListener("load", function () {
-                if (window.kiwi) {
-                  window.kiwi.init(
-                    '',
-                    'e44NElePOvKgorqrHc5T7ZhowwlY6UAq',
-                    {}
-                  );
-                }
-              });
-            `,
-          }}
-        />
+{/* Separate init script - CRITICAL: Load AFTER SDK */}
+<Script
+  id="interakt-init"
+  strategy="lazyOnload"
+  dangerouslySetInnerHTML={{
+    __html: `
+      (function() {
+        function initKiwi() {
+          if (typeof window !== 'undefined' && window.kiwi && typeof window.kiwi.init === 'function') {
+            window.kiwi.init('', 'e44NElePOvKgorqrHc5T7ZhowwlY6UAq', {});
+            return true;
+          }
+          return false;
+        }
+        
+        // Wait for SDK to fully load
+        const initAttempts = setInterval(() => {
+          if (initKiwi()) {
+            clearInterval(initAttempts);
+          }
+        }, 300);
+        
+        // Max 10 seconds
+        setTimeout(() => clearInterval(initAttempts), 10000);
+      })();
+    `,
+  }}
+/>
+
+
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4902724266607481"
