@@ -28,6 +28,37 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      <Script
+          id="interakt-sdk"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,c,r,a,m){
+                w['KiwiObject']=r;
+                w[r]=w[r] || function () {
+                  (w[r].q=w[r].q||[]).push(arguments)};
+                w[r].l=1*new Date();
+                a=d.createElement(s);
+                m=d.getElementsByTagName(s)[0];
+                a.async=1;
+                a.src=c;
+                m.parentNode.insertBefore(a,m)
+              })(window,document,'script',
+              "https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js",
+              'kiwi');
+
+              window.addEventListener("load", function () {
+                if (window.kiwi) {
+                  window.kiwi.init(
+                    '',
+                    'e44NElePOvKgorqrHc5T7ZhowwlY6UAq',
+                    {}
+                  );
+                }
+              });
+            `,
+          }}
+        />
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4902724266607481"

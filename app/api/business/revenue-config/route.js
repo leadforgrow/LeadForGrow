@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from "@/lib/mongodb";
 import Business from '@/models/Business';
+import Lead from '@/models/automation/Lead';
 import { withPlanAccess } from '@/lib/accessControl';
 
 // GET - Fetch revenue intelligence configuration

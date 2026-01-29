@@ -1,6 +1,81 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 
+// Revenue Intelligence Configuration Schema
+const RevenueConfigSchema = new mongoose.Schema({
+  // Average Deal Values
+  avgDealValue: {
+    min: { type: Number },
+    typical: { type: Number, required: true },
+    high: { type: Number },
+    currency: { type: String, default: 'INR' }
+  },
+  
+  // Service-wise Deal Values (Optional)
+  serviceValues: [{
+    name: { type: String, required: true },
+    value: { type: Number, required: true },
+    _id: false
+  }],
+  
+  // SLA Settings
+  sla: {
+    firstResponseMinutes: { type: Number, default: 15 },
+    followupMinutes: { type: Number, default: 60 }
+  },
+  
+  // Working Hours
+  workingHours: {
+    days: { type: [Number], default: [1, 2, 3, 4, 5, 6] },
+    startTime: { type: String, default: '09:00' },
+    endTime: { type: String, default: '18:00' },
+    timezone: { type: String, default: 'Asia/Kolkata' }
+  },
+  
+  // Conversion Rates
+  conversionRate: {
+    low: { type: Number, default: 5 },
+    avg: { type: Number, default: 10 },
+    high: { type: Number, default: 20 }
+  },
+  
+  // Lead Source Weighting
+  sources: [{
+    name: { type: String, required: true },
+    weight: { type: Number, min: 0, max: 1, default: 0.5 },
+    avgConversion: { type: Number, min: 0, max: 100, default: 0 },
+    _id: false
+  }],
+  
+  // Follow-up Strategy
+  followup: {
+    maxAttempts: { type: Number, default: 5 },
+    gapMinutes: { type: Number, default: 1440 }
+  },
+  
+  // Preferred Contact Channels
+  preferredChannels: {
+    type: [String],
+    enum: ['call', 'whatsapp', 'email'],
+    default: ['call', 'whatsapp']
+  },
+  
+  // Team Roles (for future use)
+  teamRoles: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: { type: String },
+    experienceLevel: { type: String },
+    _id: false
+  }],
+  
+  // Legal Acknowledgment
+  estimationAcknowledged: { type: Boolean, default: false },
+  
+  // Timestamps
+  configuredAt: { type: Date },
+  lastUpdatedAt: { type: Date }
+}, { _id: false });
+
 const BusinessSettingsSchema = new mongoose.Schema({
   // Lead Assignment Strategy
   assignmentStrategy: {
@@ -13,11 +88,11 @@ const BusinessSettingsSchema = new mongoose.Schema({
   notifications: {
     email: {
       enabled: { type: Boolean, default: true },
-      recipients: [{ type: String }] // Email addresses
+      recipients: [{ type: String }]
     },
     whatsapp: {
       enabled: { type: Boolean, default: false },
-      recipients: [{ type: String }] // Phone numbers
+      recipients: [{ type: String }]
     },
     slack: {
       enabled: { type: Boolean, default: false },
@@ -29,8 +104,8 @@ const BusinessSettingsSchema = new mongoose.Schema({
   businessHours: {
     timezone: { type: String, default: 'Asia/Kolkata' },
     workingDays: {
-      type: [Number], // 0-6 (Sunday-Saturday)
-      default: [1, 2, 3, 4, 5, 6] // Monday-Saturday
+      type: [Number],
+      default: [1, 2, 3, 4, 5, 6]
     },
     startTime: { type: String, default: '09:00' },
     endTime: { type: String, default: '18:00' }
@@ -48,24 +123,22 @@ const BusinessSettingsSchema = new mongoose.Schema({
   // Call Automation Settings
   callAutomation: {
     enabled: { type: Boolean, default: true },
-    voiceId: { type: String, default: 'en-US-Neural2-F' }, // Default Google/Twilio voice
+    voiceId: { type: String, default: 'en-US-Neural2-F' },
     recordCalls: { type: Boolean, default: false },
     maxDurationSeconds: { type: Number, default: 60 },
     greetingMessage: { type: String, default: 'Hello, I am the AI assistant for {{businessName}}.' },
     enableSmsFollowup: { type: Boolean, default: true },
     
-    // Telephony Provider Credentials (Secure)
     telephony: {
       provider: { type: String, enum: ['vapi', 'retell', 'twilio'], default: 'vapi' },
-      apiKey: { type: String, select: false }, // Private key, don't expose by default
-      assistantId: { type: String }, // For Vapi/Retell
-      phoneNumberId: { type: String } // For Twilio/Vapi
+      apiKey: { type: String, select: false },
+      assistantId: { type: String },
+      phoneNumberId: { type: String }
     }
   }
 }, { _id: false });
 
 const IntegrationCredentialsSchema = new mongoose.Schema({
-  // WhatsApp Business API
   whatsapp: {
     enabled: { type: Boolean, default: false },
     apiKey: { type: String },
@@ -74,20 +147,18 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     lastVerified: { type: Date }
   },
   
-  // Email SMTP
   email: {
     enabled: { type: Boolean, default: false },
     provider: { type: String, enum: ['smtp', 'sendgrid', 'mailgun', 'ses'] },
     host: { type: String },
     port: { type: Number },
     username: { type: String },
-    password: { type: String }, // Should be encrypted
+    password: { type: String },
     fromEmail: { type: String },
     fromName: { type: String },
     lastVerified: { type: Date }
   },
   
-  // SMS (Future)
   sms: {
     enabled: { type: Boolean, default: false },
     provider: { type: String },
@@ -111,7 +182,7 @@ const BusinessSchema = new mongoose.Schema({
     trim: true
   },
   logo: {
-    type: String // URL to logo
+    type: String
   },
   
   // Ownership
@@ -120,7 +191,7 @@ const BusinessSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // 530570
+  
   // Subscription & Plan
   plan: {
     type: String,
@@ -137,7 +208,7 @@ const BusinessSchema = new mongoose.Schema({
   
   // Quotas (based on plan)
   quotas: {
-    maxForms: { type: Number, default: 1 }, // Free: 1, Growth: 10, Enterprise: unlimited
+    maxForms: { type: Number, default: 1 },
     maxTeamMembers: { type: Number, default: 1 },
     maxAutomationRules: { type: Number, default: 3 },
     maxLeadsPerMonth: { type: Number, default: 100 }
@@ -154,6 +225,18 @@ const BusinessSchema = new mongoose.Schema({
   settings: {
     type: BusinessSettingsSchema,
     default: () => ({})
+  },
+  
+  // Revenue Intelligence Configuration
+  revenueConfig: {
+    type: RevenueConfigSchema,
+    default: null
+  },
+  
+  // Revenue Intelligence Active Flag
+  revenueIntelligenceActive: {
+    type: Boolean,
+    default: false
   },
   
   // Integration Credentials (encrypted)
@@ -228,7 +311,7 @@ const BusinessSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes (removed duplicates - only define once here)
+// Indexes
 BusinessSchema.index({ ownerId: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
@@ -250,15 +333,13 @@ BusinessSchema.methods.canCreateForm = function() {
 };
 
 BusinessSchema.methods.canCreateAutomationRule = function() {
-  // This will be checked against actual count in the database
-  return true; // Placeholder - implement in automation rules endpoint
+  return true;
 };
 
 BusinessSchema.methods.incrementLeadCount = function() {
   const now = new Date();
   const lastReset = new Date(this.usage.lastResetDate);
   
-  // Reset if new month
   if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
     this.usage.leadsThisMonth = 0;
     this.usage.lastResetDate = now;
@@ -270,6 +351,52 @@ BusinessSchema.methods.incrementLeadCount = function() {
 BusinessSchema.methods.hasReachedLeadLimit = function() {
   if (this.plan === 'enterprise') return false;
   return this.usage.leadsThisMonth >= this.quotas.maxLeadsPerMonth;
+};
+
+// Revenue Intelligence Helper Methods
+BusinessSchema.methods.calculateLeadValue = function(leadSource) {
+  if (!this.revenueConfig || !this.revenueIntelligenceActive) {
+    return this.revenueConfig?.avgDealValue?.typical || 0;
+  }
+  
+  // Find source weight
+  const source = this.revenueConfig.sources.find(s => 
+    s.name.toLowerCase() === leadSource?.toLowerCase()
+  );
+  
+  const sourceWeight = source ? source.weight : 0.5;
+  const baseValue = this.revenueConfig.avgDealValue.typical;
+  
+  return baseValue * sourceWeight;
+};
+
+BusinessSchema.methods.isWithinWorkingHours = function(timestamp) {
+  if (!this.revenueConfig) return true;
+  
+  const date = new Date(timestamp);
+  const day = date.getDay();
+  const time = date.toTimeString().slice(0, 5); // HH:MM format
+  
+  const workingDays = this.revenueConfig.workingHours.days;
+  const startTime = this.revenueConfig.workingHours.startTime;
+  const endTime = this.revenueConfig.workingHours.endTime;
+  
+  if (!workingDays.includes(day)) return false;
+  if (time < startTime || time > endTime) return false;
+  
+  return true;
+};
+
+BusinessSchema.methods.getEstimatedConversionRate = function(leadSource) {
+  if (!this.revenueConfig) {
+    return this.revenueConfig?.conversionRate?.avg || 10;
+  }
+  
+  const source = this.revenueConfig.sources.find(s => 
+    s.name.toLowerCase() === leadSource?.toLowerCase()
+  );
+  
+  return source?.avgConversion || this.revenueConfig.conversionRate.avg;
 };
 
 // Update quotas based on plan
@@ -302,4 +429,3 @@ BusinessSchema.pre('save', async function() {
 });
 
 export default mongoose.models.Business || mongoose.model('Business', BusinessSchema);
-

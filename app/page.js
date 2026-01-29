@@ -6,6 +6,9 @@ import AIChatPopup from "./components/AIChatPopup";
 export default function page() {
   return (
     <div>
+   
+
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
