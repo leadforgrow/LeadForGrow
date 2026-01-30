@@ -4,28 +4,73 @@ import React from 'react';
 import MarketingLayout from '@/app/components/MarketingLayout';
 
 export default function PrivacyPolicy() {
-  const sections = [
-    {
-      title: "1. Information We Collect",
-      content: "We collect information you provide directly to us, such as when you create an account, build a website, capture leads, or communicate with us. This may include your name, email address, business details, and billing information."
-    },
-    {
-      title: "2. How We Use Information",
-      content: "We use the information we collect to provide, maintain, and improve our services, including lead management automation, website building features, and analytics. We also use it to communicate with you about updates and support."
-    },
-    {
-      title: "3. Content Ownership & Lead Data",
-      content: "You retain all rights to the leads captured through your forms and the content of the websites you build on LeadForGrow. We process this data as a service provider on your behalf and do not sell your lead data to third parties."
-    },
-    {
-      title: "4. Cookies and Tracking",
-      content: "We use cookies and similar technologies to track activity on our service and hold certain information to improve user experience and analyze performance. You can control cookie settings in your browser."
-    },
-    {
-      title: "5. Data Security",
-      content: "We implement industry-standard security measures to protect your personal and business data. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
-    }
-  ];
+ const sections = [
+  {
+    title: "1. Information We Collect",
+    content:
+      "We collect information you provide directly, including name, email address, phone number, business details, billing information, and data you submit through forms, websites, and automations created on the platform."
+  },
+  {
+    title: "2. Lead & Business Data",
+    content:
+      "All leads, contacts, and business data captured through LeadForGrow remain your property. We process this data solely to provide the services and do not sell or share lead data with third parties."
+  },
+  {
+    title: "3. How We Use Information",
+    content:
+      "We use collected information to operate, maintain, and improve the platform, provide support, send service-related communications, process payments, and ensure platform security."
+  },
+  {
+    title: "4. Communication & Notifications",
+    content:
+      "We may contact you regarding account activity, billing, security updates, product changes, or support inquiries. Marketing communications can be opted out at any time."
+  },
+  {
+    title: "5. Cookies & Tracking Technologies",
+    content:
+      "We use cookies and similar technologies to analyze usage patterns, improve performance, and personalize user experience. You can control cookie behavior through your browser settings."
+  },
+  {
+    title: "6. Third-Party Services",
+    content:
+      "We may share limited data with trusted third-party providers such as hosting services, email delivery providers, WhatsApp APIs, analytics platforms, and payment processors strictly for service operation."
+  },
+  {
+    title: "7. Data Security",
+    content:
+      "We implement industry-standard security practices including access controls, encryption, and monitoring. However, no system is completely secure, and we cannot guarantee absolute protection."
+  },
+  {
+    title: "8. Data Retention",
+    content:
+      "We retain personal and business data only for as long as necessary to provide services or comply with legal obligations. Upon account termination, data may be deleted after a reasonable retention period."
+  },
+  {
+    title: "9. User Rights",
+    content:
+      "You have the right to access, update, or delete your personal information. Requests can be made by contacting our support or privacy team."
+  },
+  {
+    title: "10. International Data Transfers",
+    content:
+      "Your data may be processed or stored on servers located outside your country. We take reasonable steps to ensure appropriate data protection safeguards are in place."
+  },
+  {
+    title: "11. Children’s Privacy",
+    content:
+      "LeadForGrow is not intended for individuals under the age of 18. We do not knowingly collect personal data from minors."
+  },
+  {
+    title: "12. Changes to This Policy",
+    content:
+      "We may update this Privacy Policy periodically. Updates will be reflected on this page, and continued use of the service indicates acceptance of the revised policy."
+  },
+  {
+    title: "13. Contact Information",
+    content:
+      "If you have questions or concerns about this Privacy Policy, you may contact us at privacy@leadforgrow.online."
+  }
+];
 
   return (
     <MarketingLayout 

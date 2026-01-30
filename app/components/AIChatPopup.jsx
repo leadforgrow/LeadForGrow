@@ -112,16 +112,16 @@ export default function AIChatPopup() {
   };
 
   return (
-    <div className="font-sans antialiased z-[9999]">
+    <div className="font-sans antialiased z-[9999999999999999]">
       {/* Trigger Button - Floating Bottom Right */}
       {!isOpen && (
         <button
           onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
-          className="fixed bottom-8 right-8 z-[9999] group flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 hover:bg-indigo-700 hover:shadow-indigo-500/30 px-5 py-3 h-14"
+          className="fixed bottom-8 right-8 z-[9999999999999999] group flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 hover:bg-indigo-700 hover:shadow-indigo-500/30 px-5 py-3 h-14"
           aria-label="Open Help"
         >
-          <HelpCircle className="w-5 h-5" />
-          <span className="font-semibold text-sm tracking-wide">Help & Support</span>
+          
+          <span className="font-semibold text-sm tracking-wide">AI Assistant</span>
         </button>
       )}
 
