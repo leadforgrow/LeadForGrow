@@ -22,7 +22,7 @@ export default function page() {
         }}
       />
       <UserHome></UserHome>
-      {/* <LeadForGrowWidget></LeadForGrowWidget> */}
+      <LeadForGrowWidget></LeadForGrowWidget>
       <div className="flex justify-center py-8">
         <a 
           href="https://www.producthunt.com/products/leadforgrow?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-leadforgrow" 
