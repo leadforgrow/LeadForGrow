@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
-    <Script
+    {/* <Script
   id="interakt-sdk"
   strategy="afterInteractive"
   dangerouslySetInnerHTML={{
@@ -39,10 +39,10 @@ export default function RootLayout({ children }) {
       })(window,document,'script',"https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js",'kiwi');
     `,
   }}
-/>
+/> */}
 
 {/* Separate init script - CRITICAL: Load AFTER SDK */}
-<Script
+{/* <Script
   id="interakt-init"
   strategy="lazyOnload"
   dangerouslySetInnerHTML={{
@@ -68,7 +68,7 @@ export default function RootLayout({ children }) {
       })();
     `,
   }}
-/>
+/> */}
 
 
         <Script 
