@@ -23,6 +23,26 @@ export default function LeadForGrowHeroPage() {
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [meetLink, setMeetLink] = React.useState('');
   const [userData, setUserData] = React.useState(null);
+  const [userPlan, setUserPlan] = React.useState('free');
+
+  React.useEffect(() => {
+    const storedPlan = localStorage.getItem('userPlan');
+    if (storedPlan) setUserPlan(storedPlan);
+    
+    const userId = localStorage.getItem('userid');
+    if (userId) {
+      fetch(`/api/user/profile/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.businessPlan) {
+            const plan = (data.businessPlan || 'free').toLowerCase();
+            setUserPlan(plan);
+            localStorage.setItem('userPlan', plan);
+          }
+        })
+        .catch(err => console.error('Error fetching user plan:', err));
+    }
+  }, []);
 
   // Handle Get Started button click
   const handleGetStarted = () => {
@@ -55,6 +75,43 @@ export default function LeadForGrowHeroPage() {
       console.error('Error fetching user data:', error);
       // Fallback: show popup anyway
       setShowTrustPopup(true);
+    }
+  };
+
+  // Handle activate trial
+  const handleActivateTrial = async () => {
+    const userId = localStorage.getItem('userid');
+    if (!userId) {
+      window.location.href = '/user/register';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/business/activate-trial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('businessPlan', 'trial');
+        localStorage.setItem('userPlan', 'trial');
+        window.location.href = '/automation';
+      } else {
+        // If already on a plan or other error, just go to dashboard
+        if (data.error && data.error.includes('Current plan is')) {
+           window.location.href = '/automation';
+        } else {
+           alert(data.error || 'Failed to activate trial. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error activating trial:', error);
+      alert('An error occurred. Please try again.');
     }
   };
 
@@ -146,10 +203,12 @@ export default function LeadForGrowHeroPage() {
           <div className="flex flex-col items-center mt-12 mb-12 opacity-0 animate-fade-in-up delay-600">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl px-4">
               <button 
-                onClick={() => window.open('https://calendly.com/leadforgrow/30min', '_blank')}
+                onClick={handleActivateTrial}
                 className="group w-full sm:w-auto bg-indigo-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-indigo-700 transition-all duration-300 shadow-2xl shadow-indigo-200 dark:shadow-indigo-900/30 hover:shadow-indigo-300 dark:hover:shadow-indigo-800/50 active:scale-95 flex items-center justify-center gap-3 relative overflow-hidden"
               >
-                <span className="relative z-10">Book a Free Demo</span>
+                <span className="relative z-10">
+                  {userPlan !== 'free' ? 'Access Dashboard' : 'Start Free Trial'}
+                </span>
                 <ArrowRight className="w-6 h-6 relative z-10 group-hover:translate-x-1 transition-transform" />
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>

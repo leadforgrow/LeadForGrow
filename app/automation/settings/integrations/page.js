@@ -26,6 +26,7 @@ export default function IntegrationsPage() {
       phoneNumberId: ''
     }
   });
+  const [userPlan, setUserPlan] = useState('free');
 
   useEffect(() => {
     fetchIntegrations();
@@ -48,6 +49,11 @@ export default function IntegrationsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const plan = localStorage.getItem('userPlan') || 'free';
+    setUserPlan(plan);
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -249,7 +255,15 @@ export default function IntegrationsPage() {
         </div>
 
         {/* WhatsApp Integration */}
-        <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm">
+        <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm relative overflow-hidden">
+          {userPlan === 'trial' && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+              <div className="bg-white/90 px-8 py-4 rounded-2xl shadow-xl border border-red-200">
+                 <p className="text-red-700 font-bold text-lg">Can not access in free trial</p>
+                 <p className="text-slate-500 text-sm mt-1">Contact sales for WhatsApp API access</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-emerald-600" />

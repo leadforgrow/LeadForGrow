@@ -195,7 +195,7 @@ const BusinessSchema = new mongoose.Schema({
   // Subscription & Plan
   plan: {
     type: String,
-    enum: ['free', 'growth', 'enterprise', 'agency starter', 'agency growth', 'agency pro'],
+    enum: ['free', 'trial', 'growth', 'enterprise', 'agency starter', 'agency growth', 'agency pro'],
     default: 'free'
   },
   planStartDate: {
@@ -408,6 +408,12 @@ BusinessSchema.pre('save', async function() {
         this.quotas.maxTeamMembers = 1;
         this.quotas.maxAutomationRules = 3;
         this.quotas.maxLeadsPerMonth = 100;
+        break;
+      case 'trial':
+        this.quotas.maxForms = 1;
+        this.quotas.maxTeamMembers = 2;
+        this.quotas.maxAutomationRules = 5;
+        this.quotas.maxLeadsPerMonth = 200;
         break;
       case 'growth':
         this.quotas.maxForms = 10;

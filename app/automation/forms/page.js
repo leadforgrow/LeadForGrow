@@ -25,6 +25,13 @@ export default function FormsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedForm, setSelectedForm] = useState(null);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [userPlan, setUserPlan] = useState('free');
+
+  useEffect(() => {
+    const plan = localStorage.getItem('userPlan') || 'free';
+    setUserPlan(plan);
+  }, []);
+
 
   useEffect(() => {
     fetchForms();
@@ -114,13 +121,40 @@ export default function FormsPage() {
           <p className="text-lg text-slate-600">Create and manage forms to capture leads from anywhere</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            if (userPlan === 'trial' && forms.length >= 1) {
+              toast.error('Maximum 1 form allowed in free trial');
+              return;
+            }
+            setShowCreateModal(true);
+          }}
           className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-200"
         >
           <Plus className="w-5 h-5" />
           Create New Form
         </button>
       </div>
+
+      {userPlan === 'trial' && (
+        <div className="mb-8 bg-blue-50 border border-blue-100 p-4 rounded-3xl flex items-center justify-between">
+          <div className="flex items-center gap-3 text-blue-800">
+             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+               <AlertCircle className="w-5 h-5 text-blue-600" />
+             </div>
+             <div>
+               <p className="font-bold">Free Trial Active</p>
+               <p className="text-sm text-blue-600">You can create up to 1 lead capture form during your trial.</p>
+             </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">{forms.length} / 1 FORMS</p>
+            <div className="w-32 h-2 bg-blue-100 rounded-full mt-1 overflow-hidden">
+               <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${Math.min(forms.length * 100, 100)}%` }}></div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

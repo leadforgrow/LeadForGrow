@@ -3,7 +3,7 @@ import { dbConnect } from "@/lib/mongodb";
 import Business from '@/models/Business';
 import { withPlanAccess } from '@/lib/accessControl';
 
-// GET - Fetch revenue intelligence configuration
+// GET - Fetch business settings and intelligence configuration
 export async function GET(request) {
   return withPlanAccess(request, 'revenue-config', async (req, user) => {
     try {
@@ -14,21 +14,23 @@ export async function GET(request) {
         return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
       }
 
-      // Return existing revenue config or defaults
-      const revenueConfig = business.revenueConfig || getDefaultConfig();
-
+      // Return existing revenue config or defaults + integration info
       return NextResponse.json({ 
         success: true, 
-        data: revenueConfig
+        data: {
+          revenueConfig: business.revenueConfig || getDefaultConfig(),
+          integrationCredentials: business.integrationCredentials,
+          settings: business.settings
+        }
       });
     } catch (error) {
-      console.error('Error fetching revenue config:', error);
-      return NextResponse.json({ success: false, error: 'Failed to fetch configuration' }, { status: 500 });
+      console.error('Error fetching business settings:', error);
+      return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
     }
   });
 }
 
-// PUT - Update revenue intelligence configuration
+// PUT - Update business settings, integrations or intelligence config
 export async function PUT(request) {
   return withPlanAccess(request, 'revenue-config', async (req, user) => {
     try {
@@ -41,55 +43,59 @@ export async function PUT(request) {
 
       const body = await request.json();
       
-      // Validate required fields
-      if (!body.avgDealValue?.typical) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Typical deal value is required' 
-        }, { status: 400 });
+      // 1. Handle Integration Credentials Update
+      if (body.integrationCredentials) {
+        business.integrationCredentials = {
+          ...business.integrationCredentials.toObject(),
+          ...body.integrationCredentials
+        };
       }
 
-      if (!body.estimationAcknowledged) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'You must acknowledge the estimation disclaimer' 
-        }, { status: 400 });
+      // 2. Handle Settings Update
+      if (body.settings) {
+        business.settings = {
+          ...business.settings,
+          ...body.settings
+        };
       }
 
-      // Save configuration
-      business.revenueConfig = {
-        avgDealValue: body.avgDealValue,
-        serviceValues: body.serviceValues || [],
-        sla: body.sla,
-        workingHours: body.workingHours,
-        conversionRate: body.conversionRate,
-        sources: body.sources || [],
-        followup: body.followup,
-        preferredChannels: body.preferredChannels || [],
-        teamRoles: body.teamRoles || [],
-        estimationAcknowledged: body.estimationAcknowledged,
-        configuredAt: new Date(),
-        lastUpdatedAt: new Date()
-      };
+      // 3. Handle Revenue Intelligence Configuration (only if provided)
+      if (body.avgDealValue) {
+        // Validate required fields for revenue config
+        if (!body.avgDealValue?.typical) {
+          return NextResponse.json({ success: false, error: 'Typical deal value is required' }, { status: 400 });
+        }
+        if (!body.estimationAcknowledged) {
+          return NextResponse.json({ success: false, error: 'Acknowledge the estimation disclaimer' }, { status: 400 });
+        }
 
-      // Mark revenue intelligence as active
-      business.revenueIntelligenceActive = true;
+        business.revenueConfig = {
+          avgDealValue: body.avgDealValue,
+          serviceValues: body.serviceValues || [],
+          sla: body.sla,
+          workingHours: body.workingHours,
+          conversionRate: body.conversionRate,
+          sources: body.sources || [],
+          followup: body.followup,
+          preferredChannels: body.preferredChannels || [],
+          teamRoles: body.teamRoles || [],
+          estimationAcknowledged: body.estimationAcknowledged,
+          configuredAt: business.revenueConfig?.configuredAt || new Date(),
+          lastUpdatedAt: new Date()
+        };
+        business.revenueIntelligenceActive = true;
+      }
 
       await business.save();
       
-      console.log('[RevenueConfig] Configuration saved successfully for business:', business._id);
-
       return NextResponse.json({ 
         success: true, 
-        data: business.revenueConfig,
-        message: 'Revenue intelligence configured successfully!'
+        data: business,
+        message: 'Settings updated successfully'
       });
     } catch (error) {
-      console.error('Error updating revenue config:', error);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to save configuration' 
-      }, { status: 500 });
+      console.error('Error updating business settings:', error);
+      return NextResponse.json({ success: false, error: 'Failed to save' }, { status: 500 });
     }
   });
 }

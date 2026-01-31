@@ -158,6 +158,11 @@ const UserNavbar = () => {
       ? 'bg-white dark:bg-black shadow-md border-b dark:border-slate-800'
       : 'bg-white/95 dark:bg-black/95 backdrop-blur-xl'
       }`}>
+      {businessPlan === 'trial' && (
+        <div className="bg-blue-600 text-white text-center py-2 text-sm font-medium">
+          You are using free trial of LeadForGrow for better services contact sales
+        </div>
+      )}
       <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex items-center justify-between h-24">
           {/* Logo */}

@@ -20,12 +20,15 @@ export default function RevenueIntelligenceDashboard() {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(null);
   const [config, setConfig] = useState(null);
+  const [userPlan, setUserPlan] = useState('free');
 
   useEffect(() => {
-    fetchRevenueData();
+    const plan = localStorage.getItem('userPlan') || 'free';
+    setUserPlan(plan);
+    fetchRevenueData(plan);
   }, []);
 
-  const fetchRevenueData = async () => {
+  const fetchRevenueData = async (plan) => {
     try {
       const userId = localStorage.getItem('userid');
       
@@ -38,7 +41,17 @@ export default function RevenueIntelligenceDashboard() {
       const metricsData = await metricsRes.json();
       
       if (configData.success) setConfig(configData.data);
-      if (metricsData.success) setMetrics(metricsData.data);
+      if (metricsData.success) {
+        let actualMetrics = metricsData.data;
+        if (plan === 'trial') {
+          // Keep insights restricted for trial
+          actualMetrics = {
+            ...actualMetrics,
+            insights: ['Can not see in free trial', 'Can not see in free trial', 'Can not see in free trial']
+          };
+        }
+        setMetrics(actualMetrics);
+      }
       
       setLoading(false);
     } catch (error) {
@@ -99,6 +112,12 @@ export default function RevenueIntelligenceDashboard() {
             Revenue Intelligence
           </h2>
           <p className="text-slate-600 mt-1">Real-time insights powered by your business metrics</p>
+          {userPlan === 'trial' && (
+            <p className="text-blue-600 text-sm font-bold mt-2 flex items-center gap-1">
+              <Zap className="w-4 h-4" />
+              Free Trial: You can capture up to 200 leads
+            </p>
+          )}
         </div>
         <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-200">
           <div className="flex items-center gap-2">
@@ -118,6 +137,7 @@ export default function RevenueIntelligenceDashboard() {
           icon={DollarSign}
           color="blue"
           subtitle="Total potential revenue"
+          isTrial={userPlan === 'trial'}
         />
 
         {/* Revenue at Risk */}
@@ -129,6 +149,7 @@ export default function RevenueIntelligenceDashboard() {
           color="orange"
           subtitle="Missed SLA leads"
           inverted
+          isTrial={userPlan === 'trial'}
         />
 
         {/* Recovered Revenue */}
@@ -139,6 +160,7 @@ export default function RevenueIntelligenceDashboard() {
           icon={TrendingUp}
           color="green"
           subtitle="From follow-ups"
+          isTrial={userPlan === 'trial'}
         />
 
         {/* Avg Deal Value */}
@@ -148,6 +170,7 @@ export default function RevenueIntelligenceDashboard() {
           icon={Target}
           color="purple"
           subtitle="Typical conversion"
+          isTrial={userPlan === 'trial'}
         />
       </div>
 
@@ -160,9 +183,13 @@ export default function RevenueIntelligenceDashboard() {
               <Clock className="w-5 h-5 text-orange-500" />
               SLA Performance
             </h3>
-            <span className="text-2xl font-bold text-slate-900">
-              {metrics?.slaCompliance || 85}%
-            </span>
+            {userPlan === 'trial' ? (
+              <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">RESTRICTED</span>
+            ) : (
+              <span className="text-2xl font-bold text-slate-900">
+                {metrics?.slaCompliance || 85}%
+              </span>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -171,12 +198,12 @@ export default function RevenueIntelligenceDashboard() {
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-green-500 rounded-full transition-all duration-500"
+                    className={`h-full bg-green-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.firstResponseRate || 90}%` }}
                   />
                 </div>
                 <span className="text-sm font-bold text-slate-900 w-12 text-right">
-                  {metrics?.firstResponseRate || 90}%
+                  {userPlan === 'trial' ? '---' : `${metrics?.firstResponseRate || 90}%`}
                 </span>
               </div>
             </div>
@@ -186,12 +213,12 @@ export default function RevenueIntelligenceDashboard() {
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                    className={`h-full bg-orange-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.followupRate || 75}%` }}
                   />
                 </div>
                 <span className="text-sm font-bold text-slate-900 w-12 text-right">
-                  {metrics?.followupRate || 75}%
+                  {userPlan === 'trial' ? '---' : `${metrics?.followupRate || 75}%`}
                 </span>
               </div>
             </div>
@@ -201,12 +228,12 @@ export default function RevenueIntelligenceDashboard() {
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                    className={`h-full bg-blue-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.slaCompliance || 85}%` }}
                   />
                 </div>
                 <span className="text-sm font-bold text-slate-900 w-12 text-right">
-                  {metrics?.slaCompliance || 85}%
+                  {userPlan === 'trial' ? '---' : `${metrics?.slaCompliance || 85}%`}
                 </span>
               </div>
             </div>
@@ -238,8 +265,8 @@ export default function RevenueIntelligenceDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-900">
-                      {formatCurrency(config.avgDealValue.typical * source.weight)}
+                    <p className={`font-bold text-slate-900 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}>
+                      {userPlan === 'trial' ? '₹---' : formatCurrency(config.avgDealValue.typical * source.weight)}
                     </p>
                     <p className="text-xs text-slate-500">
                       {Math.round(source.weight * 100)}% weight
@@ -252,7 +279,14 @@ export default function RevenueIntelligenceDashboard() {
       </div>
 
       {/* Insights & Alerts */}
-      <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border-2 border-amber-200 p-6">
+      <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border-2 border-amber-200 p-6 relative overflow-hidden">
+        {userPlan === 'trial' && (
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
+            <div className="bg-white/90 px-6 py-3 rounded-2xl shadow-xl border border-amber-200">
+               <p className="text-amber-800 font-bold text-lg">Can not see in free trial</p>
+            </div>
+          </div>
+        )}
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center shrink-0 shadow-md">
             <Info className="w-6 h-6 text-white" />
@@ -263,30 +297,9 @@ export default function RevenueIntelligenceDashboard() {
               {metrics?.insights?.map((insight, idx) => (
                 <div key={idx} className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
-                  <p className="text-sm text-slate-700 leading-relaxed">{insight}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed filter blur-[2px] select-none">{insight}</p>
                 </div>
-              )) || (
-                <>
-                  <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      Your WhatsApp leads have 2x higher value than other sources - prioritize these first
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      15% of high-value leads ({formatCurrency(metrics?.highValueAtRisk || 0)}) are past SLA - urgent action needed
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      Your follow-up rate improved by 23% this week, recovering an estimated {formatCurrency(metrics?.weeklyRecovery || 0)}
-                    </p>
-                  </div>
-                </>
-              )}
+              ))}
             </div>
           </div>
         </div>
@@ -295,7 +308,7 @@ export default function RevenueIntelligenceDashboard() {
   );
 }
 
-function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverted = false }) {
+function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverted = false, isTrial = false }) {
   const colorMap = {
     blue: 'from-blue-500 to-indigo-600',
     orange: 'from-orange-500 to-red-600',
@@ -303,18 +316,12 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
     purple: 'from-purple-500 to-indigo-600'
   };
 
-  const bgMap = {
-    blue: 'bg-blue-50',
-    orange: 'bg-orange-50',
-    green: 'bg-green-50',
-    purple: 'bg-purple-50'
-  };
 
   const isPositive = inverted ? change < 0 : change > 0;
   const ChangeIcon = isPositive ? TrendingUp : TrendingDown;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all">
+    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center shadow-md`}>
           <Icon className="w-6 h-6 text-white" />
@@ -322,7 +329,7 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
         {change !== undefined && (
           <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
             isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
+          } ${isTrial ? 'blur-[4px] opacity-30 select-none' : ''}`}>
             <ChangeIcon className="w-3 h-3" />
             <span className="text-xs font-bold">{Math.abs(change)}%</span>
           </div>
@@ -331,7 +338,14 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
       
       <div>
         <h3 className="text-sm font-semibold text-slate-600 mb-2">{title}</h3>
-        <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>
+        {isTrial ? (
+          <div className="space-y-1">
+             <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg inline-block mb-1">Locked in Trial</p>
+             <p className="text-2xl font-black text-slate-900/10 select-none blur-[6px]">₹99,999</p>
+          </div>
+        ) : (
+          <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>
+        )}
         {subtitle && (
           <p className="text-xs text-slate-500">{subtitle}</p>
         )}

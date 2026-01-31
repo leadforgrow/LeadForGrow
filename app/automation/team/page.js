@@ -12,6 +12,13 @@ export default function TeamPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMember, setNewMember] = useState({ email: '', firstName: '', lastName: '', phone: '', password: '' });
   const [createdMemberInfo, setCreatedMemberInfo] = useState(null);
+  const [userPlan, setUserPlan] = useState('free');
+
+  useEffect(() => {
+    const plan = localStorage.getItem('userPlan') || 'free';
+    setUserPlan(plan);
+  }, []);
+
 
   useEffect(() => {
     fetchData();
@@ -67,6 +74,10 @@ export default function TeamPage() {
 
   const handleAddMember = async (e) => {
     e.preventDefault();
+    if (userPlan === 'trial' && team.length >= 2) {
+      toast.error('Maximum 2 team members allowed in free trial');
+      return;
+    }
     try {
       setSaving(true);
       const userId = localStorage.getItem('userid');
@@ -179,6 +190,16 @@ export default function TeamPage() {
             Add Member
           </button>
         </div>
+
+        {userPlan === 'trial' && (
+          <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-2 text-blue-800">
+               <Shield className="w-5 h-5" />
+               <span className="text-sm font-bold">Free Trial: Limited to 2 team members</span>
+            </div>
+            <p className="text-xs text-blue-600 font-medium">{team.length} / 2 used</p>
+          </div>
+        )}
 
         {loading ? (
           <div className="py-12 text-center text-slate-400 animate-pulse">Loading team members...</div>
