@@ -24,8 +24,7 @@ export default function AutomationRulesPage() {
   const [loading, setLoading] = useState(true);
   const [editingRule, setEditingRule] = useState(null);
   const [editForm, setEditForm] = useState(null);
-  const [editingRule, setEditingRule] = useState(null);
-  const [editForm, setEditForm] = useState(null);
+
   const [saving, setSaving] = useState(false);
   
   // Cloudinary Config (Persisted in localStorage for convenience)
@@ -390,16 +389,44 @@ export default function AutomationRulesPage() {
                              const file = e.target.files[0];
                              if (!file) return;
                              
-                             const formData = new FormData();
-                             formData.append('file', file);
-                             
-                             toast.loading('Uploading media...');
-                             
+                             toast.loading('Preparing upload...');
                              try {
                                let fullUrl = '';
-                               
-                               // 1. Try Cloudinary (Preferred for Large Files)
-                               if (cloudinaryConfig.cloudName && cloudinaryConfig.uploadPreset) {
+                               let uploaded = false;
+
+                               // 1. Try Automatic Signed Upload (Server Configured)
+                               try {
+                                 const sigReq = await fetch('/api/cloudinary-sign', { method: 'POST' });
+                                 if (sigReq.ok) {
+                                   const sigData = await sigReq.json();
+                                   if (sigData.success) {
+                                      toast.loading('Uploading to Cloudinary (Fast)...');
+                                      const cloudData = new FormData();
+                                      cloudData.append('file', file);
+                                      cloudData.append('api_key', sigData.apiKey);
+                                      cloudData.append('timestamp', sigData.timestamp);
+                                      cloudData.append('signature', sigData.signature);
+                                      
+                                      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`, {
+                                        method: 'POST',
+                                        body: cloudData
+                                      });
+                                      const cloudJson = await cloudRes.json();
+                                      if (cloudJson.secure_url) {
+                                        fullUrl = cloudJson.secure_url;
+                                        uploaded = true;
+                                      } else {
+                                        console.error('Signed upload failed:', cloudJson);
+                                      }
+                                   }
+                                 }
+                               } catch (err) {
+                                 console.warn('Auto-sign failed, falling back...', err);
+                               }
+
+                               // 2. Try Manual Cloudinary Config (Unsigned)
+                               if (!uploaded && cloudinaryConfig.cloudName && cloudinaryConfig.uploadPreset) {
+                                  toast.loading('Uploading to Cloudinary (Manual)...');
                                   const cloudData = new FormData();
                                   cloudData.append('file', file);
                                   cloudData.append('upload_preset', cloudinaryConfig.uploadPreset);
@@ -412,15 +439,21 @@ export default function AutomationRulesPage() {
                                   
                                   if (cloudJson.secure_url) {
                                     fullUrl = cloudJson.secure_url;
+                                    uploaded = true;
                                   } else {
                                     throw new Error(cloudJson.error?.message || 'Cloudinary upload failed');
                                   }
                                } 
-                               // 2. Fallback to Local/Vercel (Small Files Only)
-                               else {
+                               
+                               // 3. Fallback to Local/Vercel (Small Files Only)
+                               if (!uploaded) {
+                                 toast.loading('Uploading locally...');
                                  if (file.size > 4.5 * 1024 * 1024) {
-                                   throw new Error('File too large for local upload (>4.5MB). Please enter Cloudinary details below.');
+                                   throw new Error('File too large for local upload (>4.5MB). Configure Cloudinary above or in .env.');
                                  }
+                                 const formData = new FormData();
+                                 formData.append('file', file);
+                                 
                                  const req = await fetch('/api/upload', { method: 'POST', body: formData });
                                  const res = await req.json();
                                  if (res.success) {
