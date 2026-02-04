@@ -86,6 +86,8 @@ export default function AutomationRulesPage() {
       channel: rule.config?.channel || 'both',
       messageTemplate: rule.config?.messageTemplate || '',
       whatsappTemplate: rule.config?.whatsappTemplate || '',
+      whatsappTemplateName: rule.config?.whatsappTemplateName || '',
+      whatsappHeaderMedia: rule.config?.whatsappHeaderMedia || '',
       delayHours: rule.config?.delayHours || 0,
       emailSubject: rule.config?.emailSubject || ''
     });
@@ -111,6 +113,8 @@ export default function AutomationRulesPage() {
             channel: editForm.channel,
             messageTemplate: editForm.messageTemplate,
             whatsappTemplate: editForm.whatsappTemplate,
+            whatsappTemplateName: editForm.whatsappTemplateName,
+            whatsappHeaderMedia: editForm.whatsappHeaderMedia,
             delayHours: editForm.delayHours,
             emailSubject: editForm.emailSubject
           }
@@ -337,6 +341,61 @@ export default function AutomationRulesPage() {
                         </button>
                       ))}
                     </div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Template Name (Optional)</label>
+                    <input
+                      type="text"
+                      value={editForm.whatsappTemplateName}
+                      onChange={(e) => setEditForm({ ...editForm, whatsappTemplateName: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-medium text-slate-900 text-sm"
+                      placeholder="e.g. welcome_message"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-2">Required for first contact with new leads on Interakt.</p>
+
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Header Media (Video/Image)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editForm.whatsappHeaderMedia}
+                        onChange={(e) => setEditForm({ ...editForm, whatsappHeaderMedia: e.target.value })}
+                        className="flex-1 px-4 py-2 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-medium text-slate-900 text-sm"
+                        placeholder="https://... or upload file"
+                      />
+                      <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl flex items-center justify-center transition-colors">
+                        <span className="text-xs font-bold">Upload</span>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="video/*,image/*"
+                          onChange={async (e) => {
+                             const file = e.target.files[0];
+                             if (!file) return;
+                             
+                             const formData = new FormData();
+                             formData.append('file', file);
+                             
+                             toast.loading('Uploading media...');
+                             try {
+                               const req = await fetch('/api/upload', { method: 'POST', body: formData });
+                               const res = await req.json();
+                               toast.dismiss();
+                               if (res.success) {
+                                 // Convert relative URL to absolute URL based on window location
+                                 const fullUrl = `${window.location.origin}${res.url}`;
+                                 setEditForm(prev => ({ ...prev, whatsappHeaderMedia: fullUrl }));
+                                 toast.success('Media uploaded!');
+                               } else {
+                                 toast.error('Upload failed');
+                               }
+                             } catch (err) {
+                               toast.dismiss();
+                               toast.error('Upload error');
+                             }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2">Required if your template has a video or image header.</p>
+
                   </div>
                 )}
 

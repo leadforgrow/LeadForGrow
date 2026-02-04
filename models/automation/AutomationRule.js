@@ -51,6 +51,14 @@ const AutomationRuleSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
+    whatsappTemplateName: {
+      type: String,
+      trim: true
+    },
+    whatsappHeaderMedia: {
+      type: String,
+      trim: true
+    },
     channel: {
       type: String,
       enum: ['whatsapp', 'email', 'both']
@@ -114,5 +122,10 @@ const AutomationRuleSchema = new mongoose.Schema({
 AutomationRuleSchema.index({ businessId: 1, enabled: 1 });
 AutomationRuleSchema.index({ type: 1 });
 
-export default mongoose.models.AutomationRule || mongoose.model('AutomationRule', AutomationRuleSchema);
+// Force recompilation of model if it exists (prevents stale schema in dev)
+if (mongoose.models.AutomationRule) {
+  delete mongoose.models.AutomationRule;
+}
+
+export default mongoose.model('AutomationRule', AutomationRuleSchema);
 

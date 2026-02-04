@@ -117,11 +117,13 @@ export async function PUT(request) {
       const allowedUpdates = ['name', 'description', 'enabled', 'config', 'triggers'];
       Object.keys(updates).forEach(key => {
         if (allowedUpdates.includes(key)) {
-          rule[key] = updates[key];
+          console.log(`[API Rules] Updating ${key}:`, updates[key]);
+          rule.set(key, updates[key]);
         }
       });
       
       await rule.save();
+      console.log(`[API Rules] Rule ${ruleId} saved successfully. Config:`, rule.config);
       
       return NextResponse.json({ success: true, data: rule });
     } catch (error) {
