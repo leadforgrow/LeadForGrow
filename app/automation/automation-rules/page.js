@@ -24,7 +24,27 @@ export default function AutomationRulesPage() {
   const [loading, setLoading] = useState(true);
   const [editingRule, setEditingRule] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const [editingRule, setEditingRule] = useState(null);
+  const [editForm, setEditForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  
+  // Cloudinary Config (Persisted in localStorage for convenience)
+  const [cloudinaryConfig, setCloudinaryConfig] = useState({
+    cloudName: '',
+    uploadPreset: ''
+  });
+
+  useEffect(() => {
+    // Load saved Cloudinary config
+    const saved = localStorage.getItem('lfg_cloudinary');
+    if (saved) setCloudinaryConfig(JSON.parse(saved));
+  }, []);
+
+  const saveCloudinaryConfig = (key, value) => {
+    const newConfig = { ...cloudinaryConfig, [key]: value };
+    setCloudinaryConfig(newConfig);
+    localStorage.setItem('lfg_cloudinary', JSON.stringify(newConfig));
+  };
 
   useEffect(() => {
     fetchRules();
@@ -374,26 +394,82 @@ export default function AutomationRulesPage() {
                              formData.append('file', file);
                              
                              toast.loading('Uploading media...');
+                             
                              try {
-                               const req = await fetch('/api/upload', { method: 'POST', body: formData });
-                               const res = await req.json();
-                               toast.dismiss();
-                               if (res.success) {
-                                 // Convert relative URL to absolute URL based on window location
-                                 const fullUrl = `${window.location.origin}${res.url}`;
-                                 setEditForm(prev => ({ ...prev, whatsappHeaderMedia: fullUrl }));
-                                 toast.success('Media uploaded!');
-                               } else {
-                                 toast.error('Upload failed');
+                               let fullUrl = '';
+                               
+                               // 1. Try Cloudinary (Preferred for Large Files)
+                               if (cloudinaryConfig.cloudName && cloudinaryConfig.uploadPreset) {
+                                  const cloudData = new FormData();
+                                  cloudData.append('file', file);
+                                  cloudData.append('upload_preset', cloudinaryConfig.uploadPreset);
+                                  
+                                  const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, {
+                                    method: 'POST',
+                                    body: cloudData
+                                  });
+                                  const cloudJson = await cloudRes.json();
+                                  
+                                  if (cloudJson.secure_url) {
+                                    fullUrl = cloudJson.secure_url;
+                                  } else {
+                                    throw new Error(cloudJson.error?.message || 'Cloudinary upload failed');
+                                  }
+                               } 
+                               // 2. Fallback to Local/Vercel (Small Files Only)
+                               else {
+                                 if (file.size > 4.5 * 1024 * 1024) {
+                                   throw new Error('File too large for local upload (>4.5MB). Please enter Cloudinary details below.');
+                                 }
+                                 const req = await fetch('/api/upload', { method: 'POST', body: formData });
+                                 const res = await req.json();
+                                 if (res.success) {
+                                   fullUrl = `${window.location.origin}${res.url}`;
+                                 } else {
+                                   throw new Error(res.error || 'Upload failed');
+                                 }
                                }
+                               
+                               setEditForm(prev => ({ ...prev, whatsappHeaderMedia: fullUrl }));
+                               toast.dismiss();
+                               toast.success('Media uploaded successfully!');
+                               
                              } catch (err) {
                                toast.dismiss();
-                               toast.error('Upload error');
+                               toast.error(err.message || 'Upload error');
                              }
                           }}
                         />
                       </label>
                     </div>
+                    
+                    {/* Cloudinary Settings Toggle */}
+                    <div className="mt-3 p-3 bg-slate-100 rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-2 mb-2">
+                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⚡ Enable Large Video Uploads (Cloudinary)</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input 
+                           type="text" 
+                           placeholder="Cloud Name"
+                           className="text-xs px-2 py-1.5 rounded border border-slate-300"
+                           value={cloudinaryConfig.cloudName}
+                           onChange={(e) => saveCloudinaryConfig('cloudName', e.target.value)}
+                        />
+                         <input 
+                           type="text" 
+                           placeholder="Upload Preset (Unsigned)"
+                           className="text-xs px-2 py-1.5 rounded border border-slate-300"
+                           value={cloudinaryConfig.uploadPreset}
+                           onChange={(e) => saveCloudinaryConfig('uploadPreset', e.target.value)}
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Use Cloudinary to bypass the 4.5MB upload limit. 
+                        <a href="https://cloudinary.com/documentation/upload_presets" target="_blank" className="underline hover:text-indigo-600 ml-1">Get keys here</a>
+                      </p>
+                    </div>
+
                     <p className="text-[10px] text-slate-400 mt-2">Required if your template has a video or image header.</p>
 
                   </div>
