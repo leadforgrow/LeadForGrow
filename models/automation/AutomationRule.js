@@ -47,6 +47,10 @@ const AutomationRuleSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
+    whatsappTemplate: {
+      type: String,
+      trim: true
+    },
     channel: {
       type: String,
       enum: ['whatsapp', 'email', 'both']

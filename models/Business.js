@@ -141,7 +141,9 @@ const BusinessSettingsSchema = new mongoose.Schema({
 const IntegrationCredentialsSchema = new mongoose.Schema({
   whatsapp: {
     enabled: { type: Boolean, default: false },
+    provider: { type: String, enum: ['meta', 'interakt'], default: 'meta' },
     apiKey: { type: String },
+    interaktApiKey: { type: String },
     phoneNumberId: { type: String },
     businessAccountId: { type: String },
     lastVerified: { type: Date }

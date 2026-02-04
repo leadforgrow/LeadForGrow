@@ -45,10 +45,24 @@ export async function PUT(request) {
       
       // 1. Handle Integration Credentials Update
       if (body.integrationCredentials) {
+        const existing = business.integrationCredentials ? business.integrationCredentials.toObject() : {};
+        
+        // Deep merge for whatsapp and email to ensure we don't lose fields
         business.integrationCredentials = {
-          ...business.integrationCredentials.toObject(),
-          ...body.integrationCredentials
+          ...existing,
+          ...body.integrationCredentials,
+          whatsapp: {
+            ...(existing.whatsapp || {}),
+            ...(body.integrationCredentials.whatsapp || {})
+          },
+          email: {
+            ...(existing.email || {}),
+            ...(body.integrationCredentials.email || {})
+          }
         };
+        
+        // Mark as modified to ensure Mongoose saves the nested object
+        business.markModified('integrationCredentials');
       }
 
       // 2. Handle Settings Update

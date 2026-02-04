@@ -85,6 +85,7 @@ export default function AutomationRulesPage() {
       description: rule.description,
       channel: rule.config?.channel || 'both',
       messageTemplate: rule.config?.messageTemplate || '',
+      whatsappTemplate: rule.config?.whatsappTemplate || '',
       delayHours: rule.config?.delayHours || 0,
       emailSubject: rule.config?.emailSubject || ''
     });
@@ -109,6 +110,7 @@ export default function AutomationRulesPage() {
             ...editingRule.config,
             channel: editForm.channel,
             messageTemplate: editForm.messageTemplate,
+            whatsappTemplate: editForm.whatsappTemplate,
             delayHours: editForm.delayHours,
             emailSubject: editForm.emailSubject
           }
@@ -287,27 +289,56 @@ export default function AutomationRulesPage() {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Message Template</label>
-                  <textarea
-                    rows={6}
-                    value={editForm.messageTemplate}
-                    onChange={(e) => setEditForm({ ...editForm, messageTemplate: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-indigo-600 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none"
-                    placeholder="Use {{name}} for dynamic names..."
-                  />
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {['name', 'serviceInterest', 'phone'].map(tag => (
-                      <button 
-                        key={tag}
-                        onClick={() => setEditForm({ ...editForm, messageTemplate: editForm.messageTemplate + ` {{${tag}}}` })}
-                        className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
-                      >
-                        + {tag}
-                      </button>
-                    ))}
+                {['email', 'both'].includes(editForm.channel) && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Email Template</label>
+                    <textarea
+                      rows={4}
+                      value={editForm.messageTemplate}
+                      onChange={(e) => setEditForm({ ...editForm, messageTemplate: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-indigo-600 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none"
+                      placeholder="Use {{name}} for dynamic names..."
+                    />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {['name', 'serviceInterest', 'phone'].map(tag => (
+                        <button 
+                          key={tag}
+                          onClick={() => setEditForm({ ...editForm, messageTemplate: editForm.messageTemplate + ` {{${tag}}}` })}
+                          className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
+                        >
+                          + {tag}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {['whatsapp', 'both'].includes(editForm.channel) && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <MessageCircle className="w-3 h-3 text-emerald-500" />
+                      WhatsApp Message
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={editForm.whatsappTemplate}
+                      onChange={(e) => setEditForm({ ...editForm, whatsappTemplate: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none"
+                      placeholder="Enter WhatsApp message..."
+                    />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {['name', 'serviceInterest', 'phone'].map(tag => (
+                        <button 
+                          key={tag}
+                          onClick={() => setEditForm({ ...editForm, whatsappTemplate: (editForm.whatsappTemplate || '') + ` {{${tag}}}` })}
+                          className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
+                        >
+                          + {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {editingRule.type === 'follow_up_reminder' && (
                   <div>
