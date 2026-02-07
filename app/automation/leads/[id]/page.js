@@ -30,7 +30,8 @@ import {
   Shield,
   BarChart3,
   FileCheck,
-  AlertCircle
+  AlertCircle,
+  Bot
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
@@ -620,6 +621,41 @@ export default function LeadDetailPage({ params }) {
               )}
             </div>
           </div>
+
+          {/* Bot Responses Section - Only if source is bot */}
+          {lead.source === 'bot' && lead.metadata?.botResponses && (
+            <div className="bg-white border border-slate-200 rounded-lg p-6 animate-in fade-in slide-in-from-top-4 duration-500">
+              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Bot className="w-5 h-5 text-indigo-600" />
+                Chatbot Interaction
+              </h2>
+              <div className="space-y-4">
+                {lead.metadata.botResponses.map((resp, idx) => (
+                  <div key={idx} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Question</p>
+                    <p className="text-sm font-semibold text-slate-900 mb-3">{resp.question}</p>
+                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Response</p>
+                    <p className="text-sm text-slate-700">{resp.answer}</p>
+                  </div>
+                ))}
+                
+                {lead.metadata.supportType && (
+                  <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100">
+                    <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                      <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Support Type</p>
+                      <p className="text-sm font-bold text-indigo-900 capitalize">{lead.metadata.supportType}</p>
+                    </div>
+                    {lead.metadata.supportMessage && (
+                      <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">User Message</p>
+                        <p className="text-sm text-emerald-900">{lead.metadata.supportMessage}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Activity Timeline - Signal-Focused */}
           <div className="bg-white border border-slate-200 rounded-lg p-6">

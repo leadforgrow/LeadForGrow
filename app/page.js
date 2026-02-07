@@ -3,6 +3,7 @@ import Script from "next/script";
 import UserHome from "./user/home/page";
 import LeadForGrowWidget from "./Enquiry";
 import AIChatPopup from "./components/AIChatPopup";
+import Chatbot from "./components/Chatbot";
 
 export default function page() {
   return (
@@ -38,6 +39,7 @@ export default function page() {
           />
         </a>
       </div>
+      <Chatbot businessId="696956dde910b99089019e29" />
       {/* <AIChatPopup /> */}
       
       {/* Interakt WhatsApp Widget */}
