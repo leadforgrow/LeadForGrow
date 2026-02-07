@@ -8,8 +8,8 @@ export default function Footer() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
-  // Hide the global LeadForGrow footer on public funnel pages
-  if (pathname.startsWith('/s/')) return null;
+  // Hide the global LeadForGrow footer on public funnel pages and chatbot widget
+  if (pathname.startsWith('/s/') || pathname.includes('/chatbot-iframe')) return null;
 
   const footerData = {
     product: [

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageCircle, X, ChevronRight, User, Mail, Phone, Headphones, BarChart3, Bot } from 'lucide-react';
 
-const Chatbot = ({ businessId = '696956dde910b99089019e29' }) => {
+const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [messages, setMessages] = useState([
@@ -130,11 +130,14 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29' }) => {
   };
 
   return (
-    <div className="fixed bottom-28 right-6 z-[9999] font-sans">
+    <div className={`fixed bottom-32 ${position === 'left' ? 'left-6' : 'right-6'} z-[9999] font-sans`}>
       {/* Chat Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            window.parent.postMessage({ type: 'LFG_CHAT_MSG', action: 'open' }, '*');
+          }}
           className="w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
         >
           <MessageCircle className="w-8 h-8 group-hover:rotate-12 transition-transform" />
@@ -160,7 +163,10 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29' }) => {
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                window.parent.postMessage({ type: 'LFG_CHAT_MSG', action: 'close' }, '*');
+              }}
               className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
@@ -238,9 +244,9 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29' }) => {
                 Our team will be in touch soon! ✨
               </div>
             )}
-            <p className="text-[10px] text-center text-slate-400 mt-3 font-medium flex items-center justify-center gap-1">
-              Powered by <span className="text-indigo-600 font-bold">LeadForGrow</span>
-            </p>
+            <a href="https://www.leadforgrow.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 mt-3 opacity-50 hover:opacity-100 transition-opacity">
+              <span className="text-[10px] text-black font-bold">Powered by LeadForGrow</span>
+            </a>
           </div>
         </div>
       )}

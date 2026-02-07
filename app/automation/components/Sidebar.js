@@ -19,7 +19,8 @@ import {
   X,
   Plus,
   ChevronDown,
-  Building2
+  Building2,
+  Bot
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -152,6 +153,7 @@ export default function Sidebar() {
           status: 'active'
         },
         { name: 'Email Templates', href: '/automation/templates', icon: FileText },
+        { name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
         { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' }
       ]
     },
