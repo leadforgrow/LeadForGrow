@@ -139,16 +139,18 @@ const UserNavbar = () => {
   const DropdownMenu = ({ items, isOpen }) => {
     if (!isOpen) return null;
     return (
-      <div className="absolute top-full left-0 mt-3 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-3 z-50 backdrop-blur-xl">
-        {items.map((item, idx) => (
-          <a
-            key={idx}
-            href={item.href}
-            className="block px-6 py-3.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 dark:hover:from-slate-800 dark:hover:to-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 rounded-lg mx-2"
-          >
-            {item.label}
-          </a>
-        ))}
+      <div className="absolute top-full left-0 pt-3 w-72 z-50">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-3 backdrop-blur-xl">
+          {items.map((item, idx) => (
+            <a
+              key={idx}
+              href={item.href}
+              className="block px-6 py-3.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 dark:hover:from-slate-800 dark:hover:to-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 rounded-lg mx-2"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
       </div>
     );
   };
@@ -163,8 +165,8 @@ const UserNavbar = () => {
           You are using free trial of LeadForGrow for better services contact sales
         </div>
       )}
-      <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16">
-        <div className="flex items-center justify-between h-24">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center gap-3 group">
@@ -176,7 +178,7 @@ const UserNavbar = () => {
           </div>
 
           {/* Navigation - Center */}
-          <div className="hidden lg:flex flex-1 justify-center">
+          <div className="hidden xl:flex flex-1 justify-center px-4">
             {isLoggedIn && (isPaid || context === 'client') ? (
               // PAID OR CONTEXTUAL NAVIGATION
               <div className="flex items-center space-x-8">
@@ -197,7 +199,7 @@ const UserNavbar = () => {
               </div>
             ) : (
               // PUBLIC/FREE NAVIGATION
-              <div className="flex items-center space-x-10">
+              <div className="flex items-center space-x-6 xl:space-x-8">
                 <div className="relative" onMouseEnter={() => setOpenDropdown('product')} onMouseLeave={() => setOpenDropdown(null)}>
                   <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
                     Product <ChevronDown className="w-4 h-4" />
@@ -234,8 +236,8 @@ const UserNavbar = () => {
           </div>
 
           {/* Auth Section - Right Side */}
-          <div className="hidden lg:block">
-            <div className="flex items-center space-x-6">
+          <div className="hidden xl:block">
+            <div className="flex items-center space-x-4 xl:space-x-6">
               {!isLoggedIn ? (
                 <>
                   <a href="/user/login" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
@@ -265,7 +267,7 @@ const UserNavbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="lg:hidden">
+          <div className="xl:hidden">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
               {isMenuOpen ? (
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -282,7 +284,7 @@ const UserNavbar = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className={`lg:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
+      <div className={`xl:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
         <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
           {isLoggedIn && (isPaid || context === 'client') ? (
             <>
