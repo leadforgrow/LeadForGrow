@@ -2,13 +2,13 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Phone, 
-  Mail, 
-  MessageCircle, 
-  Clock, 
-  User, 
-  Tag, 
+import {
+  Phone,
+  Mail,
+  MessageCircle,
+  Clock,
+  User,
+  Tag,
   Calendar,
   ChevronLeft,
   Send,
@@ -31,7 +31,8 @@ import {
   BarChart3,
   FileCheck,
   AlertCircle,
-  Bot
+  Bot,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
@@ -174,7 +175,7 @@ export default function LeadDetailPage({ params }) {
         toast.success('Task created');
         setShowTaskModal(false);
         fetchLeadsTasks();
-        fetchLeadDetails(); 
+        fetchLeadDetails();
       }
     } catch (error) {
       toast.error('Failed to create task');
@@ -204,7 +205,7 @@ export default function LeadDetailPage({ params }) {
     let url = '';
     const phone = lead.phone.replace(/\D/g, '');
     const encodedMessage = encodeURIComponent(customMessage);
-    
+
     if (channel === 'call') url = `tel:${lead.phone}`;
     if (channel === 'whatsapp') url = `https://wa.me/${phone}${customMessage ? `?text=${encodedMessage}` : ''}`;
     if (channel === 'email') url = `mailto:${lead.email}${customMessage ? `?body=${encodedMessage}` : ''}`;
@@ -232,7 +233,7 @@ export default function LeadDetailPage({ params }) {
   // Calculate additional intelligence metrics
   const getLeadHealth = () => {
     if (!intelligence) return { status: 'unknown', reason: 'Loading...', color: 'bg-slate-100 text-slate-600' };
-    
+
     if (intelligence.nextAction.urgency === 'critical' || intelligence.slaStatus.breached) {
       return { status: 'Critical', reason: intelligence.slaStatus.breached ? 'SLA breached' : 'Immediate action required', color: 'bg-red-100 text-red-700' };
     }
@@ -247,7 +248,7 @@ export default function LeadDetailPage({ params }) {
 
   const getIntentStrength = () => {
     if (!intelligence) return { level: 'Unknown', color: 'bg-slate-100 text-slate-600' };
-    
+
     const score = intelligence.engagementScore.score;
     if (score >= 9) return { level: 'High Intent', color: 'bg-emerald-100 text-emerald-700' };
     if (score >= 5) return { level: 'Medium Intent', color: 'bg-yellow-100 text-yellow-700' };
@@ -259,20 +260,20 @@ export default function LeadDetailPage({ params }) {
     const hasCall = activities.some(a => a.type === 'call');
     const hasWhatsApp = activities.some(a => a.type === 'whatsapp');
     const hasEmail = activities.some(a => a.type === 'email');
-    
+
     return { hasCall, hasWhatsApp, hasEmail };
   };
 
   const getDataCompleteness = () => {
     let total = 0;
     let complete = 0;
-    
+
     const fields = ['name', 'phone', 'email', 'serviceInterest', 'message'];
     fields.forEach(field => {
       total++;
       if (lead?.[field] && lead[field].trim()) complete++;
     });
-    
+
     const percentage = Math.round((complete / total) * 100);
     return { percentage, missing: total - complete };
   };
@@ -298,7 +299,7 @@ export default function LeadDetailPage({ params }) {
     return (
       <div className="p-8 text-center">
         <h2 className="text-xl font-bold text-slate-900">Lead not found</h2>
-        <button 
+        <button
           onClick={() => router.push('/automation/leads')}
           className="mt-4 text-indigo-600 font-medium hover:underline flex items-center gap-2 mx-auto"
         >
@@ -318,7 +319,7 @@ export default function LeadDetailPage({ params }) {
     <div className="min-h-screen bg-slate-50 p-6">
       {/* Compact Header */}
       <div className="flex items-center justify-between mb-6 max-w-[1800px] mx-auto">
-        <button 
+        <button
           onClick={() => router.push('/automation/leads')}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors text-sm"
         >
@@ -341,12 +342,11 @@ export default function LeadDetailPage({ params }) {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-slate-900">{lead.name}</h1>
-                <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded mt-1 ${
-                  lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded mt-1 ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
                   lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
-                  lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
-                  'bg-slate-100 text-slate-700'
-                }`}>
+                    lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
+                      'bg-slate-100 text-slate-700'
+                  }`}>
                   {lead.status}
                 </span>
               </div>
@@ -385,14 +385,14 @@ export default function LeadDetailPage({ params }) {
 
             {/* Quick Actions */}
             <div className="space-y-2 mb-6">
-              <button 
+              <button
                 onClick={() => handleCommunication('call')}
                 className="w-full py-3 bg-indigo-600 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-indigo-700 transition-colors"
               >
                 <Phone className="w-4 h-4" />
                 Call Lead
               </button>
-              <button 
+              <button
                 onClick={() => handleCommunication('whatsapp')}
                 className="w-full py-3 bg-emerald-600 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-emerald-700 transition-colors"
               >
@@ -402,7 +402,7 @@ export default function LeadDetailPage({ params }) {
 
               {/* Template Selector */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
                   className="w-full py-3 bg-slate-900 text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-sm hover:bg-slate-800 transition-colors"
                 >
@@ -445,7 +445,7 @@ export default function LeadDetailPage({ params }) {
 
             {/* Won/Lost */}
             <div className="grid grid-cols-2 gap-2">
-              <button 
+              <button
                 onClick={() => handleUpdateStatus('converted')}
                 disabled={updating}
                 className="flex items-center justify-center gap-2 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors font-semibold text-sm disabled:opacity-50"
@@ -453,7 +453,7 @@ export default function LeadDetailPage({ params }) {
                 <CheckCircle2 className="w-4 h-4" />
                 Won
               </button>
-              <button 
+              <button
                 onClick={() => handleUpdateStatus('lost')}
                 disabled={updating}
                 className="flex items-center justify-center gap-2 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-semibold text-sm disabled:opacity-50"
@@ -467,7 +467,33 @@ export default function LeadDetailPage({ params }) {
 
         {/* RIGHT PANEL: Intelligence + History */}
         <div className="lg:col-span-2 space-y-6">
-          {/* 10 Intelligence Cards */}
+          {/* NEW: Recommendation / Next Best Action Card */}
+          {intelligence?.nextAction && (
+            <div className={`p-4 rounded-lg border-2 shadow-sm mb-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500 ${intelligence.nextAction.color.replace('bg-', 'bg-opacity-10 bg-').replace('text-white', '')} border-current border-opacity-20`}>
+              <div className="w-10 h-10 rounded-full bg-white bg-opacity-90 flex items-center justify-center text-xl shadow-sm">
+                {intelligence.nextAction.icon}
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-0.5">Recommended Next Action</p>
+                <h3 className={`text-lg font-bold ${intelligence.nextAction.urgency === 'critical' ? 'text-red-800' : 'text-slate-900'}`}>
+                  {intelligence.nextAction.action}
+                </h3>
+                <p className="text-sm opacity-80 mt-1">
+                  {intelligence.nextAction.urgency === 'critical' ? 'High priority: contact this lead immediately to maximize conversion.' : 'Keep the momentum going by completing the next step in the journey.'}
+                </p>
+              </div>
+              {intelligence.nextAction.urgency === 'critical' && (
+                <button
+                  onClick={() => handleCommunication('call')}
+                  className="px-4 py-2 bg-white text-red-600 rounded-lg font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors"
+                >
+                  Call Now
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Intelligence Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {/* Card 1: Lead Health */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -495,9 +521,25 @@ export default function LeadDetailPage({ params }) {
 
             {/* Card 3: Intent Strength */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-slate-400" />
-                <p className="text-xs font-medium text-slate-500">Intent</p>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs font-medium text-slate-500">Intent</p>
+                </div>
+                <div className="group relative">
+                  <AlertCircle className="w-3.5 h-3.5 text-slate-300 cursor-help" />
+                  <div className="absolute right-0 top-6 w-48 bg-slate-900 text-white p-2 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none text-[10px] leading-tight">
+                    <p className="font-bold mb-1 border-b border-slate-700 pb-1">Scoring Breakdown:</p>
+                    <ul className="space-y-1">
+                      {intelligence?.engagementScore.reasons.map((r, i) => (
+                        <li key={i} className="flex items-start gap-1">
+                          <span className="text-emerald-400">•</span>
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
               <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${intent.color}`}>
                 {intent.level}
@@ -519,7 +561,12 @@ export default function LeadDetailPage({ params }) {
               ) : (
                 <>
                   <p className="text-lg font-bold text-slate-900">None</p>
-                  <p className="text-xs text-slate-600 mt-2">No tasks scheduled</p>
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="text-xs text-indigo-600 mt-2 font-semibold hover:underline flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Schedule now
+                  </button>
                 </>
               )}
             </div>
@@ -582,11 +629,10 @@ export default function LeadDetailPage({ params }) {
                 <TrendingUp className="w-4 h-4 text-slate-400" />
                 <p className="text-xs font-medium text-slate-500">Conv. Probability</p>
               </div>
-              <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                intelligence?.engagementScore.level === 'High' ? 'bg-emerald-100 text-emerald-700' :
+              <div className={`inline-block px-2 py-1 rounded text-xs font-semibold ${intelligence?.engagementScore.level === 'High' ? 'bg-emerald-100 text-emerald-700' :
                 intelligence?.engagementScore.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-slate-100 text-slate-600'
-              }`}>
+                  'bg-slate-100 text-slate-600'
+                }`}>
                 {intelligence?.engagementScore.level}
               </div>
               <p className="text-xs text-slate-600 mt-2">Based on engagement</p>
@@ -638,7 +684,7 @@ export default function LeadDetailPage({ params }) {
                     <p className="text-sm text-slate-700">{resp.answer}</p>
                   </div>
                 ))}
-                
+
                 {lead.metadata.supportType && (
                   <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100">
                     <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
@@ -657,41 +703,102 @@ export default function LeadDetailPage({ params }) {
             </div>
           )}
 
-          {/* Activity Timeline - Signal-Focused */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-indigo-600" />
-              Activity Timeline
-            </h2>
+          {/* Tabbed Feed: Activity vs Conversations */}
+          <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col">
+            <div className="flex border-b border-slate-200">
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'activity' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                <Clock className="w-4 h-4" />
+                Activity Timeline
+              </button>
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'chat' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                Conversations
+                {lead.messages?.length > 0 && (
+                  <span className="bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full text-[10px] ml-1">
+                    {lead.messages.length}
+                  </span>
+                )}
+              </button>
+            </div>
 
-            <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-              {lead.activities?.slice(0, 10).map((activity, idx) => (
-                <div key={idx} className="relative flex gap-4 pl-8">
-                  <div className={`absolute left-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${
-                    activity.type === 'lead_created' ? 'bg-indigo-600' :
-                    activity.type === 'status_changed' ? 'bg-amber-500' :
-                    activity.type === 'note_added' ? 'bg-blue-500' :
-                    'bg-slate-400'
-                  }`}>
-                    {activity.type === 'lead_created' && <Plus className="w-3 h-3 text-white" />}
-                    {activity.type === 'status_changed' && <Calendar className="w-3 h-3 text-white" />}
-                    {activity.type === 'note_added' && <Send className="w-3 h-3 text-white" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">{activity.description}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {new Date(activity.performedAt || activity.timestamp).toLocaleString()}
-                    </p>
-                  </div>
+            <div className="p-6">
+              {activeTab === 'activity' ? (
+                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+                  {lead.activities?.slice(0, 10).map((activity, idx) => (
+                    <div key={idx} className="relative flex gap-4 pl-8">
+                      <div className={`absolute left-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${activity.type === 'lead_created' ? 'bg-indigo-600' :
+                          activity.type === 'status_changed' ? 'bg-amber-500' :
+                            activity.type === 'note_added' ? 'bg-blue-500' :
+                              activity.type === 'whatsapp_received' ? 'bg-emerald-500' :
+                                'bg-slate-400'
+                        }`}>
+                        {activity.type === 'lead_created' && <Plus className="w-3 h-3 text-white" />}
+                        {activity.type === 'status_changed' && <Calendar className="w-3 h-3 text-white" />}
+                        {activity.type === 'note_added' && <Send className="w-3 h-3 text-white" />}
+                        {activity.type === 'whatsapp_received' && <MessageCircle className="w-3 h-3 text-white" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">{activity.description}</p>
+                        {activity.metadata?.message && (
+                          <div className="mt-2 p-2 bg-slate-50 rounded border border-slate-100 text-[11px] text-slate-600 italic line-clamp-2">
+                            "{activity.metadata.message}"
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {new Date(activity.performedAt || activity.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4 min-h-[400px]">
+                  {lead.messages?.length > 0 ? (
+                    <div className="flex flex-col gap-3">
+                      {lead.messages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${msg.direction === 'outgoing'
+                              ? 'bg-indigo-600 text-white rounded-tr-none'
+                              : 'bg-slate-100 text-slate-900 rounded-tl-none border border-slate-200'
+                            }`}>
+                            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                            <div className={`flex items-center gap-1 mt-1 text-[10px] ${msg.direction === 'outgoing' ? 'text-indigo-100 opacity-80' : 'text-slate-400'}`}>
+                              <Clock className="w-2.5 h-2.5" />
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {msg.direction === 'outgoing' && <CheckCircle className="w-2.5 h-2.5 ml-1" />}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <MessageSquare className="w-8 h-8 text-slate-300" />
+                      </div>
+                      <h3 className="text-slate-900 font-bold">No messages yet</h3>
+                      <p className="text-slate-500 text-sm max-w-[240px] mt-1">
+                        When you send a WhatsApp or receive a reply, the conversation history will appear here.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Notes Section - Internal Collaboration */}
           <div className="bg-white border border-slate-200 rounded-lg p-6">
             <h2 className="text-lg font-bold text-slate-900 mb-4">Internal Notes</h2>
-            
+
             <form onSubmit={handleAddNote} className="mb-6">
               <div className="relative">
                 <textarea
@@ -700,13 +807,17 @@ export default function LeadDetailPage({ params }) {
                   placeholder="Add internal note (private to team)..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 pr-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[80px] text-sm text-slate-900"
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={updating || !newNote.trim()}
                   className="absolute right-3 bottom-3 w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                 </button>
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-[11px] text-slate-500">
+                <Sparkles className="w-3 h-3 text-indigo-500" />
+                <span>Tip: Press <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-sans">Win + H</kbd> for voice typing</span>
               </div>
             </form>
 
@@ -744,7 +855,7 @@ export default function LeadDetailPage({ params }) {
                   <select
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                     value={newTask.type}
-                    onChange={(e) => setNewTask({...newTask, type: e.target.value})}
+                    onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
                   >
                     <option value="call">Call</option>
                     <option value="whatsapp">WhatsApp</option>
@@ -757,7 +868,7 @@ export default function LeadDetailPage({ params }) {
                     type="date"
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                     value={newTask.dueDate}
-                    onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                   />
                 </div>
               </div>
@@ -769,7 +880,7 @@ export default function LeadDetailPage({ params }) {
                   placeholder="e.g. Follow-up call"
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
                   value={newTask.title}
-                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 />
               </div>
               <div>
@@ -778,10 +889,10 @@ export default function LeadDetailPage({ params }) {
                   placeholder="Task instructions..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm min-h-[60px]"
                   value={newTask.description}
-                  onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                 />
               </div>
-              <button 
+              <button
                 type="submit"
                 className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
               >

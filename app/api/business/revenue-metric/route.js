@@ -9,11 +9,11 @@ export async function GET(request) {
     try {
       await dbConnect();
       const business = await Business.findById(user.businessId);
-      
+
       if (!business || !business.revenueConfig || !business.revenueIntelligenceActive) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Revenue intelligence not configured' 
+        return NextResponse.json({
+          success: false,
+          error: 'Revenue intelligence not configured'
         }, { status: 400 });
       }
 
@@ -30,15 +30,15 @@ export async function GET(request) {
       // Calculate metrics
       const metrics = calculateRevenueMetrics(business, leads);
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         data: metrics
       });
     } catch (error) {
       console.error('Error calculating revenue metrics:', error);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to calculate metrics' 
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to calculate metrics'
       }, { status: 500 });
     }
   });
@@ -47,7 +47,7 @@ export async function GET(request) {
 function calculateRevenueMetrics(business, leads) {
   const config = business.revenueConfig;
   const now = new Date();
-  
+
   // Initialize metrics
   let totalPipelineValue = 0;
   let revenueAtRisk = 0;
@@ -73,12 +73,12 @@ function calculateRevenueMetrics(business, leads) {
 
     // Check SLA compliance
     const createdAt = new Date(lead.createdAt);
-    const firstResponseTime = lead.firstContactedAt 
-      ? (new Date(lead.firstContactedAt) - createdAt) / (1000 * 60) 
+    const firstResponseTime = lead.firstContactedAt
+      ? (new Date(lead.firstContactedAt) - createdAt) / (1000 * 60)
       : null;
-    
+
     const slaMinutes = config.sla.firstResponseMinutes;
-    
+
     if (firstResponseTime !== null) {
       if (firstResponseTime <= slaMinutes) {
         firstResponseOnTime++;
@@ -104,7 +104,7 @@ function calculateRevenueMetrics(business, leads) {
     // Follow-up tracking
     if (lead.followupCount > 0) {
       totalFollowups += lead.followupCount;
-      
+
       const lastFollowup = lead.timeline?.[lead.timeline.length - 1];
       if (lastFollowup && lastFollowup.type === 'followup') {
         const followupTime = (new Date(lastFollowup.timestamp) - new Date(lead.firstContactedAt)) / (1000 * 60);
@@ -124,7 +124,7 @@ function calculateRevenueMetrics(business, leads) {
         atRisk: 0
       };
     }
-    
+
     sourceMetrics[sourceName].count++;
     sourceMetrics[sourceName].totalValue += expectedValue;
     if (lead.status === 'converted') sourceMetrics[sourceName].converted++;
@@ -134,14 +134,14 @@ function calculateRevenueMetrics(business, leads) {
   });
 
   // Calculate percentages
-  const slaCompliance = slaComplianceCount > 0 
-    ? Math.round((firstResponseOnTime / slaComplianceCount) * 100) 
+  const slaCompliance = slaComplianceCount > 0
+    ? Math.round((firstResponseOnTime / slaComplianceCount) * 100)
     : 0;
-  
+
   const firstResponseRate = slaComplianceCount > 0
     ? Math.round((firstResponseOnTime / slaComplianceCount) * 100)
     : 0;
-  
+
   const followupRate = totalFollowups > 0
     ? Math.round((followupOnTime / totalFollowups) * 100)
     : 0;
@@ -151,7 +151,7 @@ function calculateRevenueMetrics(business, leads) {
     const value = business.calculateLeadValue(l.source);
     return value >= config.avgDealValue.typical * 1.5;
   });
-  
+
   const highValueAtRisk = highValueLeads.filter(l => {
     const minutesSinceCreated = (now - new Date(l.createdAt)) / (1000 * 60);
     return !l.firstContactedAt && minutesSinceCreated > config.sla.firstResponseMinutes;
@@ -167,12 +167,12 @@ function calculateRevenueMetrics(business, leads) {
   // Top performing source insight
   const topSource = Object.entries(sourceMetrics)
     .sort((a, b) => b[1].totalValue - a[1].totalValue)[0];
-  
+
   if (topSource) {
     const [sourceName, stats] = topSource;
     const avgValue = stats.totalValue / stats.count;
     const overallAvg = totalPipelineValue / leads.length;
-    
+
     if (avgValue > overallAvg * 1.5) {
       insights.push(
         `Your ${sourceName} leads have ${Math.round((avgValue / overallAvg) * 100)}% higher value than other sources - prioritize these first`
@@ -205,19 +205,19 @@ function calculateRevenueMetrics(business, leads) {
     highValueAtRisk: highValueLeads.length,
     sourceMetrics,
     insights,
-    
+
     // Additional metrics
     totalLeads: leads.length,
     activeLeads: leads.filter(l => l.status === 'new' || l.status === 'contacted').length,
     convertedLeads: leads.filter(l => l.status === 'converted').length,
     lostLeads: leads.filter(l => l.status === 'lost').length,
-    
+
     // Time periods
     last7Days: leads.filter(l => {
       const daysDiff = (now - new Date(l.createdAt)) / (1000 * 60 * 60 * 24);
       return daysDiff <= 7;
     }).length,
-    
+
     last30Days: leads.length
   };
 }

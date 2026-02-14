@@ -8,14 +8,14 @@ const ActivitySchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  
+
   // Related Lead
   leadId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Lead',
     required: true
   },
-  
+
   // Activity Type
   type: {
     type: String,
@@ -33,18 +33,19 @@ const ActivitySchema = new mongoose.Schema({
       'assigned',
       'converted',
       'lost',
-      're-engagement'
+      're-engagement',
+      'whatsapp_received'
     ],
     required: true
   },
-  
+
   // Activity Details
   description: {
     type: String,
     required: true,
     trim: true
   },
-  
+
   // Additional Data
   metadata: {
     oldValue: mongoose.Schema.Types.Mixed,
@@ -55,14 +56,14 @@ const ActivitySchema = new mongoose.Schema({
       ref: 'Task'
     }
   },
-  
+
   // Performed By
   performedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
-  
+
   // Timestamp
   performedAt: {
     type: Date,

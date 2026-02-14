@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  DollarSign, 
-  TrendingUp, 
+import {
+  DollarSign,
+  TrendingUp,
   TrendingDown,
   AlertTriangle,
   CheckCircle2,
@@ -31,15 +31,15 @@ export default function RevenueIntelligenceDashboard() {
   const fetchRevenueData = async (plan) => {
     try {
       const userId = localStorage.getItem('userid');
-      
+
       // Fetch revenue config
       const configRes = await fetch(`/api/business/revenue-config?userId=${userId}`);
       const configData = await configRes.json();
-      
+
       // Fetch revenue metrics
       const metricsRes = await fetch(`/api/business/revenue-metric?userId=${userId}`);
       const metricsData = await metricsRes.json();
-      
+
       if (configData.success) setConfig(configData.data);
       if (metricsData.success) {
         let actualMetrics = metricsData.data;
@@ -52,7 +52,7 @@ export default function RevenueIntelligenceDashboard() {
         }
         setMetrics(actualMetrics);
       }
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching revenue data:', error);
@@ -82,7 +82,7 @@ export default function RevenueIntelligenceDashboard() {
             <p className="text-slate-600 mb-6 leading-relaxed">
               Configure your business metrics to see real-time revenue insights, risk calculations, and recovery tracking.
             </p>
-            <a 
+            <a
               href="/automation/settings/details"
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
             >
@@ -197,7 +197,7 @@ export default function RevenueIntelligenceDashboard() {
               <span className="text-sm font-semibold text-slate-600">First Response</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full bg-green-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.firstResponseRate || 90}%` }}
                   />
@@ -212,7 +212,7 @@ export default function RevenueIntelligenceDashboard() {
               <span className="text-sm font-semibold text-slate-600">Follow-up</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full bg-orange-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.followupRate || 75}%` }}
                   />
@@ -227,7 +227,7 @@ export default function RevenueIntelligenceDashboard() {
               <span className="text-sm font-semibold text-slate-600">Overall</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full bg-blue-500 rounded-full transition-all duration-500 ${userPlan === 'trial' ? 'blur-[3px]' : ''}`}
                     style={{ width: `${metrics?.slaCompliance || 85}%` }}
                   />
@@ -283,7 +283,7 @@ export default function RevenueIntelligenceDashboard() {
         {userPlan === 'trial' && (
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
             <div className="bg-white/90 px-6 py-3 rounded-2xl shadow-xl border border-amber-200">
-               <p className="text-amber-800 font-bold text-lg">Can not see in free trial</p>
+              <p className="text-amber-800 font-bold text-lg">Can not see in free trial</p>
             </div>
           </div>
         )}
@@ -327,21 +327,20 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
           <Icon className="w-6 h-6 text-white" />
         </div>
         {change !== undefined && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
-            isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          } ${isTrial ? 'blur-[4px] opacity-30 select-none' : ''}`}>
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            } ${isTrial ? 'blur-[4px] opacity-30 select-none' : ''}`}>
             <ChangeIcon className="w-3 h-3" />
             <span className="text-xs font-bold">{Math.abs(change)}%</span>
           </div>
         )}
       </div>
-      
+
       <div>
         <h3 className="text-sm font-semibold text-slate-600 mb-2">{title}</h3>
         {isTrial ? (
           <div className="space-y-1">
-             <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg inline-block mb-1">Locked in Trial</p>
-             <p className="text-2xl font-black text-slate-900/10 select-none blur-[6px]">₹99,999</p>
+            <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg inline-block mb-1">Locked in Trial</p>
+            <p className="text-2xl font-black text-slate-900/10 select-none blur-[6px]">₹99,999</p>
           </div>
         ) : (
           <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>

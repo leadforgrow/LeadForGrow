@@ -26,9 +26,9 @@ import { ThemeProvider } from "./components/ThemeContext";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
-    {/* <Script
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        {/* <Script
   id="interakt-sdk"
   strategy="afterInteractive"
   dangerouslySetInnerHTML={{
@@ -41,8 +41,8 @@ export default function RootLayout({ children }) {
   }}
 /> */}
 
-{/* Separate init script - CRITICAL: Load AFTER SDK */}
-{/* <Script
+        {/* Separate init script - CRITICAL: Load AFTER SDK */}
+        {/* <Script
   id="interakt-init"
   strategy="lazyOnload"
   dangerouslySetInnerHTML={{
@@ -71,8 +71,8 @@ export default function RootLayout({ children }) {
 /> */}
 
 
-        <Script 
-          async 
+        <Script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4902724266607481"
           crossOrigin="anonymous"
           strategy="afterInteractive"
