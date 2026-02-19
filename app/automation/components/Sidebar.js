@@ -2,13 +2,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CheckSquare, 
-  Zap, 
-  UserCog, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  Zap,
+  UserCog,
+  BarChart3,
   Settings,
   Globe,
   CreditCard,
@@ -17,16 +17,16 @@ import {
   PhoneCall,
   Menu,
   X,
-  Plus,
   ChevronDown,
   Building2,
-  Bot
+  Bot,
+  LogOut
 } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [userData, setUserData] = useState({ 
-    email: 'Business Owner', 
+  const [userData, setUserData] = useState({
+    email: 'Business Owner',
     plan: 'Checking...',
     workspace: 'Default Workspace'
   });
@@ -49,7 +49,7 @@ export default function Sidebar() {
         setIsOpen(savedState !== 'false');
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -63,7 +63,7 @@ export default function Sidebar() {
 
         const res = await fetch(`/api/auth/me?userId=${userId}`);
         const data = await res.json();
-        
+
         if (data.success) {
           setUserData({
             email: data.data.email,
@@ -79,6 +79,17 @@ export default function Sidebar() {
     fetchUser();
   }, []);
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      // Clear storage
+      localStorage.clear();
+      // Clear token cookie
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      // Redirect to landing page
+      window.location.href = '/';
+    }
+  };
+
   useEffect(() => {
     // Fetch contextual indicators
     async function fetchContextualData() {
@@ -86,7 +97,7 @@ export default function Sidebar() {
         // Replace with actual API calls
         // const response = await fetch('/api/sidebar/context');
         // const data = await response.json();
-        
+
         // Mock data for demonstration
         setContextualData({
           unreadLeads: 3,
@@ -97,9 +108,9 @@ export default function Sidebar() {
         console.error('Failed to fetch contextual data:', error);
       }
     }
-    
+
     fetchContextualData();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(fetchContextualData, 30000);
     return () => clearInterval(interval);
@@ -124,18 +135,24 @@ export default function Sidebar() {
       ]
     },
     {
+      label: 'Analytics',
+      items: [
+        { name: 'Reports', href: '/automation/reports', icon: BarChart3 }
+      ]
+    },
+    {
       label: 'Customer Data',
       items: [
-        { 
-          name: 'Leads', 
-          href: '/automation/leads', 
+        {
+          name: 'Leads',
+          href: '/automation/leads',
           icon: Users,
           count: contextualData.unreadLeads,
           urgent: contextualData.unreadLeads > 0
         },
-        { 
-          name: 'Tasks & Follow-ups', 
-          href: '/automation/tasks', 
+        {
+          name: 'Tasks & Follow-ups',
+          href: '/automation/tasks',
           icon: CheckSquare,
           count: contextualData.overdueTasks,
           status: contextualData.overdueTasks > 0 ? 'warning' : 'neutral'
@@ -145,22 +162,16 @@ export default function Sidebar() {
     {
       label: 'Automation',
       items: [
-        { 
-          name: 'Automation Rules', 
-          href: '/automation/automation-rules', 
+        {
+          name: 'Automation Rules',
+          href: '/automation/automation-rules',
           icon: Zap,
           count: contextualData.activeAutomations,
           status: 'active'
         },
         { name: 'Email Templates', href: '/automation/templates', icon: FileText },
         { name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
-        { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' }
-      ]
-    },
-    {
-      label: 'Analytics',
-      items: [
-        { name: 'Reports', href: '/automation/reports', icon: BarChart3 },
+        { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' },
         { name: 'Call Recovery', href: '/automation/call-integration', icon: PhoneCall }
       ]
     },
@@ -200,8 +211,8 @@ export default function Sidebar() {
       return (
         <span className={`
           inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-md text-xs font-semibold tabular-nums
-          ${requiresAction 
-            ? 'bg-red-50 text-red-700 border border-red-200' 
+          ${requiresAction
+            ? 'bg-red-50 text-red-700 border border-red-200'
             : 'bg-slate-50 text-slate-600 border border-slate-200'
           }
         `}>
@@ -209,14 +220,14 @@ export default function Sidebar() {
         </span>
       );
     }
-    
+
     // Green dot = active/running (informational)
     if (item.status === 'active') {
       return (
         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" title="Active" />
       );
     }
-    
+
     return null;
   };
 
@@ -224,7 +235,7 @@ export default function Sidebar() {
     <>
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
           onClick={toggleSidebar}
         />
@@ -233,9 +244,10 @@ export default function Sidebar() {
       {/* Sidebar */}
       <div className={`
         ${isMobile ? 'fixed' : 'sticky'} 
-        top-0 left-0 h-screen bg-white border-r border-slate-200 flex flex-col z-50
+        top-0 left-0 h-screen bg-white/95 backdrop-blur-2xl border-r border-slate-200/50 flex flex-col z-50
+        shadow-[8px_0_40px_-10px_rgba(0,0,0,0.03)]
         transition-all duration-300 ease-in-out
-        ${isOpen ? 'w-72 translate-x-0' : isMobile ? 'w-72 -translate-x-full' : 'w-0 -translate-x-full'}
+        ${isOpen ? 'w-72 translate-x-0' : isMobile ? 'w-72 -translate-x-full' : 'w-1 -translate-x-full'}
       `}>
         {/* Header */}
         <div className="px-4 py-4 border-b border-slate-200">
@@ -259,11 +271,6 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* Quick Action */}
-          <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium">
-            <Plus className="w-4 h-4" />
-            <span>New Lead</span>
-          </button>
         </div>
 
         {/* Navigation */}
@@ -279,7 +286,7 @@ export default function Sidebar() {
                 {group.items.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.name}
@@ -306,7 +313,7 @@ export default function Sidebar() {
                       {isActive && (
                         <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-indigo-600 rounded-r-full"></div>
                       )}
-                      
+
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-700' : group.highImpact ? 'text-slate-400' : 'text-slate-500'}`} strokeWidth={1.5} />
                         <span className="truncate">
@@ -349,8 +356,8 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* User Info */}
-          <div className="px-4 py-3">
+          {/* User Info & Logout */}
+          <div className="px-4 py-3 border-t border-slate-100 flex flex-col gap-1">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-indigo-700 font-semibold text-sm">
@@ -364,6 +371,14 @@ export default function Sidebar() {
                 </p>
               </div>
             </div>
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer group"
+            >
+              <LogOut className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
+import {
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -28,12 +28,12 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState(searchParams.get('filter') || 'today');
-  
+
   // Modal states
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  
+
   // Form states
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [newTask, setNewTask] = useState({
@@ -106,7 +106,7 @@ export default function TasksPage() {
       const res = await fetch(`/api/automation/tasks/${selectedTask._id}?userId=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           dueDate: rescheduleDate,
           // If we add autoSend / messageContent to reschedule modal later, we'd include them here.
         })
@@ -148,11 +148,11 @@ export default function TasksPage() {
   const handleCommunication = (task, channel) => {
     const lead = task.leadId;
     if (!lead) {
-      toast.error('Lead information is missing');
+      toast.error('Cannot perform action: The associated lead record has been deleted or is missing.');
       return;
     }
     let url = '';
-    
+
     if (channel === 'call') url = `tel:${lead.phone}`;
     if (channel === 'whatsapp') url = `https://wa.me/${lead?.phone?.replace(/\D/g, '')}`;
     if (channel === 'email') url = `mailto:${lead.email}`;
@@ -193,12 +193,12 @@ export default function TasksPage() {
     const diff = target - now;
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (diff < 0) {
       const absHours = Math.abs(hours);
       return `${absHours}h overdue`;
     }
-    
+
     if (hours > 24) {
       const days = Math.floor(hours / 24);
       return `in ${days}d`;
@@ -227,7 +227,7 @@ export default function TasksPage() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Tasks & Follow-ups</h1>
           <p className="text-slate-600">Never miss a follow-up opportunity</p>
         </div>
-        <button 
+        <button
           onClick={() => setShowCreateModal(true)}
           className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
         >
@@ -249,11 +249,10 @@ export default function TasksPage() {
             <button
               key={tab.value}
               onClick={() => setFilter(tab.value)}
-              className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-                filter === tab.value
+              className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${filter === tab.value
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
                   : 'bg-white text-slate-700 border border-slate-200 hover:border-indigo-600'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -276,13 +275,12 @@ export default function TasksPage() {
           tasks.map((task) => {
             const TaskIcon = getTaskIcon(task.type);
             const overdue = isOverdue(task.dueDate);
-            
+
             return (
               <div
                 key={task._id}
-                className={`bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg ${
-                  overdue ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
-                }`}
+                className={`bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg ${overdue ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
+                  }`}
               >
                 <div className="flex items-start gap-6">
                   {/* Task Icon */}
@@ -299,9 +297,8 @@ export default function TasksPage() {
                           <p className="text-sm text-slate-600 mb-3">{task.description}</p>
                         )}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ml-4 ${
-                        overdue ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ml-4 ${overdue ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
+                        }`}>
                         {new Date(task.dueDate).toLocaleDateString()} {new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         <span className="mx-2 opacity-30">|</span>
                         {getTimeUntil(task.dueDate)}
@@ -310,18 +307,23 @@ export default function TasksPage() {
 
                     {/* Lead Info */}
                     <div className="flex items-center gap-4 mb-4 text-sm">
-                      <span className="text-slate-500">
-                        Lead: <span className="font-bold text-slate-900">{task.leadId?.name || 'N/A'}</span>
-                      </span>
-                      {task.leadId?.phone && (
-                        <span className="text-slate-500">
-                          {task.leadId.phone}
-                        </span>
-                      )}
-                      {task.leadId?.serviceInterest && (
-                        <span className="text-slate-500">
-                          {task.leadId.serviceInterest}
-                        </span>
+                      {task.leadId ? (
+                        <>
+                          <span className="text-slate-500">
+                            Lead: <span className="font-bold text-slate-900">{task.leadId.name}</span>
+                          </span>
+                          {task.leadId.phone && (
+                            <span className="text-slate-500">{task.leadId.phone}</span>
+                          )}
+                          {task.leadId.serviceInterest && (
+                            <span className="text-slate-500">{task.leadId.serviceInterest}</span>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-lg border border-amber-100">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                          <span className="text-[11px] font-black text-amber-700 uppercase tracking-wider">Lead Record Deleted</span>
+                        </div>
                       )}
                     </div>
 
@@ -330,7 +332,11 @@ export default function TasksPage() {
                       {task.type === 'call' && (
                         <button
                           onClick={() => handleCommunication(task, 'call')}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+                          disabled={!task.leadId}
+                          className={`px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${!task.leadId
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed grayscale'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                            }`}
                         >
                           <Phone className="w-4 h-4" />
                           Call Now
@@ -339,7 +345,11 @@ export default function TasksPage() {
                       {task.type === 'whatsapp' && (
                         <button
                           onClick={() => handleCommunication(task, 'whatsapp')}
-                          className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                          disabled={!task.leadId}
+                          className={`px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${!task.leadId
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed grayscale'
+                              : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
+                            }`}
                         >
                           <MessageCircle className="w-4 h-4" />
                           WhatsApp
@@ -348,7 +358,11 @@ export default function TasksPage() {
                       {task.type === 'email' && (
                         <button
                           onClick={() => handleCommunication(task, 'email')}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors flex items-center gap-2"
+                          disabled={!task.leadId}
+                          className={`px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${!task.leadId
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed grayscale'
+                              : 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
+                            }`}
                         >
                           <Mail className="w-4 h-4" />
                           Send Email
@@ -364,17 +378,17 @@ export default function TasksPage() {
                         <CheckCircle2 className="w-4 h-4" />
                         Mark Done
                       </button>
-                      
+
                       <button
                         onClick={() => {
                           setSelectedTask(task);
                           // Extract YYYY-MM-DDTHH:mm from ISO string
                           const d = new Date(task.dueDate);
-                          const formatted = d.getFullYear() + '-' + 
-                                            String(d.getMonth() + 1).padStart(2, '0') + '-' + 
-                                            String(d.getDate()).padStart(2, '0') + 'T' + 
-                                            String(d.getHours()).padStart(2, '0') + ':' + 
-                                            String(d.getMinutes()).padStart(2, '0');
+                          const formatted = d.getFullYear() + '-' +
+                            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(d.getDate()).padStart(2, '0') + 'T' +
+                            String(d.getHours()).padStart(2, '0') + ':' +
+                            String(d.getMinutes()).padStart(2, '0');
                           setRescheduleDate(formatted);
                           setShowRescheduleModal(true);
                         }}
@@ -458,7 +472,7 @@ export default function TasksPage() {
                   required
                   className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                   value={newTask.leadId}
-                  onChange={(e) => setNewTask({...newTask, leadId: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, leadId: e.target.value })}
                 >
                   <option value="">Select a lead...</option>
                   {leads.map(l => (
@@ -472,7 +486,7 @@ export default function TasksPage() {
                   <select
                     className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                     value={newTask.type}
-                    onChange={(e) => setNewTask({...newTask, type: e.target.value})}
+                    onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
                   >
                     <option value="call">Call</option>
                     <option value="whatsapp">WhatsApp</option>
@@ -487,7 +501,7 @@ export default function TasksPage() {
                     required
                     className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                     value={newTask.dueDate}
-                    onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                   />
                 </div>
               </div>
@@ -499,7 +513,7 @@ export default function TasksPage() {
                   placeholder="e.g. Initial Discovery Call"
                   className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                   value={newTask.title}
-                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 />
               </div>
               <div>
@@ -508,40 +522,40 @@ export default function TasksPage() {
                   rows="3"
                   className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
                   value={newTask.description}
-                  onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                 />
               </div>
 
               {/* Automation Toggle */}
               {(newTask.type === 'email' || newTask.type === 'whatsapp') && (
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                         <Zap className="w-4 h-4 text-amber-500" />
-                         <span className="text-xs font-black uppercase text-slate-400">Automated Follow-up</span>
-                      </div>
-                      <button 
-                        type="button"
-                        onClick={() => setNewTask({...newTask, autoSend: !newTask.autoSend})}
-                        className={`w-10 h-5 rounded-full relative transition-all ${newTask.autoSend ? 'bg-indigo-600' : 'bg-slate-300'}`}
-                      >
-                         <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${newTask.autoSend ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                      </button>
-                   </div>
-                   
-                   {newTask.autoSend && (
-                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Message Content</label>
-                        <textarea 
-                          rows="4"
-                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 resize-none"
-                          placeholder={newTask.type === 'email' ? "Hi {{name}}, just following up on..." : "Hi {{name}}, connecting regarding..."}
-                          value={newTask.messageContent}
-                          onChange={(e) => setNewTask({...newTask, messageContent: e.target.value})}
-                        />
-                        <p className="text-[9px] text-slate-400 italic">Use {"{{name}}"} for lead name personalization.</p>
-                     </div>
-                   )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                      <span className="text-xs font-black uppercase text-slate-400">Automated Follow-up</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewTask({ ...newTask, autoSend: !newTask.autoSend })}
+                      className={`w-10 h-5 rounded-full relative transition-all ${newTask.autoSend ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                    >
+                      <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${newTask.autoSend ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </button>
+                  </div>
+
+                  {newTask.autoSend && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Message Content</label>
+                      <textarea
+                        rows="4"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 resize-none"
+                        placeholder={newTask.type === 'email' ? "Hi {{name}}, just following up on..." : "Hi {{name}}, connecting regarding..."}
+                        value={newTask.messageContent}
+                        onChange={(e) => setNewTask({ ...newTask, messageContent: e.target.value })}
+                      />
+                      <p className="text-[9px] text-slate-400 italic">Use {"{{name}}"} for lead name personalization.</p>
+                    </div>
+                  )}
                 </div>
               )}
               <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">

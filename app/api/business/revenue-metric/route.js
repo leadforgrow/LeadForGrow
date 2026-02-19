@@ -4,45 +4,44 @@ import Business from '@/models/Business';
 import Lead from '@/models/automation/Lead';
 import { withPlanAccess } from '@/lib/accessControl';
 
-export async function GET(request) {
-  return withPlanAccess(request, 'analytics', async (req, user) => {
-    try {
-      await dbConnect();
-      const business = await Business.findById(user.businessId);
+export const GET = withPlanAccess('analytics', async (req) => {
+  try {
+    await dbConnect();
+    const user = req.user;
+    const business = await Business.findById(user.businessId);
 
-      if (!business || !business.revenueConfig || !business.revenueIntelligenceActive) {
-        return NextResponse.json({
-          success: false,
-          error: 'Revenue intelligence not configured'
-        }, { status: 400 });
-      }
-
-      // Get time range (default: last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      // Fetch all leads for the business
-      const leads = await Lead.find({
-        businessId: business._id,
-        createdAt: { $gte: thirtyDaysAgo }
-      }).sort({ createdAt: -1 });
-
-      // Calculate metrics
-      const metrics = calculateRevenueMetrics(business, leads);
-
-      return NextResponse.json({
-        success: true,
-        data: metrics
-      });
-    } catch (error) {
-      console.error('Error calculating revenue metrics:', error);
+    if (!business || !business.revenueConfig || !business.revenueIntelligenceActive) {
       return NextResponse.json({
         success: false,
-        error: 'Failed to calculate metrics'
-      }, { status: 500 });
+        error: 'Revenue intelligence not configured'
+      }, { status: 400 });
     }
-  });
-}
+
+    // Get time range (default: last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Fetch all leads for the business
+    const leads = await Lead.find({
+      businessId: business._id,
+      createdAt: { $gte: thirtyDaysAgo }
+    }).sort({ createdAt: -1 });
+
+    // Calculate metrics
+    const metrics = calculateRevenueMetrics(business, leads);
+
+    return NextResponse.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    console.error('Error calculating revenue metrics:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to calculate metrics'
+    }, { status: 500 });
+  }
+});
 
 function calculateRevenueMetrics(business, leads) {
   const config = business.revenueConfig;

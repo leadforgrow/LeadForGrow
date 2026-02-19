@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageCircle, X, ChevronRight, User, Mail, Phone, Headphones, BarChart3, Bot } from 'lucide-react';
 
-const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right' }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right', isPreview = false }) => {
+  const [isOpen, setIsOpen] = useState(isPreview);
   const [step, setStep] = useState(0);
   const [messages, setMessages] = useState([
     { type: 'bot', text: 'Hi there! 👋 Welcome to our site. May I know your name?' }
@@ -107,15 +107,19 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right' }
         botResponse = "Our team will contact you shortly. Thank you!";
         nextStep = step + 1;
 
-        // Submit to API
-        try {
-          await fetch('/api/public/chatbot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalData)
-          });
-        } catch (error) {
-          console.error('Failed to submit chatbot lead:', error);
+        // Submit to API (Skip in preview mode)
+        if (isPreview) {
+          console.log('[Chatbot Preview] Lead data captured:', finalData);
+        } else {
+          try {
+            await fetch('/api/public/chatbot', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(finalData)
+            });
+          } catch (error) {
+            console.error('Failed to submit chatbot lead:', error);
+          }
         }
       }
 
@@ -130,7 +134,7 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right' }
   };
 
   return (
-    <div className={`fixed bottom-32 ${position === 'left' ? 'left-6' : 'right-6'} z-[9999] font-sans`}>
+    <div className={`${isPreview ? 'relative w-full h-full min-h-[500px]' : `fixed bottom-32 ${position === 'left' ? 'left-6' : 'right-6'} z-[9999]`} font-sans`}>
       {/* Chat Button */}
       {!isOpen && (
         <button
@@ -147,7 +151,7 @@ const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right' }
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="w-[380px] h-[580px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-100 transition-all animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className={`${isPreview ? 'w-full h-full' : 'w-[380px] h-[580px]'} bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-100 transition-all animate-in slide-in-from-bottom-10 fade-in duration-300`}>
           {/* Header */}
           <div className="bg-indigo-600 p-4 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">

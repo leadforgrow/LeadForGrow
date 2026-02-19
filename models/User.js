@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
   },
-  
+
   // Multi-tenant: User belongs to a Business or an Agency
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -24,14 +24,14 @@ const UserSchema = new mongoose.Schema({
     ref: 'Agency',
     required: false
   },
-  
+
   // User Role within the Business
   role: {
     type: String,
-    enum: ['owner', 'admin', 'member'],
-    default: 'member'
+    enum: ['SUPER_ADMIN', 'AGENCY_OWNER', 'CLIENT_ADMIN', 'TEAM_MEMBER', 'VIEW_ONLY'],
+    default: 'TEAM_MEMBER'
   },
-  
+
   // Personal Information
   firstName: {
     type: String,
@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   // User Preferences
   preferences: {
     notifications: {
@@ -54,19 +54,19 @@ const UserSchema = new mongoose.Schema({
     },
     language: { type: String, default: 'en' }
   },
-  
+
   // Status
   active: {
     type: Boolean,
     default: true
   },
-  
+
   // Last Activity (for round-robin assignment)
   lastActivityAt: {
     type: Date,
     default: Date.now
   },
-  
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -77,7 +77,7 @@ const UserSchema = new mongoose.Schema({
 UserSchema.index({ businessId: 1, role: 1 });
 
 // Virtual for full name
-UserSchema.virtual('fullName').get(function() {
+UserSchema.virtual('fullName').get(function () {
   if (this.firstName && this.lastName) {
     return `${this.firstName} ${this.lastName}`;
   }

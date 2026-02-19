@@ -40,12 +40,16 @@ export default function NewLeadPage() {
 
       const data = await res.json();
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create lead');
+      if (data.success) {
+        toast.success('Lead created successfully!');
+        // Small delay to ensure the toast is seen before redirect
+        setTimeout(() => {
+          router.push('/automation/leads');
+        }, 1200);
+      } else {
+        toast.error(data.error || 'Failed to create lead');
+        // setLoading(false); // This will be handled by the finally block
       }
-
-      toast.success('Lead created successfully!');
-      router.push('/automation/leads');
     } catch (error) {
       console.error('Error creating lead:', error);
       toast.error(error.message);
@@ -58,7 +62,7 @@ export default function NewLeadPage() {
     <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <button 
+        <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors mb-6 group"
         >

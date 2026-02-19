@@ -46,7 +46,7 @@ export async function POST(req) {
       const agencyDoc = await agency.findById(user.agencyId);
       if (agencyDoc) {
         workspace = {
-          id: agencyDoc.businessId || 'legacy', 
+          id: agencyDoc.businessId || 'legacy',
           agencyId: agencyDoc._id,
           name: agencyDoc.agencyName,
           plan: 'agency',
@@ -59,15 +59,18 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "Business account not found. Please contact support." }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      data: { 
+    const { generateToken } = await import("@/lib/auth");
+    const token = generateToken(user);
+
+    return NextResponse.json({
+      success: true,
+      data: {
         userId: user._id,
         email: user.email,
         role: user.role,
         business: workspace, // Keeping 'business' key for frontend compatibility
-        token: "dummy-token-" + user._id 
-      } 
+        token
+      }
     });
   } catch (error) {
     console.error('Login error:', error);

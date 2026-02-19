@@ -10,19 +10,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, x-user-id',
 };
 
+import { withRateLimit } from '@/lib/rateLimit';
+
 /**
  * POST /api/forms/submit
  * Universal endpoint for LeadForGrow Form Submissions (Native & Embedded)
  */
-export async function POST(request) {
+export const POST = withRateLimit(5, 60, async function (request) {
   try {
     const body = await request.json();
     const { token, ...formData } = body;
 
     if (!token) {
-      return NextResponse.json({ success: false, error: 'Form token is required' }, { 
+      return NextResponse.json({ success: false, error: 'Form token is required' }, {
         status: 400,
-        headers: corsHeaders 
+        headers: corsHeaders
       });
     }
 
@@ -32,10 +34,10 @@ export async function POST(request) {
     console.log('[Form Submit Debug] Received token:', token);
     const form = await Form.findOne({ token, active: true });
     console.log('[Form Submit Debug] Query result:', form ? `Found form: ${form.name}` : 'Form NOT FOUND');
-    
+
     if (!form) {
       console.log('[Form Submit Debug] 404 Error: Invalid or inactive form');
-      return NextResponse.json({ success: false, error: 'Invalid or inactive form' }, { 
+      return NextResponse.json({ success: false, error: 'Invalid or inactive form' }, {
         status: 404,
         headers: corsHeaders
       });
@@ -74,17 +76,17 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('[Form Submission API] Error:', error);
-    
+
     // Generic error message for public security
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Submission failed. Please try again later.' 
-    }, { 
+    return NextResponse.json({
+      success: false,
+      error: 'Submission failed. Please try again later.'
+    }, {
       status: 500,
       headers: corsHeaders
     });
   }
-}
+});
 
 /**
  * OPTIONS - Handle CORS for embedded forms

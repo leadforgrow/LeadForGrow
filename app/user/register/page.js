@@ -9,7 +9,7 @@ export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState('register'); // 'register' | 'login' | 'forgot'
   const [accountType, setAccountType] = useState('business'); // 'business' | 'agency'
-  
+
   // Handle initial mode from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -67,7 +67,7 @@ export default function AuthPage() {
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
         toast.success('Account created successfully!');
-        
+
         // Redirect based on plan
         if (data.data.business.plan.toLowerCase().includes('agency')) {
           router.push('/agency');
@@ -104,8 +104,8 @@ export default function AuthPage() {
         localStorage.setItem('userEmail', formData.email);
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
-        toast.success('Logged in successfully!');
-        
+        toast.success('Logged in successfully!', { duration: 3000 });
+
         // Redirect based on plan
         if (data.data.business.plan.toLowerCase().includes('agency')) {
           router.push('/agency');
@@ -135,16 +135,16 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white selection:bg-indigo-100">
-      
+
       {/* LEFT PANEL - Hero Image */}
       <div className="hidden lg:block relative overflow-hidden bg-slate-900">
-        <img 
-          src="/auth-hero.png" 
-          alt="LFG Lead Management" 
+        <img
+          src="/auth-hero.png"
+          alt="LFG Lead Management"
           className="absolute inset-0 w-full h-full object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
-        
+
         <div className="absolute bottom-12 left-12 right-12 z-10">
           <div className="flex items-center gap-3 mb-6">
             <img src="/image.png" alt="LFG" className="w-12 h-12" />
@@ -159,7 +159,7 @@ export default function AuthPage() {
           <p className="text-lg text-slate-300 max-w-lg mb-8">
             The all-in-one operating system for {accountType === 'agency' ? 'agencies' : 'businesses'} to capture, track, and close leads without the chaos.
           </p>
-          
+
           <div className="flex flex-wrap gap-6">
             {[
               "Real-time Analytics",
@@ -177,7 +177,7 @@ export default function AuthPage() {
 
       {/* RIGHT PANEL - Forms */}
       <div className="flex flex-col items-center justify-center p-8 lg:p-12 xl:p-16 relative">
-        
+
         {/* Mobile Header */}
         <div className="lg:hidden flex items-center gap-3 mb-12">
           <img src="/image.png" alt="LFG" className="w-10 h-10" />
@@ -185,11 +185,11 @@ export default function AuthPage() {
         </div>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
-          
+
           {/* Header */}
           <div className="mb-8">
             {mode === 'forgot' && (
-              <button 
+              <button
                 onClick={() => setMode('login')}
                 className="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors mb-6 group"
               >
@@ -201,10 +201,10 @@ export default function AuthPage() {
               {mode === 'register' ? 'Create an account' : mode === 'login' ? 'Welcome back' : 'Reset password'}
             </h1>
             <p className="text-slate-500">
-              {mode === 'register' 
-                ? `Join 500+ ${accountType === 'agency' ? 'agencies' : 'businesses'} scaling with LFG.` 
-                : mode === 'login' 
-                  ? 'Sign in to access your dashboard.' 
+              {mode === 'register'
+                ? `Join 500+ ${accountType === 'agency' ? 'agencies' : 'businesses'} scaling with LFG.`
+                : mode === 'login'
+                  ? 'Sign in to access your dashboard.'
                   : 'Enter your email to receive a reset link.'}
             </p>
           </div>
@@ -249,7 +249,7 @@ export default function AuthPage() {
 
           {/* Forms */}
           <form className="space-y-5" onSubmit={mode === 'register' ? handleRegister : mode === 'login' ? handleLogin : handleForgot}>
-            
+
             {mode === 'register' && (
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 ml-1">
@@ -257,13 +257,13 @@ export default function AuthPage() {
                 </label>
                 <div className="relative group">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                  <input 
+                  <input
                     type="text"
                     required
                     placeholder={accountType === 'agency' ? "Enter your agency name" : "Enter your business name"}
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.companyName}
-                    onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                   />
                 </div>
               </div>
@@ -273,13 +273,13 @@ export default function AuthPage() {
               <label className="text-sm font-semibold text-slate-700 ml-1">Email Address</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <input 
+                <input
                   type="email"
                   required
                   placeholder="name@company.com"
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function AuthPage() {
                 <div className="flex items-center justify-between ml-1">
                   <label className="text-sm font-semibold text-slate-700">Password</label>
                   {mode === 'login' && (
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setMode('forgot')}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
@@ -300,15 +300,15 @@ export default function AuthPage() {
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                  <input 
+                  <input
                     type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     className="w-full pl-12 pr-12 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
@@ -324,19 +324,19 @@ export default function AuthPage() {
                 <label className="text-sm font-semibold text-slate-700 ml-1">Confirm Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                  <input 
+                  <input
                     type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-black shadow-sm"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   />
                 </div>
               </div>
             )}
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all flex items-center justify-center gap-2 group mt-8"

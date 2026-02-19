@@ -342,12 +342,17 @@ export default function LeadDetailPage({ params }) {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-slate-900">{lead.name}</h1>
-                <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded mt-1 ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                  lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
-                    lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
-                      'bg-slate-100 text-slate-700'
+                <span className={`inline-block px-2 py-0.5 text-xs font-black uppercase tracking-wider rounded mt-1 ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                    lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
+                      lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
+                        lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-slate-100 text-slate-700'
                   }`}>
-                  {lead.status}
+                  {lead.status === 'new' ? 'Pending' :
+                    lead.status === 'contacted' ? 'Connected' :
+                      lead.status === 'follow-up' ? 'In Progress' :
+                        lead.status === 'converted' ? 'Finalized' :
+                          lead.status}
                 </span>
               </div>
             </div>
@@ -479,7 +484,11 @@ export default function LeadDetailPage({ params }) {
                   {intelligence.nextAction.action}
                 </h3>
                 <p className="text-sm opacity-80 mt-1">
-                  {intelligence.nextAction.urgency === 'critical' ? 'High priority: contact this lead immediately to maximize conversion.' : 'Keep the momentum going by completing the next step in the journey.'}
+                  {intelligence.nextAction.action === 'Stale Lead Recovery'
+                    ? 'This lead has been inactive for over 24 hours. Attempt a recovery contact to see if they are still interested.'
+                    : intelligence.nextAction.urgency === 'critical'
+                      ? 'High priority: contact this lead immediately to maximize conversion.'
+                      : 'Keep the momentum going by completing the next step in the journey.'}
                 </p>
               </div>
               {intelligence.nextAction.urgency === 'critical' && (
@@ -735,10 +744,10 @@ export default function LeadDetailPage({ params }) {
                   {lead.activities?.slice(0, 10).map((activity, idx) => (
                     <div key={idx} className="relative flex gap-4 pl-8">
                       <div className={`absolute left-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${activity.type === 'lead_created' ? 'bg-indigo-600' :
-                          activity.type === 'status_changed' ? 'bg-amber-500' :
-                            activity.type === 'note_added' ? 'bg-blue-500' :
-                              activity.type === 'whatsapp_received' ? 'bg-emerald-500' :
-                                'bg-slate-400'
+                        activity.type === 'status_changed' ? 'bg-amber-500' :
+                          activity.type === 'note_added' ? 'bg-blue-500' :
+                            activity.type === 'whatsapp_received' ? 'bg-emerald-500' :
+                              'bg-slate-400'
                         }`}>
                         {activity.type === 'lead_created' && <Plus className="w-3 h-3 text-white" />}
                         {activity.type === 'status_changed' && <Calendar className="w-3 h-3 text-white" />}
@@ -753,7 +762,10 @@ export default function LeadDetailPage({ params }) {
                           </div>
                         )}
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {new Date(activity.performedAt || activity.timestamp).toLocaleString()}
+                          {(() => {
+                            const date = activity.performedAt || activity.timestamp || activity.createdAt;
+                            return date ? new Date(date).toLocaleString() : 'Recent';
+                          })()}
                         </p>
                       </div>
                     </div>
@@ -766,8 +778,8 @@ export default function LeadDetailPage({ params }) {
                       {lead.messages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${msg.direction === 'outgoing'
-                              ? 'bg-indigo-600 text-white rounded-tr-none'
-                              : 'bg-slate-100 text-slate-900 rounded-tl-none border border-slate-200'
+                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                            : 'bg-slate-100 text-slate-900 rounded-tl-none border border-slate-200'
                             }`}>
                             <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                             <div className={`flex items-center gap-1 mt-1 text-[10px] ${msg.direction === 'outgoing' ? 'text-indigo-100 opacity-80' : 'text-slate-400'}`}>

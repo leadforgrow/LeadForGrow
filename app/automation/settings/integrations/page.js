@@ -25,7 +25,10 @@ export default function IntegrationsPage() {
       provider: 'meta',
       apiKey: '',
       interaktApiKey: '',
-      phoneNumberId: ''
+      phoneNumberId: '',
+      businessAccountId: '',
+      appSecret: '',
+      verifyToken: ''
     }
   });
   const [userPlan, setUserPlan] = useState('free');
@@ -63,7 +66,7 @@ export default function IntegrationsPage() {
       const userId = localStorage.getItem('userid');
       const res = await fetch(`/api/business/settings?userId=${userId}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId
         },
@@ -97,7 +100,7 @@ export default function IntegrationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
           >
@@ -105,7 +108,7 @@ export default function IntegrationsPage() {
           </button>
           <h1 className="text-3xl font-black text-slate-900">Integrations</h1>
         </div>
-        <button 
+        <button
           onClick={handleSave}
           disabled={saving}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50"
@@ -127,8 +130,8 @@ export default function IntegrationsPage() {
               <p className="text-sm text-slate-500 font-medium">Power your lead recovery with Hostinger and Resend API.</p>
             </div>
             <div className="ml-auto">
-              <button 
-                onClick={() => setIntegrations({...integrations, email: { ...integrations.email, enabled: !integrations.email.enabled }})}
+              <button
+                onClick={() => setIntegrations({ ...integrations, email: { ...integrations.email, enabled: !integrations.email.enabled } })}
                 className={`w-16 h-8 rounded-full transition-all relative ${integrations.email.enabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
               >
                 <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${integrations.email.enabled ? 'translate-x-9' : 'translate-x-1'}`}></div>
@@ -165,43 +168,43 @@ export default function IntegrationsPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-black uppercase text-slate-400 mb-2">Primary Mailbox (Login)</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="primary@yourcompany.com"
                       value={integrations.email.username}
-                      onChange={(e) => setIntegrations({...integrations, email: {...integrations.email, username: e.target.value}})}
+                      onChange={(e) => setIntegrations({ ...integrations, email: { ...integrations.email, username: e.target.value } })}
                       className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 text-black"
                     />
                     <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">Use your main Hostinger account email here.</p>
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase text-slate-400 mb-2">Sender Alias (Optional)</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="alias@yourcompany.com"
                       value={integrations.email.fromEmail}
-                      onChange={(e) => setIntegrations({...integrations, email: {...integrations.email, fromEmail: e.target.value}})}
+                      onChange={(e) => setIntegrations({ ...integrations, email: { ...integrations.email, fromEmail: e.target.value } })}
                       className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 text-black"
                     />
                     <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">If you want to send from an alias, enter it here.</p>
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase text-slate-400 mb-2">Hostinger Password</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       placeholder="••••••••"
                       value={integrations.email.password}
-                      onChange={(e) => setIntegrations({...integrations, email: {...integrations.email, password: e.target.value}})}
+                      onChange={(e) => setIntegrations({ ...integrations, email: { ...integrations.email, password: e.target.value } })}
                       className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 text-black"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase text-slate-400 mb-2">Display Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g. Sales Team"
                       value={integrations.email.fromName}
-                      onChange={(e) => setIntegrations({...integrations, email: {...integrations.email, fromName: e.target.value}})}
+                      onChange={(e) => setIntegrations({ ...integrations, email: { ...integrations.email, fromName: e.target.value } })}
                       className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-indigo-500 text-black"
                     />
                   </div>
@@ -231,9 +234,9 @@ export default function IntegrationsPage() {
                       const res = await fetch(`/api/business/settings/test-email?userId=${userId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
+                        body: JSON.stringify({
                           emailSettings: integrations.email,
-                          testRecipient: integrations.email.fromEmail || integrations.email.username 
+                          testRecipient: integrations.email.fromEmail || integrations.email.username
                         })
                       });
                       const data = await res.json();
@@ -267,8 +270,8 @@ export default function IntegrationsPage() {
               <p className="text-sm text-slate-500 font-medium">Connect your Meta WhatsApp API or Interakt for full automation.</p>
             </div>
             <div className="ml-auto">
-              <button 
-                onClick={() => setIntegrations({...integrations, whatsapp: { ...integrations.whatsapp, enabled: !integrations.whatsapp.enabled }})}
+              <button
+                onClick={() => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, enabled: !integrations.whatsapp.enabled } })}
                 className={`w-16 h-8 rounded-full transition-all relative ${integrations.whatsapp.enabled ? 'bg-emerald-600' : 'bg-slate-200'}`}
               >
                 <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${integrations.whatsapp.enabled ? 'translate-x-9' : 'translate-x-1'}`}></div>
@@ -281,13 +284,13 @@ export default function IntegrationsPage() {
               {/* Provider Selection */}
               <div className="grid grid-cols-2 gap-4 p-1 bg-slate-100 rounded-2xl">
                 <button
-                  onClick={() => setIntegrations({...integrations, whatsapp: { ...integrations.whatsapp, provider: 'meta' }})}
+                  onClick={() => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, provider: 'meta' } })}
                   className={`py-3 rounded-xl font-bold transition-all ${integrations.whatsapp.provider === 'meta' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Meta API (Cloud)
                 </button>
                 <button
-                  onClick={() => setIntegrations({...integrations, whatsapp: { ...integrations.whatsapp, provider: 'interakt' }})}
+                  onClick={() => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, provider: 'interakt' } })}
                   className={`py-3 rounded-xl font-bold transition-all ${integrations.whatsapp.provider === 'interakt' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Interakt
@@ -298,30 +301,65 @@ export default function IntegrationsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-black uppercase text-slate-400 mb-2">Meta API Key (Access Token)</label>
-                      <input 
-                        type="password" 
+                      <label className="block text-xs font-black uppercase text-slate-400 mb-2">Meta API Key (Permanent Access Token)</label>
+                      <input
+                        type="password"
                         placeholder="EAAG..."
                         value={integrations.whatsapp.apiKey}
-                        onChange={(e) => setIntegrations({...integrations, whatsapp: {...integrations.whatsapp, apiKey: e.target.value}})}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, apiKey: e.target.value } })}
                         className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-black uppercase text-slate-400 mb-2">Phone Number ID</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="1029384..."
                         value={integrations.whatsapp.phoneNumberId}
-                        onChange={(e) => setIntegrations({...integrations, whatsapp: {...integrations.whatsapp, phoneNumberId: e.target.value}})}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, phoneNumberId: e.target.value } })}
                         className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-400 mb-2">WhatsApp Business Account ID</label>
+                      <input
+                        type="text"
+                        placeholder="1234567..."
+                        value={integrations.whatsapp.businessAccountId}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, businessAccountId: e.target.value } })}
+                        className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-400 mb-2">App Secret</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={integrations.whatsapp.appSecret}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, appSecret: e.target.value } })}
+                        className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-400 mb-2">Webhook Verify Token</label>
+                      <input
+                        type="text"
+                        placeholder="lfg_secure_token"
+                        value={integrations.whatsapp.verifyToken}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, verifyToken: e.target.value } })}
+                        className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">Set this same token in Meta Developer Portal Webhook settings.</p>
+                    </div>
                   </div>
                   <div className="bg-emerald-50/50 rounded-2xl p-6 flex flex-col justify-center">
-                    <p className="text-xs text-emerald-800 leading-relaxed">
-                      Using the <strong>Official Meta Cloud API</strong> provides direct connectivity. Ensure your Meta App is in production mode and you have a permanent access token.
+                    <p className="text-xs text-emerald-800 leading-relaxed mb-4">
+                      Using the <strong>Official Meta Cloud API</strong> provides direct connectivity.
                     </p>
+                    <ul className="text-xs text-emerald-700 space-y-2 list-disc pl-4 font-bold uppercase tracking-tighter">
+                      <li>Permanent Access Token required</li>
+                      <li>Webhook URL: https://leadforgrow.com/api/webhooks/meta/{localStorage.getItem('userid')}</li>
+                    </ul>
                   </div>
                 </div>
               ) : (
@@ -329,11 +367,11 @@ export default function IntegrationsPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-black uppercase text-slate-400 mb-2">Interakt API Key</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         placeholder="Enter your Interakt API Key"
                         value={integrations.whatsapp.interaktApiKey}
-                        onChange={(e) => setIntegrations({...integrations, whatsapp: {...integrations.whatsapp, interaktApiKey: e.target.value}})}
+                        onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, interaktApiKey: e.target.value } })}
                         className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
                       />
                       <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">Found in Settings &gt; Developer Setting in Interakt Dashboard.</p>
@@ -365,7 +403,7 @@ export default function IntegrationsPage() {
                       const res = await fetch(`/api/business/settings/test-whatsapp?userId=${userId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
+                        body: JSON.stringify({
                           whatsappSettings: integrations.whatsapp
                         })
                       });

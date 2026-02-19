@@ -4,12 +4,13 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Mail, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react';
 
-export default function Footer() {
+export default function Footer({ forceShow = false }) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
   // Hide the global LeadForGrow footer on public funnel pages and chatbot widget
-  if (pathname.startsWith('/s/') || pathname.includes('/chatbot-iframe')) return null;
+  // Also hide on dashboard by default (to prevent root layout rendering outside main area)
+  if (!forceShow && (pathname.startsWith('/automation') || pathname.startsWith('/s/') || pathname.includes('/chatbot-iframe'))) return null;
 
   const footerData = {
     product: [

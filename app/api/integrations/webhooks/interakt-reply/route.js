@@ -5,6 +5,8 @@ import Business from '@/models/Business';
 import Message from '@/models/automation/Message';
 import Activity from '@/models/automation/Activity';
 
+import { verifyInteraktToken } from '@/lib/webhookSecurity';
+
 /**
  * GET /api/integrations/webhooks/interakt-reply
  * Validation endpoint for manual check
@@ -19,6 +21,15 @@ export async function GET() {
  */
 export async function POST(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const token = searchParams.get('token') || request.headers.get('x-interakt-token');
+        const expectedToken = process.env.INTERAKT_WEBHOOK_TOKEN;
+
+        if (expectedToken && !verifyInteraktToken(token, expectedToken)) {
+            console.warn('[Webhook Interakt] Unauthorized access attempt: Invalid token');
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+        }
+
         const payload = await request.json();
 
         // 1. Data Extraction (Support both Interakt and flat test payload)

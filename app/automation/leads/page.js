@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  Search, 
+import {
+  Search,
   Plus,
   Phone,
   Mail,
@@ -23,7 +23,8 @@ import {
   Timer,
   Info,
   HelpCircle,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
@@ -67,7 +68,7 @@ export default function EnterpriseLeadsPage() {
       }
 
       let url = `/api/automation/leads?userId=${userId}`;
-      
+
       if (statusFilter !== 'all') {
         if (statusFilter === 'not-contacted') {
           url += '&status=new';
@@ -96,7 +97,7 @@ export default function EnterpriseLeadsPage() {
     e.stopPropagation();
     try {
       const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/leads/${leadId}`, {
+      const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,6 +116,31 @@ export default function EnterpriseLeadsPage() {
     }
   };
 
+  const deleteLead = async (leadId, e) => {
+    e.stopPropagation();
+    if (!window.confirm('ARE YOU SURE? This will permanently delete the lead AND all its history (activities, tasks, messages) from the database.')) {
+      return;
+    }
+
+    try {
+      const userId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Lead permanently deleted');
+        fetchLeads();
+      } else {
+        toast.error(data.error || 'Failed to delete lead');
+      }
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      toast.error('Connection error while deleting lead');
+    }
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -126,8 +152,8 @@ export default function EnterpriseLeadsPage() {
 
   const SortIcon = ({ field }) => {
     if (sortField !== field) return <ChevronDown className="w-3.5 h-3.5 text-slate-400" />;
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="w-3.5 h-3.5 text-indigo-600" /> : 
+    return sortDirection === 'asc' ?
+      <ChevronUp className="w-3.5 h-3.5 text-indigo-600" /> :
       <ChevronDown className="w-3.5 h-3.5 text-indigo-600" />;
   };
 
@@ -141,11 +167,11 @@ export default function EnterpriseLeadsPage() {
   const sortedLeads = [...filteredLeads].sort((a, b) => {
     if (sortField === 'intelligence') {
       const aScore = a.intelligence.nextAction.urgency === 'critical' ? 5 :
-                     a.intelligence.nextAction.urgency === 'high' ? 4 :
-                     a.intelligence.nextAction.urgency === 'medium' ? 3 : 2;
+        a.intelligence.nextAction.urgency === 'high' ? 4 :
+          a.intelligence.nextAction.urgency === 'medium' ? 3 : 2;
       const bScore = b.intelligence.nextAction.urgency === 'critical' ? 5 :
-                     b.intelligence.nextAction.urgency === 'high' ? 4 :
-                     b.intelligence.nextAction.urgency === 'medium' ? 3 : 2;
+        b.intelligence.nextAction.urgency === 'high' ? 4 :
+          b.intelligence.nextAction.urgency === 'medium' ? 3 : 2;
       return sortDirection === 'desc' ? bScore - aScore : aScore - bScore;
     }
 
@@ -273,7 +299,7 @@ export default function EnterpriseLeadsPage() {
                 <RefreshCw className="w-4 h-4" />
                 Refresh
               </button>
-              
+
               <div className="relative">
                 <button
                   onClick={() => setShowDownloadMenu(!showDownloadMenu)}
@@ -283,7 +309,7 @@ export default function EnterpriseLeadsPage() {
                   <Download className="w-4 h-4" />
                   Export
                 </button>
-                
+
                 {showDownloadMenu && !downloading && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setShowDownloadMenu(false)} />
@@ -312,29 +338,39 @@ export default function EnterpriseLeadsPage() {
           </div>
 
           {/* Compact Stats - Minimal Design */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-5 gap-3 mb-4">
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 uppercase">Critical</span>
-                <span className="text-xl font-bold text-red-600">{stats.critical}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Immediate Rescue</span>
+                <span className="text-xl font-bold text-red-600">
+                  {sortedLeads.filter(l => l.intelligence.nextAction.urgency === 'critical').length}
+                </span>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 uppercase">SLA Breach</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SLA Breach</span>
                 <span className="text-xl font-bold text-orange-600">{stats.slaBreached}</span>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 uppercase">High Engage</span>
-                <span className="text-xl font-bold text-emerald-600">{stats.highEngagement}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Handshake OK</span>
+                <span className="text-xl font-bold text-emerald-600">
+                  {sortedLeads.filter(l => l.metadata?.handshakeSent).length}
+                </span>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 uppercase">Avg Score</span>
-                <span className="text-xl font-bold text-indigo-600">{stats.avgEngagement.toFixed(1)}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">High Engage</span>
+                <span className="text-xl font-bold text-indigo-600">{stats.highEngagement}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Quality</span>
+                <span className="text-xl font-bold text-slate-900">{stats.avgEngagement.toFixed(1)}</span>
               </div>
             </div>
           </div>
@@ -356,18 +392,18 @@ export default function EnterpriseLeadsPage() {
               <div className="flex gap-2">
                 {[
                   { value: 'all', label: 'All' },
-                  { value: 'new', label: 'New' },
-                  { value: 'contacted', label: 'Contacted' },
-                  { value: 'follow-up', label: 'Follow-up' }
+                  { value: 'new', label: 'Pending' },
+                  { value: 'contacted', label: 'Connected' },
+                  { value: 'follow-up', label: 'In Progress' },
+                  { value: 'converted', label: 'Finalized' }
                 ].map((filter) => (
                   <button
                     key={filter.value}
                     onClick={() => setStatusFilter(filter.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      statusFilter === filter.value
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${statusFilter === filter.value
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
                   >
                     {filter.label}
                   </button>
@@ -409,7 +445,7 @@ export default function EnterpriseLeadsPage() {
                         Age <SortIcon field="leadAge" />
                       </button>
                     </th>
-                    
+
                     {/* Scrollable */}
                     <th className="px-4 py-2.5 text-left">
                       <button onClick={() => handleSort('intelligence')} className="flex items-center gap-1 hover:text-slate-900 text-xs font-semibold text-slate-600 uppercase whitespace-nowrap">
@@ -442,7 +478,7 @@ export default function EnterpriseLeadsPage() {
                         </th>
                       </>
                     )}
-                    
+
                     {/* Sticky Right */}
                     <th className="sticky right-0 z-20 bg-slate-50 px-4 py-2.5 text-center text-xs font-semibold text-slate-600 uppercase border-l border-slate-200">
                       Actions
@@ -453,62 +489,79 @@ export default function EnterpriseLeadsPage() {
                   {sortedLeads.map((lead, index) => {
                     const intel = lead.intelligence;
                     const isHovered = hoveredRow === lead._id;
-                    
+
                     return (
                       <tr
                         key={lead._id}
                         onMouseEnter={() => setHoveredRow(lead._id)}
                         onMouseLeave={() => setHoveredRow(null)}
-                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer h-14"
+                        className="group border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer h-14"
                         onClick={() => router.push(`/automation/leads/${lead._id}`)}
                       >
                         {/* # */}
                         <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500 border-r border-slate-100 whitespace-nowrap">
                           {index + 1}
                         </td>
-                        
+
                         {/* Lead Age - Simple Badge */}
                         <td className="sticky left-[52px] z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100">
                           <div className="flex items-center gap-2">
                             <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span className={`text-xs font-semibold ${
-                              intel.leadAge.classification === 'fresh' ? 'text-emerald-600' :
+                            <span className={`text-xs font-semibold ${intel.leadAge.classification === 'fresh' ? 'text-emerald-600' :
                               intel.leadAge.classification === 'aging' ? 'text-orange-600' :
-                              intel.leadAge.classification === 'at-risk' ? 'text-red-600' :
-                              'text-slate-500'
-                            }`}>
+                                intel.leadAge.classification === 'at-risk' ? 'text-red-600' :
+                                  'text-slate-500'
+                              }`}>
                               {intel.leadAge.displayText}
                             </span>
                           </div>
                         </td>
-                        
+
                         {/* Next Action - ONLY PILL (Single Decision Signal) */}
                         <td className="px-4 py-3">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
-                            intel.nextAction.urgency === 'critical' ? 'bg-red-600 text-white' :
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${intel.nextAction.urgency === 'critical' ? 'bg-red-600 text-white' :
                             intel.nextAction.urgency === 'high' ? 'bg-orange-600 text-white' :
-                            intel.nextAction.urgency === 'medium' ? 'bg-yellow-600 text-white' :
-                            'bg-slate-600 text-white'
-                          } whitespace-nowrap`}>
+                              intel.nextAction.urgency === 'medium' ? 'bg-indigo-600 text-white' :
+                                'bg-slate-600 text-white'
+                            } whitespace-nowrap shadow-sm`}>
                             <span>{intel.nextAction.icon}</span>
                             {intel.nextAction.action}
                           </div>
                         </td>
-                        
+
                         {/* Lead Name - PRIMARY VISUAL WEIGHT */}
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-slate-900 truncate max-w-[200px] whitespace-nowrap">
+                            <span className="text-sm font-bold text-slate-900 truncate max-w-[200px] whitespace-nowrap">
                               {lead.name}
                             </span>
-                            {lead.serviceInterest && (
-                              <span className="text-xs text-slate-500 truncate max-w-[200px] whitespace-nowrap">
-                                {lead.serviceInterest}
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                                  lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
+                                    lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
+                                      lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
+                                        'bg-slate-100 text-slate-700'
+                                }`}>
+                                {lead.status === 'new' ? 'Pending' :
+                                  lead.status === 'contacted' ? 'Connected' :
+                                    lead.status === 'follow-up' ? 'In Progress' :
+                                      lead.status === 'converted' ? 'Finalized' :
+                                        lead.status}
                               </span>
-                            )}
+                              {lead.metadata?.handshakeSent && (
+                                <span className="flex items-center gap-0.5 text-[9px] font-black text-emerald-600 uppercase">
+                                  <Activity className="w-2 h-2" /> Handshake Sent
+                                </span>
+                              )}
+                              {lead.serviceInterest && (
+                                <span className="text-[10px] text-slate-500 truncate max-w-[150px] whitespace-nowrap">
+                                  {lead.serviceInterest}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        
+
                         {/* Contact - Clean Layout */}
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-0.5">
@@ -524,7 +577,7 @@ export default function EnterpriseLeadsPage() {
                             )}
                           </div>
                         </td>
-                        
+
                         {viewMode === 'detailed' && (
                           <>
                             {/* SLA - Icon + Text (No Pill) */}
@@ -536,21 +589,20 @@ export default function EnterpriseLeadsPage() {
                                 </span>
                               </div>
                             </td>
-                            
+
                             {/* Engagement - Icon + Score */}
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1.5">
-                                <Activity className={`w-3.5 h-3.5 ${
-                                  intel.engagementScore.level === 'High' ? 'text-emerald-600' :
+                                <Activity className={`w-3.5 h-3.5 ${intel.engagementScore.level === 'High' ? 'text-emerald-600' :
                                   intel.engagementScore.level === 'Medium' ? 'text-yellow-600' :
-                                  'text-slate-400'
-                                }`} />
+                                    'text-slate-400'
+                                  }`} />
                                 <span className="text-xs font-medium text-slate-600 whitespace-nowrap">
                                   {intel.engagementScore.score}/14
                                 </span>
                               </div>
                             </td>
-                            
+
                             {/* Source - Simple Text */}
                             <td className="px-4 py-3">
                               <span className="text-xs text-slate-600 whitespace-nowrap">
@@ -562,7 +614,7 @@ export default function EnterpriseLeadsPage() {
                                 )}
                               </span>
                             </td>
-                            
+
                             {/* Owner - Simple */}
                             <td className="px-4 py-3">
                               {lead.assignedTo ? (
@@ -575,29 +627,31 @@ export default function EnterpriseLeadsPage() {
                             </td>
                           </>
                         )}
-                        
-                        {/* Actions - White Backgrounds, Reveal on Hover */}
-                        <td className="sticky right-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-l border-slate-100" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5">
-                            {/* Always show primary action */}
-                            <a
-                              href={`tel:${lead.phone}`}
-                              onClick={(e) => markAsContacted(lead._id, e)}
-                              className="p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
-                              title="Call"
-                            >
-                              <Phone className="w-3.5 h-3.5" />
-                            </a>
-                            
-                            {/* Show secondary on hover */}
-                            {isHovered && (
-                              <>
+
+                        {/* Actions - Cell-Triggered Stretch Reveal */}
+                        <td
+                          className="group/action-cell sticky right-0 z-20 bg-white px-4 py-3 border-l border-slate-100 transition-colors hover:bg-slate-50"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end">
+                            <div className="flex items-center gap-1.5 transition-[max-width] duration-500 ease-in-out max-w-[42px] group-hover/action-cell:max-w-[200px] overflow-hidden">
+                              {/* Primary Call Action - Always Visible */}
+                              <a
+                                href={`tel:${lead.phone}`}
+                                onClick={(e) => markAsContacted(lead._id, e)}
+                                className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-all"
+                                title="Call"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                              </a>
+
+                              {/* Secondary Actions - Revealed on CELL hover */}
+                              <div className="flex items-center gap-1.5 opacity-0 group-hover/action-cell:opacity-100 transition-opacity duration-300 delay-100">
                                 <a
                                   href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  onClick={(e) => markAsContacted(lead._id, e)}
-                                  className="p-2 bg-white border border-slate-300 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 transition-all"
+                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all"
                                   title="WhatsApp"
                                 >
                                   <MessageCircle className="w-3.5 h-3.5" />
@@ -607,13 +661,20 @@ export default function EnterpriseLeadsPage() {
                                     e.stopPropagation();
                                     router.push(`/automation/leads/${lead._id}`);
                                   }}
-                                  className="p-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 hover:border-slate-400 transition-all"
+                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-all"
                                   title="View Details"
                                 >
                                   <ArrowRight className="w-3.5 h-3.5" />
                                 </button>
-                              </>
-                            )}
+                                <button
+                                  onClick={(e) => deleteLead(lead._id, e)}
+                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+                                  title="Delete Lead"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </td>
                       </tr>

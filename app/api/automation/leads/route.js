@@ -12,22 +12,22 @@ import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
 async function getUserAndBusiness(request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-  
+
   if (!userId) {
-    return { error: 'Authentication required', status: 401 };
+    return { error: `Authentication required: ${new URL(request.url).pathname}`, status: 401 };
   }
-  
+
   await dbConnect();
   const user = await User.findById(userId);
   if (!user) {
     return { error: 'User not found', status: 404 };
   }
-  
+
   const business = await Business.findById(user.businessId);
   if (!business) {
     return { error: 'Business not found', status: 404 };
   }
-  
+
   return { user, business };
 }
 
@@ -38,26 +38,28 @@ export async function GET(request) {
     if (result.error) {
       return NextResponse.json({ success: false, error: result.error }, { status: result.status });
     }
-    
+
     const { user, business } = result;
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const source = searchParams.get('source');
     const assignedTo = searchParams.get('assignedTo');
     const search = searchParams.get('search');
-    
+
     const query = { businessId: business._id, archived: false };
-    
-    // Role-based filtering: members only see leads assigned to them
-    if (user.role === 'member') {
+
+    // Role-based filtering: members and team_members only see leads assigned to them
+    const isRestrictedRole = ['member', 'TEAM_MEMBER', 'VIEW_ONLY'].includes(user.role);
+
+    if (isRestrictedRole) {
       query.assignedTo = user._id;
     } else if (assignedTo) {
       query.assignedTo = assignedTo;
     }
-    
+
     if (status) query.status = status;
     if (source) query.source = source;
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -66,18 +68,18 @@ export async function GET(request) {
         { serviceInterest: { $regex: search, $options: 'i' } }
       ];
     }
-    
-    
+
+
     console.log('[API Leads] Query:', JSON.stringify(query));
-    
+
     const leads = await Lead.find(query)
       .populate('assignedTo', 'email firstName lastName')
       .populate('formId', 'name')
       .sort({ receivedAt: -1 })
       .lean();
-      
+
     console.log('[API Leads] Found leads:', leads.length);
-    
+
     return NextResponse.json({ success: true, data: leads });
   } catch (error) {
     console.error('Error fetching leads:', error);
@@ -92,18 +94,18 @@ export async function POST(request) {
     if (result.error) {
       return NextResponse.json({ success: false, error: result.error }, { status: result.status });
     }
-    
+
     const { user, business } = result;
     const body = await request.json();
-    
+
     // Validate required fields (Allow name + phone OR name + email)
     if (!body.name || (!body.phone && !body.email)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Missing required fields: name and (phone or email)' 
+      return NextResponse.json({
+        success: false,
+        error: 'Missing required fields: name and (phone or email)'
       }, { status: 400 });
     }
-    
+
     // Check if business has reached lead limit
     if (business.hasReachedLeadLimit()) {
       return NextResponse.json({
@@ -112,7 +114,7 @@ export async function POST(request) {
         requiresUpgrade: true
       }, { status: 403 });
     }
-    
+
     // Prepare lead data
     const leadData = {
       name: body.name,
@@ -127,11 +129,11 @@ export async function POST(request) {
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       priority: body.priority || 'medium'
     };
-    
+
     // Process lead through centralized processor
     console.log(`[API Leads] Creating lead for business ${business._id}:`, leadData.name);
     const processResult = await processNewLead(leadData, business._id);
-    
+
     if (!processResult.success) {
       console.error(`[API Leads] Processor failed for ${leadData.name}:`, processResult.message);
       if (processResult.isDuplicate) {
@@ -141,32 +143,32 @@ export async function POST(request) {
           message: 'Lead already exists'
         }, { status: 200 });
       }
-      
+
       return NextResponse.json({
         success: false,
         error: processResult.message || 'Failed to create lead'
       }, { status: 500 });
     }
-    
+
     console.log(`[API Leads] Successfully processed lead: ${processResult.lead._id}`);
-    
+
     // Trigger automation asynchronously
     setTimeout(() => {
       triggerAutomationForLead(processResult.lead._id, business._id).catch(err => {
         console.error('Automation trigger failed:', err);
       });
     }, 100);
-    
-    return NextResponse.json({ 
-      success: true, 
-      data: processResult.lead 
+
+    return NextResponse.json({
+      success: true,
+      data: processResult.lead
     }, { status: 201 });
-    
+
   } catch (error) {
     console.error('Lead creation error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to create lead' 
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to create lead'
     }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Bot, Copy, Check, MessageSquare, Sparkles, Code, Globe, Zap } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Chatbot from '@/app/components/Chatbot';
 
 export default function ChatbotPage() {
   const [businessId, setBusinessId] = useState('');
@@ -38,7 +39,7 @@ export default function ChatbotPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
-      
+
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -83,7 +84,7 @@ export default function ChatbotPage() {
                   <div>
                     <h4 className="text-sm font-bold text-indigo-900">Works with any website</h4>
                     <p className="text-xs text-indigo-700 mt-1">
-                      Compatible with WordPress, Shopify, Webflow, React, HTML, and more. 
+                      Compatible with WordPress, Shopify, Webflow, React, HTML, and more.
                       Your leads will automatically appear in your dashboard.
                     </p>
                   </div>
@@ -134,7 +135,7 @@ export default function ChatbotPage() {
               <p className="text-xs text-indigo-100 leading-relaxed">
                 Bot-captured leads include the full transcript and metadata. You can view all user responses directly in the lead detail page under "Chatbot Interaction".
               </p>
-              <button 
+              <button
                 onClick={() => window.location.href = '/automation/leads'}
                 className="mt-6 w-full py-2.5 bg-white text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-50 transition-colors"
               >
@@ -142,16 +143,13 @@ export default function ChatbotPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col h-full">
               <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-500" />
                 Live Preview
               </h3>
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-                <Bot className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-[10px] text-slate-500 max-w-[140px] mx-auto">
-                  Your chatbot is pre-configured and ready to use. Just copy the code and you're good to go!
-                </p>
+              <div className="flex-1 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden relative min-h-[500px]">
+                <Chatbot isPreview={true} businessId={businessId} />
               </div>
             </div>
           </div>

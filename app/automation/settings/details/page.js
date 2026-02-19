@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  DollarSign, 
-  Clock, 
+import {
+  DollarSign,
+  Clock,
   Target,
   TrendingUp,
   Users,
@@ -24,11 +24,13 @@ import {
   Shield
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 export default function RevenueIntelligenceConfig() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  
+
   const [config, setConfig] = useState({
     // Business Value
     avgDealValue: {
@@ -38,7 +40,7 @@ export default function RevenueIntelligenceConfig() {
       currency: 'INR'
     },
     serviceValues: [],
-    
+
     // Sales Process
     sla: {
       firstResponseMinutes: 15,
@@ -50,92 +52,135 @@ export default function RevenueIntelligenceConfig() {
       endTime: '18:00',
       timezone: 'Asia/Kolkata'
     },
-    
+
     // Conversion Truth
     conversionRate: {
       low: 5,
       avg: 10,
       high: 20
     },
-    
+
     // Lead Sources
     sources: [
       { name: 'WhatsApp', weight: 0.8, avgConversion: 15 },
       { name: 'Google Ads', weight: 0.6, avgConversion: 10 },
       { name: 'Manual Entry', weight: 0.4, avgConversion: 5 }
     ],
-    
+
     // Follow-up
     followup: {
       maxAttempts: 5,
       gapMinutes: 1440
     },
     preferredChannels: ['call', 'whatsapp'],
-    
+
     // Team
     teamRoles: [],
-    
+
     // Legal
     estimationAcknowledged: false
   });
 
   const steps = [
-    { 
-      id: 'value', 
-      title: 'Deal Value', 
+    {
+      id: 'value',
+      title: 'Deal Value',
       subtitle: 'Help us understand your revenue',
-      icon: DollarSign 
+      icon: DollarSign
     },
-    { 
-      id: 'sales', 
-      title: 'Sales Process', 
+    {
+      id: 'sales',
+      title: 'Sales Process',
       subtitle: 'Response times & working hours',
-      icon: Clock 
+      icon: Clock
     },
-    { 
-      id: 'conversion', 
-      title: 'Conversion Reality', 
+    {
+      id: 'conversion',
+      title: 'Conversion Reality',
       subtitle: 'Historical performance data',
-      icon: Target 
+      icon: Target
     },
-    { 
-      id: 'sources', 
-      title: 'Lead Sources', 
+    {
+      id: 'sources',
+      title: 'Lead Sources',
       subtitle: 'Prioritize your channels',
-      icon: TrendingUp 
+      icon: TrendingUp
     },
-    { 
-      id: 'followup', 
-      title: 'Follow-up Strategy', 
+    {
+      id: 'followup',
+      title: 'Follow-up Strategy',
       subtitle: 'Contact preferences',
-      icon: Users 
+      icon: Users
     },
-    { 
-      id: 'confirm', 
-      title: 'Review & Confirm', 
+    {
+      id: 'confirm',
+      title: 'Review & Confirm',
       subtitle: 'Finalize your settings',
-      icon: CheckCircle2 
+      icon: CheckCircle2
     }
   ];
 
   const handleSave = async () => {
+    if (!config.avgDealValue?.typical) {
+      toast.error('Please enter a typical deal value');
+      if (currentStep !== 0) setCurrentStep(0);
+      return;
+    }
+
     if (!config.estimationAcknowledged) {
       toast.error('Please acknowledge the estimation disclaimer');
       return;
     }
-    
+
     setSaving(true);
     try {
+      // Prepare payload with correct types to satisfy backend schema
+      const payload = {
+        ...config,
+        avgDealValue: {
+          ...config.avgDealValue,
+          min: config.avgDealValue.min ? parseFloat(config.avgDealValue.min) : undefined,
+          typical: parseFloat(config.avgDealValue.typical),
+          high: config.avgDealValue.high ? parseFloat(config.avgDealValue.high) : undefined
+        },
+        serviceValues: config.serviceValues.map(s => ({
+          ...s,
+          value: parseFloat(s.value)
+        })),
+        sla: {
+          firstResponseMinutes: parseInt(config.sla.firstResponseMinutes),
+          followupMinutes: parseInt(config.sla.followupMinutes)
+        },
+        conversionRate: {
+          low: parseFloat(config.conversionRate.low),
+          avg: parseFloat(config.conversionRate.avg),
+          high: parseFloat(config.conversionRate.high)
+        },
+        sources: config.sources.map(s => ({
+          ...s,
+          weight: parseFloat(s.weight),
+          avgConversion: parseFloat(s.avgConversion)
+        })),
+        followup: {
+          maxAttempts: parseInt(config.followup.maxAttempts),
+          gapMinutes: parseInt(config.followup.gapMinutes)
+        }
+      };
+
       const userId = localStorage.getItem('userid');
       const res = await fetch(`/api/business/revenue-config?userId=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+        body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
       if (data.success) {
         toast.success('Revenue intelligence configured successfully!');
+        // Redirect to dashboard to show populated data
+        setTimeout(() => {
+          router.push('/automation');
+        }, 1500);
       } else {
         toast.error(data.error || 'Failed to save configuration');
       }
@@ -189,17 +234,16 @@ export default function RevenueIntelligenceConfig() {
               const Icon = step.icon;
               const isActive = idx === currentStep;
               const isCompleted = idx < currentStep;
-              
+
               return (
                 <div key={step.id} className="flex-1 relative">
                   <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      isActive 
-                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-300 scale-110' 
-                        : isCompleted 
-                        ? 'bg-green-500 shadow-md' 
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${isActive
+                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-300 scale-110'
+                      : isCompleted
+                        ? 'bg-green-500 shadow-md'
                         : 'bg-slate-200'
-                    }`}>
+                      }`}>
                       <Icon className={`w-6 h-6 ${isActive || isCompleted ? 'text-white' : 'text-slate-400'}`} />
                     </div>
                     <div className="mt-2 text-center">
@@ -209,9 +253,8 @@ export default function RevenueIntelligenceConfig() {
                     </div>
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className={`absolute top-6 left-[60%] right-[-40%] h-0.5 transition-all duration-300 ${
-                      isCompleted ? 'bg-green-500' : 'bg-slate-200'
-                    }`} />
+                    <div className={`absolute top-6 left-[60%] right-[-40%] h-0.5 transition-all duration-300 ${isCompleted ? 'bg-green-500' : 'bg-slate-200'
+                      }`} />
                   )}
                 </div>
               );
@@ -239,7 +282,7 @@ export default function RevenueIntelligenceConfig() {
             <ArrowLeft className="w-4 h-4" />
             Previous
           </button>
-          
+
           {currentStep < steps.length - 1 ? (
             <button
               onClick={nextStep}
@@ -555,11 +598,10 @@ function SalesProcessStep({ config, setConfig }) {
               <button
                 key={day.id}
                 onClick={() => toggleDay(day.id)}
-                className={`px-6 py-3 rounded-xl font-bold transition-all ${
-                  config.workingHours.days.includes(day.id)
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
+                className={`px-6 py-3 rounded-xl font-bold transition-all ${config.workingHours.days.includes(day.id)
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  }`}
               >
                 {day.label}
               </button>
@@ -651,7 +693,7 @@ function ConversionStep({ config, setConfig }) {
           { range: '20%+', low: 20, avg: 25, high: 30, label: 'Exceptional / Referral-based', color: 'blue' }
         ].map(option => {
           const isSelected = config.conversionRate.avg === option.avg;
-          
+
           return (
             <button
               key={option.range}
@@ -659,11 +701,10 @@ function ConversionStep({ config, setConfig }) {
                 ...config,
                 conversionRate: { low: option.low, avg: option.avg, high: option.high }
               })}
-              className={`w-full p-6 rounded-2xl border-2 transition-all text-left ${
-                isSelected
-                  ? `border-${option.color}-500 bg-${option.color}-50 shadow-lg`
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+              className={`w-full p-6 rounded-2xl border-2 transition-all text-left ${isSelected
+                ? `border-${option.color}-500 bg-${option.color}-50 shadow-lg`
+                : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -783,10 +824,11 @@ function SourcesStep({ config, setConfig }) {
                 />
               </div>
 
-              <div className="md:col-span-2 flex items-end">
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-transparent mb-2 block select-none">&nbsp;</label>
                 <button
                   onClick={() => removeSource(idx)}
-                  className="w-full px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all font-semibold"
+                  className="w-full px-4 py-3 bg-red-50 text-red-600 border-2 border-transparent rounded-xl hover:bg-red-100 transition-all font-semibold"
                 >
                   Remove
                 </button>
@@ -809,9 +851,42 @@ function SourcesStep({ config, setConfig }) {
 // Step 5: Follow-up Strategy
 function FollowupStep({ config, setConfig }) {
   const channels = [
-    { id: 'call', label: 'Phone Call', icon: Phone },
-    { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
-    { id: 'email', label: 'Email', icon: Mail }
+    {
+      id: 'call',
+      label: 'Phone Call',
+      icon: (
+        <img
+          src="/images/logo/phonecall.png"
+          alt="Phone"
+          className="w-12 h-12 object-contain drop-shadow-md"
+        />
+      ),
+      activeColor: 'border-blue-500 bg-blue-50'
+    },
+    {
+      id: 'whatsapp',
+      label: 'WhatsApp',
+      icon: (
+        <img
+          src="/images/logo/whatsapp.png"
+          alt="WhatsApp"
+          className="w-12 h-12 object-contain drop-shadow-md"
+        />
+      ),
+      activeColor: 'border-emerald-500 bg-emerald-50'
+    },
+    {
+      id: 'email',
+      label: 'Email',
+      icon: (
+        <img
+          src="/images/logo/gmail.png"
+          alt="Gmail"
+          className="w-12 h-12 object-contain drop-shadow-md"
+        />
+      ),
+      activeColor: 'border-rose-500 bg-rose-50'
+    }
   ];
 
   const toggleChannel = (channelId) => {
@@ -891,33 +966,33 @@ function FollowupStep({ config, setConfig }) {
         <h3 className="text-lg font-bold text-slate-900">Which channels work best to close deals?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {channels.map(channel => {
-            const Icon = channel.icon;
             const isSelected = config.preferredChannels.includes(channel.id);
-            
+
             return (
               <button
                 key={channel.id}
                 onClick={() => toggleChannel(channel.id)}
-                className={`p-6 rounded-2xl border-2 transition-all ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
+                className={`p-8 rounded-3xl border-2 transition-all group relative ${isSelected
+                  ? channel.activeColor + ' shadow-xl scale-[1.02]'
+                  : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                  }`}
               >
-                <div className="flex flex-col items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    isSelected ? 'bg-blue-500' : 'bg-slate-100'
-                  }`}>
-                    <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="transform group-hover:scale-110 transition-transform duration-300">
+                    {channel.icon}
                   </div>
-                  <span className={`font-bold ${isSelected ? 'text-blue-700' : 'text-slate-600'}`}>
-                    {channel.label}
-                  </span>
-                  {isSelected && (
-                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    </div>
-                  )}
+                  <div className="text-center">
+                    <span className={`block font-black text-lg ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                      {channel.label}
+                    </span>
+                    {isSelected && (
+                      <div className="mt-2 flex justify-center">
+                        <div className="bg-slate-900 text-white rounded-full p-1 shadow-lg">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </button>
             );
@@ -1010,9 +1085,9 @@ function ConfirmStep({ config, setConfig }) {
                   className="mt-1 w-5 h-5 rounded border-2 border-yellow-500 text-yellow-500 focus:ring-2 focus:ring-yellow-500"
                 />
                 <span className="text-sm text-slate-700 leading-relaxed group-hover:text-slate-900">
-                  I understand that all revenue insights, estimates, and "revenue at risk" calculations are 
-                  <strong> probability-based projections</strong>, not guaranteed income. These metrics are 
-                  designed to help prioritize leads and measure team performance, but actual conversion and 
+                  I understand that all revenue insights, estimates, and "revenue at risk" calculations are
+                  <strong> probability-based projections</strong>, not guaranteed income. These metrics are
+                  designed to help prioritize leads and measure team performance, but actual conversion and
                   revenue may vary significantly based on many factors outside the system's control.
                 </span>
               </label>
