@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, Home, GraduationCap, Landmark, HeartPulse, Briefcase, Shield, Wallet, Plane, Globe, Zap, Share2, Search, TrendingUp, Users } from "lucide-react";
 
 const UserNavbar = () => {
   // 1. State Hooks
@@ -23,12 +23,12 @@ const UserNavbar = () => {
   ];
 
   const servicesDropdown = [
-    { label: "Done-For-You Website", href: "/services/dfy-website" },
-    { label: "Lead System Setup", href: "/services/lead-setup" },
-    { label: "Automation Setup", href: "/services/automation-setup" },
-    { label: "Social Profile Setup", href: "/services/social-setup" },
-    { label: "SEO Setup", href: "/services/seo-setup" },
-    { label: "Managed Growth Service", href: "/services/managed-growth" },
+    { label: "Done-For-You Website", href: "/services/dfy-website", description: "We build your site end-to-end", icon: Globe },
+    { label: "Lead System Setup", href: "/services/lead-setup", description: "CRM & capture configured for you", icon: Users },
+    { label: "Automation Setup", href: "/services/automation-setup", description: "Hands-free workflow automation", icon: Zap },
+    { label: "Social Profile Setup", href: "/services/social-setup", description: "Branded social presence setup", icon: Share2 },
+    { label: "SEO Setup", href: "/services/seo-setup", description: "Rank higher on Google", icon: Search },
+    { label: "Managed Growth Service", href: "/services/managed-growth", description: "Full-service growth management", icon: TrendingUp },
   ];
 
   const agenciesDropdown = [
@@ -37,6 +37,17 @@ const UserNavbar = () => {
     { label: "White-Label Solution", href: "/agencies/white-label" },
     { label: "Agency Pricing", href: "/pricing" },
     { label: "Become a Partner", href: "/agencies/partner" },
+  ];
+
+  const industryDropdown = [
+    { label: "Real Estate", href: "/industry/real-estate", description: "Automate property enquiries", icon: Home },
+    { label: "Education", href: "/industry/education", description: "Streamline student admissions", icon: GraduationCap },
+    { label: "Bank", href: "/industry/bank", description: "Secure financial lead routing", icon: Landmark },
+    { label: "Hospital", href: "/industry/hospital", description: "Manage patient appointments", icon: HeartPulse },
+    { label: "Business", href: "/industry/business", description: "General sales automation", icon: Briefcase },
+    { label: "Insurance", href: "/industry/insurance", description: "Fast claim & lead handling", icon: Shield },
+    { label: "Fintech", href: "/industry/fintech", description: "Modern finance lead ops", icon: Wallet },
+    { label: "Travel", href: "/industry/travel", description: "Booking & tour automation", icon: Plane },
   ];
 
   const resourcesDropdown = [
@@ -140,12 +151,12 @@ const UserNavbar = () => {
     if (!isOpen) return null;
     return (
       <div className="absolute top-full left-0 pt-3 w-72 z-50">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-3 backdrop-blur-xl">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 backdrop-blur-xl">
           {items.map((item, idx) => (
             <a
               key={idx}
               href={item.href}
-              className="block px-6 py-3.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 dark:hover:from-slate-800 dark:hover:to-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 rounded-lg mx-2"
+              className="block px-6 py-3.5 text-sm font-medium text-slate-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 hover:text-indigo-600 transition-all duration-200 rounded-lg mx-2"
             >
               {item.label}
             </a>
@@ -155,10 +166,43 @@ const UserNavbar = () => {
     );
   };
 
+  const IndustryDropdownMenu = ({ items, isOpen }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 z-50 w-[520px]">
+        <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-100 p-4">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pb-3">Select Your Industry</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {items.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={idx}
+                  href={item.href}
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-indigo-50 transition-all duration-200 group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-indigo-100 flex items-center justify-center shrink-0 transition-colors">
+                    {Icon && <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">{item.label}</div>
+                    {item.description && (
+                      <div className="text-[11px] text-slate-400 leading-tight mt-0.5">{item.description}</div>
+                    )}
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-      ? 'bg-white dark:bg-black shadow-md border-b dark:border-slate-800'
-      : 'bg-white/95 dark:bg-black/95 backdrop-blur-xl'
+      ? 'bg-white  shadow-md border-b '
+      : 'bg-white/95  backdrop-blur-xl'
       }`}>
       {businessPlan === 'trial' && (
         <div className="bg-blue-600 text-white text-center py-2 text-sm font-medium">
@@ -171,7 +215,7 @@ const UserNavbar = () => {
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center gap-3 group">
               <img src="/image.png" alt="Logo" className="w-14 h-12 transition-transform group-hover:scale-105" />
-              <span className="text-2xl text-slate-900 dark:text-white tracking-tight font-semibold">
+              <span className="text-2xl text-slate-900  tracking-tight font-semibold">
                 LeadForGrow
               </span>
             </a>
@@ -200,37 +244,23 @@ const UserNavbar = () => {
             ) : (
               // PUBLIC/FREE NAVIGATION
               <div className="flex items-center space-x-6 xl:space-x-8">
-                <div className="relative" onMouseEnter={() => setOpenDropdown('product')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
-                    Product <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <DropdownMenu items={productDropdown} isOpen={openDropdown === 'product'} />
-                </div>
-
                 <div className="relative" onMouseEnter={() => setOpenDropdown('services')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                  <button className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
                     Services <ChevronDown className="w-4 h-4" />
                   </button>
-                  <DropdownMenu items={servicesDropdown} isOpen={openDropdown === 'services'} />
+                  <IndustryDropdownMenu items={servicesDropdown} isOpen={openDropdown === 'services'} />
                 </div>
 
-                <div className="relative" onMouseEnter={() => setOpenDropdown('agencies')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
-                    For Agencies <ChevronDown className="w-4 h-4" />
+                <div className="relative" onMouseEnter={() => setOpenDropdown('industry')} onMouseLeave={() => setOpenDropdown(null)}>
+                  <button className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
+                    Industry <ChevronDown className="w-4 h-4" />
                   </button>
-                  <DropdownMenu items={agenciesDropdown} isOpen={openDropdown === 'agencies'} />
+                  <IndustryDropdownMenu items={industryDropdown} isOpen={openDropdown === 'industry'} />
                 </div>
 
-                <a href="/pricing" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
+                <a href="/pricing" className="text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
                   Pricing
                 </a>
-
-                <div className="relative" onMouseEnter={() => setOpenDropdown('resources')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-wider">
-                    Resources <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <DropdownMenu items={resourcesDropdown} isOpen={openDropdown === 'resources'} />
-                </div>
               </div>
             )}
           </div>
@@ -240,7 +270,7 @@ const UserNavbar = () => {
             <div className="flex items-center space-x-4 xl:space-x-6">
               {!isLoggedIn ? (
                 <>
-                  <a href="/user/login" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
+                  <a href="/user/login" className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
                     Login
                   </a>
                   <a href="/user/register" className="px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
@@ -255,10 +285,10 @@ const UserNavbar = () => {
                     </button>
                     <DropdownMenu items={activeCreateItems} isOpen={openDropdown === 'create'} />
                   </div>
-                  <button onClick={handleProfileClick} className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-wider font-medium">
+                  <button onClick={handleProfileClick} className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
                     Profile
                   </button>
-                  <button onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
+                  <button onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
                     Logout
                   </button>
                 </>
@@ -268,7 +298,7 @@ const UserNavbar = () => {
 
           {/* Mobile menu button */}
           <div className="xl:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600  hover:text-slate-900 hover:bg-slate-100 transition-all duration-200">
               {isMenuOpen ? (
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -284,19 +314,19 @@ const UserNavbar = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className={`xl:hidden bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
+      <div className={`xl:hidden bg-white  border-t border-slate-200  transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
         <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
           {isLoggedIn && (isPaid || context === 'client') ? (
             <>
               {activePaidItems.map((item, idx) => (
-                <a key={idx} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a key={idx} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                   {item.label}
                 </a>
               ))}
-              <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="space-y-1 pt-4 border-t border-slate-100 ">
                 <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Create</div>
                 {activeCreateItems.map((item, idx) => (
-                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {item.label}
                   </a>
                 ))}
@@ -307,23 +337,23 @@ const UserNavbar = () => {
               <div className="space-y-1">
                 <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Product</div>
                 {productDropdown.map((item, idx) => (
-                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {item.label}
                   </a>
                 ))}
               </div>
               <div className="space-y-1 pt-4 text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Services</div>
               {servicesDropdown.map((item, idx) => (
-                <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                   {item.label}
                 </a>
               ))}
-              <a href="/pricing" className="block px-4 py-3 text-base text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <a href="/pricing" className="block px-4 py-3 text-base text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Pricing
               </a>
               {!isLoggedIn && (
-                <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <a href="/user/login" className="block px-4 py-3 text-center text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <div className="space-y-2 pt-4 border-t border-slate-100 ">
+                  <a href="/user/login" className="block px-4 py-3 text-center text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
                     Login
                   </a>
                   <a href="/user/register" className="block px-4 py-3 text-center text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-lg shadow-indigo-500/20" onClick={() => setIsMenuOpen(false)}>
@@ -335,11 +365,11 @@ const UserNavbar = () => {
           )}
 
           {isLoggedIn && (
-            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <button onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+            <div className="space-y-2 pt-4 border-t border-slate-100 ">
+              <button onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors">
                 Profile
               </button>
-              <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+              <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600  hover:bg-red-50 rounded-lg transition-colors">
                 Logout
               </button>
             </div>
