@@ -157,7 +157,6 @@ LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
-LeadSchema.index({ eventId: 1 });
 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });

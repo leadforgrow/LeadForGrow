@@ -1,4 +1,0 @@
-Last 10 Leads in Database:
-ID: 695eb29b4a486022dc634846 | Name: Riya singh | Phone: 8810873052 | email: singhriya33690@gmail.com | ReceivedAt: Thu Jan 08 2026 12:41:18 GMT+0530 (India Standard Time)
-ID: 695eafa34a486022dc63466c | Name: sonii | Phone: 7303444183 | email: saurabhinsight23@gmail.com | ReceivedAt: Thu Jan 08 2026 12:39:21 GMT+0530 (India Standard Time)
-ID: 695eafed4a486022dc6346a8 | Name: jivika | Phone: 0987654321 | email: saurabhiitr01@gmail.com | ReceivedAt: Thu Jan 08 2026 00:41:41 GMT+0530 (India Standard Time)
