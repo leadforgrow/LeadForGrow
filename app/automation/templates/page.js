@@ -1,26 +1,33 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Mail, Clock, Save, Info, AlertCircle, ArrowRight, LayoutTemplate } from 'lucide-react';
+import { Mail, Clock, Save, Info, AlertCircle, ArrowRight, LayoutTemplate, Plus, Trash2, MessageCircle, Edit3, CheckCircle, Search, Sparkles } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function TemplatesPage() {
-  const [activeTab, setActiveTab] = useState('welcome');
+  const [activeTab, setActiveTab] = useState('library');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  
-  // Template States
+
+  // Automated Template States (Existing)
   const [welcomeTemplate, setWelcomeTemplate] = useState({
     subject: 'Welcome to LeadForGrow!',
     body: 'Hi {{lead.name}},\n\nThanks for your interest. We will be in touch shortly.\n\nBest,\nThe LeadForGrow Team',
     enabled: true
   });
-  
+
   const [followUpTemplate, setFollowUpTemplate] = useState({
     subject: 'Just checking in...',
     body: 'Hi {{lead.name}},\n\nI wanted to follow up on my previous email. do you have any questions?\n\nBest,\n{{user.name}}',
-    delayHours: 0,
+    delayHours: 24,
     enabled: true
   });
+
+  // New Library States (Manual Templates)
+  const [manualTemplates, setManualTemplates] = useState([]);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [deleteIds, setDeleteIds] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const placeholders = [
     { label: 'Lead Name', value: '{{lead.name}}' },
@@ -31,20 +38,21 @@ export default function TemplatesPage() {
   ];
 
   useEffect(() => {
-    fetchTemplates();
+    fetchData();
   }, []);
 
-  const fetchTemplates = async () => {
+  const fetchData = async () => {
     try {
       const res = await fetch('/api/automation/templates?userId=' + localStorage.getItem('userid'));
       const data = await res.json();
-      
+
       if (data.success) {
         if (data.welcome) setWelcomeTemplate(data.welcome);
         if (data.followUp) setFollowUpTemplate(data.followUp);
+        if (data.manual) setManualTemplates(data.manual);
       }
     } catch (error) {
-      console.error("Failed to load templates:", error);
+      toast.error("Failed to load templates");
     } finally {
       setLoading(false);
     }
@@ -56,6 +64,8 @@ export default function TemplatesPage() {
       const payload = {
         welcome: welcomeTemplate,
         followUp: followUpTemplate,
+        manual: manualTemplates,
+        deleteManualIds: deleteIds,
         userId: localStorage.getItem('userid')
       };
 
@@ -64,267 +74,382 @@ export default function TemplatesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
       if (data.success) {
-        alert('Templates saved successfully!');
+        toast.success('All templates saved successfully!');
+        setDeleteIds([]);
+        fetchData(); // Refresh to get real IDs for new templates
       } else {
-        alert('Failed to save templates.');
+        toast.error('Failed to save templates');
       }
     } catch (error) {
-       console.error("Error saving:", error);
-       alert('An error occurred while saving.');
+      toast.error('Connection error');
     } finally {
       setSaving(false);
     }
   };
 
+  const addManualTemplate = () => {
+    const newTemp = {
+      name: 'New Custom Template',
+      subject: 'Subject Line',
+      body: 'Hi {{lead.name}}, ...',
+      channel: 'whatsapp',
+      enabled: true
+    };
+    setManualTemplates([newTemp, ...manualTemplates]);
+    setEditingTemplate(newTemp);
+    setActiveTab('editor');
+  };
+
+  const updateManualField = (index, field, value) => {
+    const updated = [...manualTemplates];
+    updated[index] = { ...updated[index], [field]: value };
+    setManualTemplates(updated);
+  };
+
+  const deleteManualTemplate = (index) => {
+    const template = manualTemplates[index];
+    if (template.id) {
+      setDeleteIds([...deleteIds, template.id]);
+    }
+    const updated = manualTemplates.filter((_, i) => i !== index);
+    setManualTemplates(updated);
+    if (editingTemplate === template) setEditingTemplate(null);
+  };
+
   const insertToken = (token) => {
     navigator.clipboard.writeText(token);
-    alert(`Copied ${token} to clipboard! Paste it into the editor.`);
+    toast.success(`Copied ${token} to clipboard!`);
   };
 
-  // Preview Data
-  const previewData = {
-    lead: { name: 'John Doe', email: 'john@example.com', phone: '+1234567890' },
-    user: { name: 'Sarah Seller' },
-    business: { name: 'Acme Corp' }
-  };
-
-  const getPreviewText = (text) => {
-    let preview = text || '';
-    preview = preview.replace(/{{lead.name}}/g, previewData.lead.name || '');
-    preview = preview.replace(/{{lead.email}}/g, previewData.lead.email || '');
-    preview = preview.replace(/{{lead.phone}}/g, previewData.lead.phone || '');
-    preview = preview.replace(/{{user.name}}/g, previewData.user.name || '');
-    preview = preview.replace(/{{business.name}}/g, previewData.business.name || '');
-    return preview;
-  };
+  // Filter templates for search
+  const filteredTemplates = manualTemplates.filter(t =>
+    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.body.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col h-full bg-slate-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-6 flex justify-between items-center sticky top-0 z-10">
-        <div>
-           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-             <LayoutTemplate className="w-6 h-6 text-indigo-600" />
-             Email Templates
-           </h1>
-           <p className="text-slate-500 mt-1">Design and manage your automated email communications.</p>
+      {/* Premium Header */}
+      <div className="bg-white border-b border-slate-200 px-8 py-6 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
+            <LayoutTemplate className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Message Library</h1>
+            <div className="flex items-center gap-2 text-slate-500 mt-1">
+              <p className="text-sm font-medium">Design & organize your response templates</p>
+              <span className="w-1 h-1 bg-slate-300 rounded-full" />
+              <p className="text-xs font-bold uppercase tracking-widest text-indigo-600">{manualTemplates.length} Templates</p>
+            </div>
+          </div>
         </div>
         <div className="flex gap-3">
-          <button 
-             onClick={() => setShowPreview(!showPreview)} 
-             className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-all flex items-center gap-2"
+          <button
+            onClick={addManualTemplate}
+            className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:shadow-md transition-all flex items-center gap-2"
           >
-            {showPreview ? 'Exit Preview' : 'Preview Changes'}
+            <Plus className="w-4 h-4" />
+            Create Template
           </button>
-          <button 
-             onClick={handleSave} 
-             disabled={saving}
-             className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group active:scale-95"
           >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Templates'}
+            <Save className={`w-4 h-4 ${saving ? 'animate-pulse' : 'group-hover:scale-110 transition-transform'}`} />
+            {saving ? 'Syncing...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
       <div className="p-8 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-8">
-        
-        {/* Sidebar Tabs */}
-        <div className="w-full lg:w-64 space-y-2">
-          <button
-            onClick={() => setActiveTab('welcome')}
-            className={`w-full text-left px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all duration-200 ${
-              activeTab === 'welcome' 
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm' 
-                : 'text-slate-600 hover:bg-white hover:shadow-sm'
-            }`}
-          >
-            <Mail className="w-5 h-5" />
-            Lead Welcome Email
-          </button>
-          <button
-            onClick={() => setActiveTab('followup')}
-            className={`w-full text-left px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all duration-200 ${
-              activeTab === 'followup' 
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm' 
-                : 'text-slate-600 hover:bg-white hover:shadow-sm'
-            }`}
-          >
-            <Clock className="w-5 h-5" />
-            Follow-Up Email
-          </button>
-          
-          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <h3 className="text-blue-900 font-bold flex items-center gap-2 text-sm mb-2">
-              <Info className="w-4 h-4" />
-              Pro Tip
+
+        {/* Navigation Sidebar */}
+        <div className="w-full lg:w-72 space-y-6">
+          <div className="space-y-1.5">
+            <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Main Categories</p>
+            <button
+              onClick={() => setActiveTab('library')}
+              className={`w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 ${activeTab === 'library'
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
+                  : 'text-slate-600 hover:bg-white hover:shadow-sm'
+                }`}
+            >
+              <LayoutTemplate className="w-5 h-5" />
+              Manual Library
+            </button>
+            <button
+              onClick={() => setActiveTab('welcome')}
+              className={`w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 ${activeTab === 'welcome'
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
+                  : 'text-slate-600 hover:bg-white hover:shadow-sm'
+                }`}
+            >
+              <Sparkles className="w-5 h-5" />
+              Auto: Welcome
+            </button>
+            <button
+              onClick={() => setActiveTab('followup')}
+              className={`w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 ${activeTab === 'followup'
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 translate-x-1'
+                  : 'text-slate-600 hover:bg-white hover:shadow-sm'
+                }`}
+            >
+              <Clock className="w-5 h-5" />
+              Auto: Follow-Up
+            </button>
+          </div>
+
+          <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-indigo-100 transition-colors" />
+            <h3 className="text-slate-900 font-black flex items-center gap-2 text-xs mb-3 relative z-10">
+              <Info className="w-4 h-4 text-indigo-500" />
+              SMART TOKENS
             </h3>
-            <p className="text-xs text-blue-800 leading-relaxed">
-              Use personalization tokens like <code className="bg-white px-1 py-0.5 rounded border border-blue-200 text-blue-600 font-mono">{'{{lead.name}}'}</code> to increase engagement rates by up to 40%.
-            </p>
+            <div className="space-y-2 relative z-10">
+              {placeholders.slice(0, 3).map(p => (
+                <button
+                  key={p.label}
+                  onClick={() => insertToken(p.value)}
+                  className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-xl text-[10px] font-bold text-slate-500 hover:text-indigo-600 transition-all flex justify-between items-center group/token"
+                >
+                  {p.label}
+                  <span className="text-[10px] font-mono opacity-0 group-hover/token:opacity-40">{p.value}</span>
+                </button>
+              ))}
+              <p className="text-[9px] text-slate-400 mt-2 leading-relaxed text-center font-medium">Click to copy token</p>
+            </div>
           </div>
         </div>
 
-        {/* Editor Area */}
-        <div className="flex-1">
-             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-               {activeTab === 'welcome' && (
-                 <div className="p-6 space-y-6">
-                    <div className="flex justify-between items-start">
-                       <div>
-                         <h2 className="text-xl font-bold text-slate-900">Lead Welcome Email</h2>
-                         <p className="text-sm text-slate-500 mt-1">Sent automatically immediately after a new lead is captured.</p>
-                       </div>
-                       <div className="flex items-center gap-3">
-                         <span className="text-sm font-medium text-slate-600">Status:</span>
-                         <label className="relative inline-flex items-center cursor-pointer">
-                           <input 
-                             type="checkbox" 
-                             className="sr-only peer"
-                             checked={welcomeTemplate.enabled}
-                             onChange={(e) => setWelcomeTemplate({...welcomeTemplate, enabled: e.target.checked})}
-                           />
-                           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                         </label>
-                       </div>
+        {/* Dynamic Content Area */}
+        <div className="flex-1 min-w-0">
+
+          {/* LIBRARY VIEW */}
+          {activeTab === 'library' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="flex items-center gap-4 bg-white p-2 pl-4 rounded-[20px] border border-slate-200 shadow-sm">
+                <Search className="w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search templates by name or content..."
+                  className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-slate-700 py-3"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredTemplates.map((template, index) => (
+                  <div
+                    key={index}
+                    className={`group bg-white p-6 rounded-[28px] border-2 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-100/50 ${editingTemplate === template ? 'border-indigo-500 ring-4 ring-indigo-50' : 'border-slate-100 hover:border-indigo-200'}`}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${template.channel === 'whatsapp' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                          {template.channel === 'whatsapp' ? <MessageCircle className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
+                        </div>
+                        <h3 className="font-black text-slate-900 truncate max-w-[180px]">{template.name}</h3>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setEditingTemplate(template); setActiveTab('library'); }}
+                          className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteManualTemplate(manualTemplates.indexOf(template))}
+                          className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Email Subject</label>
-                        <input 
-                          type="text" 
-                          value={welcomeTemplate.subject}
-                          onChange={(e) => setWelcomeTemplate({...welcomeTemplate, subject: e.target.value})}
-                          className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900"
-                          placeholder="Welcome to our service!"
+                    {editingTemplate === template ? (
+                      <div className="space-y-4 animate-in zoom-in-95 duration-200">
+                        <input
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={template.name}
+                          onChange={(e) => updateManualField(manualTemplates.indexOf(template), 'name', e.target.value)}
+                          placeholder="Template Name"
                         />
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                           <label className="block text-sm font-bold text-slate-700">Email Body</label>
-                           <div className="flex gap-2 text-xs">
-                             {placeholders.map(p => (
-                               <button 
-                                 key={p.label}
-                                 onClick={() => insertToken(p.value)}
-                                 className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded border border-slate-200 transition-colors"
-                                 title="Click to copy"
-                               >
-                                 {p.label}
-                               </button>
-                             ))}
-                           </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateManualField(manualTemplates.indexOf(template), 'channel', 'whatsapp')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${template.channel === 'whatsapp' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
+                          >
+                            WhatsApp
+                          </button>
+                          <button
+                            onClick={() => updateManualField(manualTemplates.indexOf(template), 'channel', 'email')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${template.channel === 'email' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}
+                          >
+                            Email
+                          </button>
                         </div>
-                        {showPreview ? (
-                            <div className="w-full h-64 p-4 bg-slate-50 rounded-lg border border-slate-200 overflow-y-auto whitespace-pre-wrap text-slate-800">
-                                {getPreviewText(welcomeTemplate.body)}
-                            </div>
-                        ) : (
-                            <textarea
-                              value={welcomeTemplate.body}
-                              onChange={(e) => setWelcomeTemplate({...welcomeTemplate, body: e.target.value})}
-                              className="w-full h-64 px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono text-sm text-slate-800"
-                              placeholder="Write your email content here..."
-                            />
-                        )}
-                      </div>
-                    </div>
-                 </div>
-               )}
-
-               {activeTab === 'followup' && (
-                 <div className="p-6 space-y-6">
-                    <div className="flex justify-between items-start">
-                       <div>
-                         <h2 className="text-xl font-bold text-slate-900">Follow-Up Email</h2>
-                         <p className="text-sm text-slate-500 mt-1">Sent when a condition is met (e.g. status change or time delay).</p>
-                       </div>
-                       <div className="flex items-center gap-3">
-                         <span className="text-sm font-medium text-slate-600">Status:</span>
-                         <label className="relative inline-flex items-center cursor-pointer">
-                           <input 
-                             type="checkbox" 
-                             className="sr-only peer"
-                             checked={followUpTemplate.enabled}
-                             onChange={(e) => setFollowUpTemplate({...followUpTemplate, enabled: e.target.checked})}
-                           />
-                           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                         </label>
-                       </div>
-                    </div>
-
-                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-100 flex gap-3">
-                       <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                       <div>
-                         <h4 className="font-bold text-amber-900 text-sm">Trigger Condition</h4>
-                         <p className="text-xs text-amber-800 mt-1">
-                           This email will be triggered when you change a lead's status to <strong>"Follow Up"</strong>. (Set delay to 0 for immediate send)
-                         </p>
-                       </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <label className="block text-sm font-bold text-slate-700 mb-2">Email Subject</label>
-                          <input 
-                            type="text" 
-                            value={followUpTemplate.subject}
-                            onChange={(e) => setFollowUpTemplate({...followUpTemplate, subject: e.target.value})}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900"
-                            placeholder="Checking in..."
+                        {template.channel === 'email' && (
+                          <input
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                            value={template.subject}
+                            onChange={(e) => updateManualField(manualTemplates.indexOf(template), 'subject', e.target.value)}
+                            placeholder="Email Subject"
                           />
+                        )}
+                        <textarea
+                          className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                          value={template.body}
+                          onChange={(e) => updateManualField(manualTemplates.indexOf(template), 'body', e.target.value)}
+                          placeholder="Your message content..."
+                        />
+                        <button
+                          onClick={() => setEditingTemplate(null)}
+                          className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                        >
+                          Done Editing
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed mb-4 h-[60px]">
+                          {template.body}
+                        </p>
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ready to use</span>
+                          </div>
+                          <button
+                            onClick={() => setEditingTemplate(template)}
+                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group/btn"
+                          >
+                            Customize
+                            <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                          </button>
                         </div>
-                        <div className="w-32">
-                           <label className="block text-sm font-bold text-slate-700 mb-2">Delay (Hours)</label>
-                           <input 
-                            type="number" 
+                      </>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  onClick={addManualTemplate}
+                  className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-[28px] flex flex-col items-center justify-center gap-3 text-slate-400 hover:bg-white hover:border-indigo-300 hover:text-indigo-500 transition-all group"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                    <Plus className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-sm">Create New Template</p>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* AUTOMATED VIEWS (MODERNIZED) */}
+          {(activeTab === 'welcome' || activeTab === 'followup') && (
+            <div className="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+              <div className="p-8 space-y-8">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-wider">Automated Flow</div>
+                      <h2 className="text-2xl font-black text-slate-900">{activeTab === 'welcome' ? 'Lead Welcome Email' : 'Follow-Up Sequence'}</h2>
+                    </div>
+                    <p className="text-slate-500 font-medium">
+                      {activeTab === 'welcome'
+                        ? 'This message is sent instantly when a lead first lands in your dashboard.'
+                        : 'Keep the conversation moving with a timed check-in if there is no response.'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
+                    <span className="text-xs font-bold text-slate-600">Active</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={activeTab === 'welcome' ? welcomeTemplate.enabled : followUpTemplate.enabled}
+                        onChange={(e) => activeTab === 'welcome'
+                          ? setWelcomeTemplate({ ...welcomeTemplate, enabled: e.target.checked })
+                          : setFollowUpTemplate({ ...followUpTemplate, enabled: e.target.checked })
+                        }
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Email Subject</label>
+                      <input
+                        type="text"
+                        value={activeTab === 'welcome' ? welcomeTemplate.subject : followUpTemplate.subject}
+                        onChange={(e) => activeTab === 'welcome'
+                          ? setWelcomeTemplate({ ...welcomeTemplate, subject: e.target.value })
+                          : setFollowUpTemplate({ ...followUpTemplate, subject: e.target.value })
+                        }
+                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all text-slate-900 font-bold"
+                        placeholder="A professional headline..."
+                      />
+                    </div>
+
+                    {activeTab === 'followup' && (
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Wait Duration (Hours)</label>
+                        <div className="relative">
+                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="number"
                             min="0"
                             value={followUpTemplate.delayHours}
-                            onChange={(e) => setFollowUpTemplate({...followUpTemplate, delayHours: parseInt(e.target.value) || 0})}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900"
+                            onChange={(e) => setFollowUpTemplate({ ...followUpTemplate, delayHours: parseInt(e.target.value) || 0 })}
+                            className="w-full pl-11 pr-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all text-slate-900 font-bold"
                           />
                         </div>
                       </div>
+                    )}
+                  </div>
 
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                           <label className="block text-sm font-bold text-slate-700">Email Body</label>
-                           <div className="flex gap-2 text-xs">
-                             {placeholders.map(p => (
-                               <button 
-                                 key={p.label}
-                                 onClick={() => insertToken(p.value)}
-                                 className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded border border-slate-200 transition-colors"
-                                 title="Click to copy"
-                               >
-                                 {p.label}
-                               </button>
-                             ))}
-                           </div>
-                        </div>
-                        {showPreview ? (
-                            <div className="w-full h-64 p-4 bg-slate-50 rounded-lg border border-slate-200 overflow-y-auto whitespace-pre-wrap text-slate-800">
-                                {getPreviewText(followUpTemplate.body)}
-                            </div>
-                        ) : (
-                            <textarea
-                              value={followUpTemplate.body}
-                              onChange={(e) => setFollowUpTemplate({...followUpTemplate, body: e.target.value})}
-                              className="w-full h-64 px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono text-sm text-slate-800"
-                              placeholder="Write your email content here..."
-                            />
-                        )}
-                      </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Message Blueprint</label>
+                      <button
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        {showPreview ? 'Edit Raw Text' : 'View Computed Preview'}
+                      </button>
                     </div>
-                 </div>
-               )}
-             </div>
+
+                    <div className="relative group">
+                      {showPreview ? (
+                        <div className="w-full min-h-[300px] p-6 bg-slate-950 rounded-[32px] border border-slate-800 text-indigo-100 leading-relaxed font-medium">
+                          {activeTab === 'welcome' ? welcomeTemplate.body : followUpTemplate.body}
+                        </div>
+                      ) : (
+                        <textarea
+                          value={activeTab === 'welcome' ? welcomeTemplate.body : followUpTemplate.body}
+                          onChange={(e) => activeTab === 'welcome'
+                            ? setWelcomeTemplate({ ...welcomeTemplate, body: e.target.value })
+                            : setFollowUpTemplate({ ...followUpTemplate, body: e.target.value })
+                          }
+                          className="w-full min-h-[300px] px-6 py-6 rounded-[32px] bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all text-slate-800 font-medium text-lg leading-relaxed placeholder:text-slate-300"
+                          placeholder="Craft your high-converting message here..."
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

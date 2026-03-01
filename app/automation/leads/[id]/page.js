@@ -111,10 +111,11 @@ export default function LeadDetailPage({ params }) {
 
   const fetchTemplates = async () => {
     try {
-      const res = await fetch(`/api/automation/automation-rules?userId=${localStorage.getItem('userid')}`);
+      const res = await fetch(`/api/automation/templates?userId=${localStorage.getItem('userid')}`);
       const data = await res.json();
       if (data.success) {
-        setTemplates(data.data.filter(rule => rule.enabled));
+        // Collect all available manual templates
+        setTemplates(data.manual || []);
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -513,19 +514,22 @@ export default function LeadDetailPage({ params }) {
                       <p className="text-xs font-semibold text-slate-600">Select Template</p>
                     </div>
                     {templates.length > 0 ? (
-                      templates.map((rule) => (
+                      templates.map((template) => (
                         <button
-                          key={rule._id}
+                          key={template.id}
                           onClick={() => {
-                            const msg = renderMessageFromTemplate(rule.config?.messageTemplate);
-                            handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
+                            const msg = renderMessageFromTemplate(template.body);
+                            handleCommunication(template.channel === 'email' ? 'email' : 'whatsapp', null, msg);
                             setShowTemplateDropdown(false);
                           }}
                           className="w-full text-left p-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
                         >
-                          <p className="text-sm font-semibold text-slate-900">{rule.name}</p>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${template.channel === 'whatsapp' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                            <p className="text-sm font-semibold text-slate-900">{template.name}</p>
+                          </div>
                           <p className="text-xs text-slate-500 line-clamp-1 mt-1">
-                            {rule.config?.messageTemplate || 'No message'}
+                            {template.body || 'No message content'}
                           </p>
                         </button>
                       ))

@@ -23,8 +23,11 @@ import {
   Timer,
   Info,
   HelpCircle,
-  X,
-  Trash2
+  Trash2,
+  Calendar,
+  CheckSquare,
+  Square,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
@@ -46,6 +49,10 @@ export default function EnterpriseLeadsPage() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [userRole, setUserRole] = useState('TEAM_MEMBER');
   const [activeAssignDropdown, setActiveAssignDropdown] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [showBulkTemplateMenu, setShowBulkTemplateMenu] = useState(false);
+  const [activeTemplateLead, setActiveTemplateLead] = useState(null);
 
   const fetchTeam = async () => {
     try {
@@ -74,6 +81,7 @@ export default function EnterpriseLeadsPage() {
   useEffect(() => {
     fetchLeads();
     fetchTeam();
+    fetchTemplates();
     computeUserRole();
     const interval = setInterval(fetchLeads, 30000);
 
@@ -150,6 +158,64 @@ export default function EnterpriseLeadsPage() {
       toast.error('Failed to load leads');
       setLoading(false);
     }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const res = await fetch(`/api/automation/templates?userId=${localStorage.getItem('userid')}`);
+      const data = await res.json();
+      if (data.success) {
+        setTemplates(data.manual || []);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const renderMessageFromTemplate = (template, lead) => {
+    if (!template) return '';
+    return template.replace(/\{\{(.*?)\}\}/g, (match, field) => {
+      const fieldName = field.trim();
+      if (fieldName === 'name') return lead.name;
+      if (fieldName === 'serviceInterest') return lead.serviceInterest || 'our services';
+      return match;
+    });
+  };
+
+  const handleSendTemplate = async (template, lead) => {
+    if (!lead) return;
+    const msg = renderMessageFromTemplate(template.body, lead);
+    const encodedMessage = encodeURIComponent(msg);
+    const phone = lead.phone.replace(/\D/g, '');
+
+    if (template.channel === 'whatsapp') {
+      window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+    } else if (template.channel === 'email') {
+      window.open(`mailto:${lead.email}?body=${encodedMessage}`, '_blank');
+    }
+
+    markAsContacted(lead._id, { stopPropagation: () => { } });
+    setActiveTemplateLead(null);
+  };
+
+  const handleBulkSendTemplate = async (template) => {
+    const leadsToSend = leads.filter(l => selectedLeads.includes(l._id));
+
+    for (const lead of leadsToSend) {
+      const msg = renderMessageFromTemplate(template.body, lead);
+      const encodedMessage = encodeURIComponent(msg);
+      const phone = lead.phone.replace(/\D/g, '');
+
+      if (template.channel === 'whatsapp') {
+        window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+      } else if (template.channel === 'email') {
+        window.open(`mailto:${lead.email}?body=${encodedMessage}`, '_blank');
+      }
+    }
+
+    toast.success(`Opening ${leadsToSend.length} ${template.channel} draft(s)`);
+    setSelectedLeads([]);
+    setShowBulkTemplateMenu(false);
   };
 
   const initiateCall = async (lead, e) => {
@@ -536,8 +602,23 @@ export default function EnterpriseLeadsPage() {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
                     {/* Sticky Left */}
-                    <th className="sticky left-0 z-20 bg-slate-50 px-4 py-2.5 text-left text-xs font-semibold text-slate-600 uppercase border-r border-slate-200">
-                      #
+                    <th className="sticky left-0 z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
+                      <button
+                        onClick={() => {
+                          if (selectedLeads.length === sortedLeads.length) {
+                            setSelectedLeads([]);
+                          } else {
+                            setSelectedLeads(sortedLeads.map(l => l._id));
+                          }
+                        }}
+                        className="p-1 hover:bg-slate-200 rounded transition-colors"
+                      >
+                        {selectedLeads.length === sortedLeads.length ? (
+                          <CheckSquare className="w-4 h-4 text-indigo-600" />
+                        ) : (
+                          <Square className="w-4 h-4 text-slate-400" />
+                        )}
+                      </button>
                     </th>
                     <th className="sticky left-[52px] z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
                       <button onClick={() => handleSort('leadAge')} className="flex items-center gap-1 hover:text-slate-900 text-xs font-semibold text-slate-600 uppercase whitespace-nowrap">
@@ -598,8 +679,24 @@ export default function EnterpriseLeadsPage() {
                         onClick={() => router.push(`/automation/leads/${lead._id}`)}
                       >
                         {/* # */}
-                        <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 text-sm font-medium text-slate-500 border-r border-slate-100 whitespace-nowrap">
-                          {index + 1}
+                        <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100 whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedLeads.includes(lead._id)) {
+                                setSelectedLeads(selectedLeads.filter(id => id !== lead._id));
+                              } else {
+                                setSelectedLeads([...selectedLeads, lead._id]);
+                              }
+                            }}
+                            className="p-1 hover:bg-slate-200 rounded transition-colors"
+                          >
+                            {selectedLeads.includes(lead._id) ? (
+                              <CheckSquare className="w-4 h-4 text-indigo-600" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-300" />
+                            )}
+                          </button>
                         </td>
 
                         {/* Lead Age - Simple Badge */}
@@ -815,6 +912,49 @@ export default function EnterpriseLeadsPage() {
                                 >
                                   <MessageCircle className="w-3.5 h-3.5" />
                                 </a>
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveTemplateLead(activeTemplateLead === lead._id ? null : lead._id);
+                                    }}
+                                    className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-all"
+                                    title="Send Template"
+                                  >
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                  </button>
+                                  {activeTemplateLead === lead._id && (
+                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-[100] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                      <div className="p-3 border-b border-slate-100 bg-slate-50/50">
+                                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Select Template</p>
+                                      </div>
+                                      <div className="max-h-60 overflow-y-auto">
+                                        {templates.length > 0 ? (
+                                          templates.map((template) => (
+                                            <button
+                                              key={template.id}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSendTemplate(template, lead);
+                                              }}
+                                              className="w-full text-left p-3 hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${template.channel === 'whatsapp' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                                                <p className="text-[11px] font-bold text-slate-900">{template.name}</p>
+                                              </div>
+                                              <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{template.body}</p>
+                                            </button>
+                                          ))
+                                        ) : (
+                                          <div className="p-4 text-center">
+                                            <p className="text-[10px] text-slate-400">No manual templates found</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -832,6 +972,7 @@ export default function EnterpriseLeadsPage() {
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
+
                               </div>
                             </div>
                           </div>
@@ -885,6 +1026,68 @@ export default function EnterpriseLeadsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+        {/* Bulk Actions Floating Bar */}
+        {selectedLeads.length > 0 && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-8 duration-300">
+            <div className="bg-slate-900 text-white rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-6 border border-slate-800 backdrop-blur-md">
+              <div className="flex items-center gap-3 pr-6 border-r border-slate-800">
+                <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-indigo-600/20">
+                  {selectedLeads.length}
+                </span>
+                <span className="text-sm font-bold tracking-tight">Leads Selected</span>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowBulkTemplateMenu(!showBulkTemplateMenu)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-600/20 active:scale-95"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Send Group Template
+                </button>
+
+                {showBulkTemplateMenu && (
+                  <div className="absolute bottom-full left-0 mb-4 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="p-4 bg-slate-50 border-b border-slate-100">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Choose Template</p>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {templates.length > 0 ? (
+                        templates.map((template) => (
+                          <button
+                            key={template.id}
+                            onClick={() => handleBulkSendTemplate(template)}
+                            className="w-full text-left p-4 hover:bg-indigo-50 transition-all border-b border-slate-50 last:border-0 group"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{template.name}</span>
+                              <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${template.channel === 'whatsapp' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {template.channel}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">{template.body}</p>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center" onClick={(e) => e.stopPropagation()}>
+                          <p className="text-xs text-slate-400 font-bold">No manual templates found.</p>
+                          <button onClick={() => router.push('/automation/templates')} className="mt-2 text-[10px] text-indigo-600 font-black uppercase tracking-[0.1em] hover:underline">Create One Now</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => setSelectedLeads([])}
+                className="text-slate-400 hover:text-white transition-colors p-2"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}

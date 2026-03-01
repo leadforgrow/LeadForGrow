@@ -60,7 +60,12 @@ export async function GET(request) {
 
     if (status) query.status = status;
     if (source) query.source = source;
-    if (eventId) query.eventId = eventId;
+    if (eventId) {
+      query.eventId = eventId;
+    } else {
+      // Only show leads that are NOT associated with any event/session by default
+      query.eventId = { $exists: false };
+    }
 
     if (search) {
       query.$or = [
