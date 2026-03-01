@@ -20,7 +20,8 @@ import {
   ChevronDown,
   Building2,
   Bot,
-  LogOut
+  LogOut,
+  Calendar
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -71,6 +72,7 @@ export default function Sidebar() {
             workspace: data.data.workspace || 'Default Workspace'
           });
           localStorage.setItem('userPlan', data.data.plan);
+          localStorage.setItem('businessId', data.data.businessId);
         }
       } catch (error) {
         console.error('Sidebar user fetch error:', error);
@@ -124,18 +126,21 @@ export default function Sidebar() {
     }
   };
 
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : 'member';
+  const rawRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : 'member';
+  const userRole = (rawRole || 'member').toLowerCase();
 
   // Navigation structure with logical grouping
   const navigationGroups = [
     {
       label: 'Overview',
+      role: 'owner', // Restricted to owners/admins
       items: [
         { name: 'Dashboard', href: '/automation', icon: LayoutDashboard }
       ]
     },
     {
       label: 'Analytics',
+      role: 'owner', // Restricted to owners/admins
       items: [
         { name: 'Reports', href: '/automation/reports', icon: BarChart3 }
       ]
@@ -156,19 +161,19 @@ export default function Sidebar() {
           icon: CheckSquare,
           count: contextualData.overdueTasks,
           status: contextualData.overdueTasks > 0 ? 'warning' : 'neutral'
+        },
+        {
+          name: 'Events & Sessions',
+          href: '/automation/events',
+          icon: Calendar
         }
       ]
     },
     {
       label: 'Automation',
       items: [
-        {
-          name: 'Automation Rules',
-          href: '/automation/automation-rules',
-          icon: Zap,
-          count: contextualData.activeAutomations,
-          status: 'active'
-        },
+        { name: 'Automation Rules', href: '/automation/automation-rules', icon: Zap, count: contextualData.activeAutomations, status: 'active' },
+        { name: 'Automation Sequences', href: '/automation/sequences', icon: Zap },
         { name: 'Email Templates', href: '/automation/templates', icon: FileText },
         { name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
         { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' },
@@ -178,7 +183,7 @@ export default function Sidebar() {
     {
       label: 'Workspace',
       role: 'owner',
-      highImpact: true, // Signal: You're entering system territory
+      highImpact: true,
       items: [
         { name: 'Team & Roles', href: '/automation/team', icon: UserCog, role: 'owner' },
         { name: 'Integrations', href: '/automation/integrations', icon: Globe, role: 'owner' },
@@ -196,10 +201,20 @@ export default function Sidebar() {
 
   // Filter groups and items based on role
   const filteredGroups = navigationGroups
-    .filter(group => !group.role || group.role === userRole || userRole === 'owner')
+    .filter(group => {
+      if (!group.role) return true;
+      if (userRole === 'owner') return true;
+      if (userRole.includes('admin') || userRole.includes('super')) return true;
+      return group.role === userRole;
+    })
     .map(group => ({
       ...group,
-      items: group.items.filter(item => !item.role || item.role === userRole || userRole === 'owner')
+      items: group.items.filter(item => {
+        if (!item.role) return true;
+        if (userRole === 'owner') return true;
+        if (userRole.includes('admin') || userRole.includes('super')) return true;
+        return item.role === userRole;
+      })
     }))
     .filter(group => group.items.length > 0);
 

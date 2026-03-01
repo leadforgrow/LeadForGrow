@@ -8,20 +8,20 @@ const LeadSchema = new mongoose.Schema({
     required: false,
     index: true
   },
-  
+
   // Agency Context (Optional - for agency users only)
   agencyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Agency',
     index: true
   },
-  
+
   clientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
     index: true
   },
-  
+
   // Customer Details
   name: {
     type: String,
@@ -42,7 +42,7 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   // Lead Information
   source: {
     type: String,
@@ -73,7 +73,7 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   // Status & Assignment
   status: {
     type: String,
@@ -89,7 +89,7 @@ const LeadSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
   },
-  
+
   // Timestamps
   receivedAt: {
     type: Date,
@@ -107,7 +107,7 @@ const LeadSchema = new mongoose.Schema({
   lostAt: {
     type: Date
   },
-  
+
   // Internal Notes
   notes: [{
     text: String,
@@ -120,7 +120,7 @@ const LeadSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  
+
   // Metadata
   archived: {
     type: Boolean,
@@ -129,6 +129,21 @@ const LeadSchema = new mongoose.Schema({
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
+  },
+
+  // Event & Sequence Tracking
+  eventId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    index: true
+  },
+  activeSequenceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AutomationSequence'
+  },
+  sequenceStepIndex: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
@@ -142,6 +157,7 @@ LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
+LeadSchema.index({ eventId: 1 });
 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });

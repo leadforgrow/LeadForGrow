@@ -43,6 +43,25 @@ export default function EnterpriseLeadsPage() {
   const [viewMode, setViewMode] = useState('detailed');
   const [hoveredRow, setHoveredRow] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [userRole, setUserRole] = useState('TEAM_MEMBER');
+  const [activeAssignDropdown, setActiveAssignDropdown] = useState(null);
+
+  const fetchTeam = async () => {
+    try {
+      const uId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/team?userId=${uId}`);
+      const data = await res.json();
+      if (data.success) setTeamMembers(data.data);
+    } catch (error) {
+      console.error('Error fetching team:', error);
+    }
+  };
+
+  const computeUserRole = () => {
+    const role = localStorage.getItem('userRole') || 'TEAM_MEMBER';
+    setUserRole(role.toLowerCase());
+  };
 
   const sourceStats = useMemo(() => {
     return aggregateSourceStats(leads);
@@ -54,9 +73,45 @@ export default function EnterpriseLeadsPage() {
 
   useEffect(() => {
     fetchLeads();
+    fetchTeam();
+    computeUserRole();
     const interval = setInterval(fetchLeads, 30000);
-    return () => clearInterval(interval);
-  }, [statusFilter]);
+
+    // Click away to close dropdown
+    const handleClickAway = (e) => {
+      if (activeAssignDropdown && !e.target.closest('.assign-trigger') && !e.target.closest('.assign-dropdown')) {
+        setActiveAssignDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickAway);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('mousedown', handleClickAway);
+    };
+  }, [statusFilter, activeAssignDropdown]);
+
+  const handleAssignLead = async (leadId, newAssigneeId) => {
+    try {
+      const uId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/leads/${leadId}?userId=${uId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignedTo: newAssigneeId,
+          performedBy: uId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Lead re-assigned');
+        setActiveAssignDropdown(null);
+        fetchLeads();
+      }
+    } catch (error) {
+      toast.error('Failed to re-assign');
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -68,13 +123,17 @@ export default function EnterpriseLeadsPage() {
       }
 
       let url = `/api/automation/leads?userId=${userId}`;
-
       if (statusFilter !== 'all') {
         if (statusFilter === 'not-contacted') {
           url += '&status=new';
         } else {
           url += `&status=${statusFilter}`;
         }
+      }
+
+      const eventId = searchParams.get('eventId');
+      if (eventId) {
+        url += `&eventId=${eventId}`;
       }
 
       const res = await fetch(url);
@@ -90,6 +149,46 @@ export default function EnterpriseLeadsPage() {
       console.error('Error fetching leads:', error);
       toast.error('Failed to load leads');
       setLoading(false);
+    }
+  };
+
+  const initiateCall = async (lead, e) => {
+    if (e) e.stopPropagation();
+
+    if (!lead.phone) {
+      toast.error('Lead has no phone number');
+      return;
+    }
+
+    const tid = toast.loading(`Initiating call to ${lead.name}...`);
+    try {
+      const bId = localStorage.getItem('businessId');
+      const uId = localStorage.getItem('userid');
+
+      const res = await fetch('/api/automation/calls/initiate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          userId: uId,
+          businessId: bId,
+          leadId: lead._id,
+          leadPhone: lead.phone
+        })
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent('lfg-initiate-call', { detail: result.data }));
+        toast.dismiss(tid);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Call Initiation Error:', error);
+      toast.error(error.message || 'Failed to start call', { id: tid });
     }
   };
 
@@ -537,10 +636,10 @@ export default function EnterpriseLeadsPage() {
                             </span>
                             <div className="flex items-center gap-2">
                               <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                                  lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
-                                    lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
-                                      lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
-                                        'bg-slate-100 text-slate-700'
+                                lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
+                                  lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
+                                    lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
+                                      'bg-slate-100 text-slate-700'
                                 }`}>
                                 {lead.status === 'new' ? 'Pending' :
                                   lead.status === 'contacted' ? 'Connected' :
@@ -557,6 +656,14 @@ export default function EnterpriseLeadsPage() {
                                 <span className="text-[10px] text-slate-500 truncate max-w-[150px] whitespace-nowrap">
                                   {lead.serviceInterest}
                                 </span>
+                              )}
+                              {lead.eventId && (
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <Calendar className="w-2.5 h-2.5 text-indigo-500" />
+                                  <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded uppercase tracking-tight">
+                                    {lead.eventId.name || 'Event Session'}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -615,14 +722,67 @@ export default function EnterpriseLeadsPage() {
                               </span>
                             </td>
 
-                            {/* Owner - Simple */}
-                            <td className="px-4 py-3">
-                              {lead.assignedTo ? (
-                                <span className="text-xs text-slate-600 truncate max-w-[120px] whitespace-nowrap">
-                                  {lead.assignedTo.email.split('@')[0]}
-                                </span>
+                            <td className="px-4 py-3 relative" onClick={(e) => e.stopPropagation()}>
+                              {(userRole.includes('owner') || userRole.includes('admin') || userRole.includes('super')) ? (
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveAssignDropdown(activeAssignDropdown === lead._id ? null : lead._id);
+                                    }}
+                                    className={`assign-trigger flex items-center gap-2 group/owner p-1 -m-1 rounded-md transition-all ${activeAssignDropdown === lead._id ? 'bg-indigo-50 shadow-sm ring-1 ring-indigo-100' : 'hover:bg-slate-50'}`}
+                                  >
+                                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 uppercase group-hover/owner:border-indigo-200 transition-colors shrink-0">
+                                      {lead.assignedTo?.firstName?.charAt(0) || lead.assignedTo?.email?.charAt(0) || '?'}
+                                    </div>
+                                    <div className="flex flex-col items-start min-w-0">
+                                      <span className={`text-[11px] font-bold truncate max-w-[90px] transition-colors ${activeAssignDropdown === lead._id ? 'text-indigo-600' : 'text-slate-700 group-hover/owner:text-indigo-600'}`}>
+                                        {lead.assignedTo ? (lead.assignedTo.firstName || lead.assignedTo.email.split('@')[0]) : 'Unassigned'}
+                                      </span>
+                                    </div>
+                                    {/* Subtly indicate interactivity without a bulky arrow */}
+                                    <div className={`w-1 h-1 rounded-full transition-all duration-300 ${activeAssignDropdown === lead._id ? 'bg-indigo-600 scale-125' : 'bg-slate-300 opacity-0 group-hover/owner:opacity-100'}`} />
+                                  </button>
+
+                                  {activeAssignDropdown === lead._id && (
+                                    <div className="assign-dropdown absolute top-full left-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                                      <div className="p-2 border-b border-slate-50 bg-slate-50/50">
+                                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Assign Lead</p>
+                                      </div>
+                                      {teamMembers.length > 0 ? (
+                                        teamMembers.map((member) => (
+                                          <button
+                                            key={member._id}
+                                            onClick={() => handleAssignLead(lead._id, member.userId._id)}
+                                            className={`w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex items-center gap-2 border-b border-slate-50 last:border-0 ${lead.assignedTo?._id === member.userId._id ? 'bg-indigo-50/30' : ''}`}
+                                          >
+                                            <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-indigo-600 border border-indigo-100 uppercase shrink-0">
+                                              {member.userId?.firstName?.charAt(0) || member.userId?.email?.charAt(0)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className={`text-[11px] font-bold truncate ${lead.assignedTo?._id === member.userId._id ? 'text-indigo-600' : 'text-slate-900'}`}>
+                                                {member.userId?.firstName ? `${member.userId.firstName} ${member.userId.lastName || ''}` : member.userId?.email.split('@')[0]}
+                                              </p>
+                                            </div>
+                                          </button>
+                                        ))
+                                      ) : (
+                                        <div className="p-4 text-center">
+                                          <p className="text-[10px] text-slate-400">No members</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
-                                <span className="text-xs text-slate-400 whitespace-nowrap">Unassigned</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-100 uppercase">
+                                    {lead.assignedTo?.firstName?.charAt(0) || lead.assignedTo?.email?.charAt(0) || '?'}
+                                  </div>
+                                  <span className="text-xs text-slate-500 truncate max-w-[120px]">
+                                    {lead.assignedTo ? (lead.assignedTo.firstName || lead.assignedTo.email.split('@')[0]) : 'Unassigned'}
+                                  </span>
+                                </div>
                               )}
                             </td>
                           </>
@@ -635,15 +795,14 @@ export default function EnterpriseLeadsPage() {
                         >
                           <div className="flex items-center justify-end">
                             <div className="flex items-center gap-1.5 transition-[max-width] duration-500 ease-in-out max-w-[42px] group-hover/action-cell:max-w-[200px] overflow-hidden">
-                              {/* Primary Call Action - Always Visible */}
-                              <a
-                                href={`tel:${lead.phone}`}
-                                onClick={(e) => markAsContacted(lead._id, e)}
+                              {/* Primary Call Action - Dialer Integrated */}
+                              <button
+                                onClick={(e) => initiateCall(lead, e)}
                                 className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-all"
-                                title="Call"
+                                title="Call Lead"
                               >
                                 <Phone className="w-3.5 h-3.5" />
-                              </a>
+                              </button>
 
                               {/* Secondary Actions - Revealed on CELL hover */}
                               <div className="flex items-center gap-1.5 opacity-0 group-hover/action-cell:opacity-100 transition-opacity duration-300 delay-100">

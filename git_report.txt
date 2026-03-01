@@ -1,0 +1,84 @@
+--- GIT STATUS --- 
+Not currently on any branch.
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   app/api/automation/calls/complete/route.js
+	new file:   app/api/automation/calls/initiate/route.js
+	modified:   app/api/automation/leads/[id]/route.js
+	modified:   app/api/automation/team/route.js
+	modified:   app/automation/call-integration/page.js
+	new file:   app/automation/components/GlobalDialer.js
+	new file:   app/automation/components/LiveDialer.js
+	new file:   app/automation/components/ReminderMonitor.js
+	modified:   app/automation/components/Sidebar.js
+	modified:   app/automation/layout.js
+	modified:   app/automation/leads/[id]/page.js
+	modified:   app/automation/leads/page.js
+	modified:   app/automation/reports/page.js
+	modified:   app/automation/team/page.js
+	modified:   app/user/register/page.js
+	modified:   lib/call-automation/call_controller.js
+	modified:   lib/call-automation/providers/call_telephony.provider.js
+	modified:   lib/integrations/email.js
+	modified:   models/Business.js
+
+Unmerged paths:
+  (use "git restore --staged <file>..." to unstage)
+  (use "git add <file>..." to mark resolution)
+	both modified:   app/automation/page.js
+	both modified:   package-lock.json
+	both modified:   package.json
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app/api/automation/leads/route.js
+	modified:   app/automation/components/Sidebar.js
+	modified:   app/automation/leads/page.js
+	modified:   lib/automationEngine.js
+	modified:   lib/leadProcessor.js
+	modified:   lib/queue.js
+	modified:   models/automation/Lead.js
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	app/api/automation/events/
+	app/api/automation/sequences/
+	app/api/forms/public/
+	app/automation/events/
+	app/automation/sequences/
+	app/f/
+	debug_npm.js
+	fix_git.bat
+	force_install.js
+	git_debug.txt
+	git_report.txt
+	install_log.txt
+	models/automation/AutomationSequence.js
+	models/automation/Event.js
+	node_success.txt
+	run_final_install.js
+	run_npm.js
+	step_1.txt
+	step_2.txt
+	step_3.txt
+	test_node.js
+	test_npm_v.txt
+	test_side_effect.js
+	test_simple.js
+	test_write.txt
+
+ 
+--- UNMERGED FILES --- 
+app/automation/page.js
+package-lock.json
+package.json
+ 
+--- CURRENT BRANCH --- 
+* (no branch)
+  main
+ 
+--- ATTEMPTING ABORT --- 
+fatal: There is no merge to abort (MERGE_HEAD missing).
+fatal: no rebase in progress
+ 

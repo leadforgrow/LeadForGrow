@@ -15,8 +15,10 @@ import {
   ArrowDownRight,
   Info
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function RevenueIntelligenceDashboard() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(null);
   const [config, setConfig] = useState(null);
@@ -25,10 +27,19 @@ export default function RevenueIntelligenceDashboard() {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
+    const rawRole = localStorage.getItem('userRole') || 'member';
+    const userRole = rawRole.toLowerCase();
+
+    // Redirect if not authorized
+    if (!userRole.includes('owner') && !userRole.includes('admin')) {
+      router.push('/automation/leads');
+      return;
+    }
+
     const plan = localStorage.getItem('userPlan') || 'free';
     setUserPlan(plan);
     fetchRevenueData(plan);
-  }, []);
+  }, [router]);
 
   const fetchRevenueData = async (plan) => {
     try {
@@ -265,20 +276,20 @@ function DashboardContent({ config, metrics, userPlan, formatCurrency, activitie
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-1">
-           <RevenueLeakCard metrics={metrics} />
+          <RevenueLeakCard metrics={metrics} />
         </div>
         <div className="lg:col-span-2">
-           <GrowthStrategistCard metrics={metrics} />
+          <GrowthStrategistCard metrics={metrics} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-         <div className="lg:col-span-2">
-            <PredictiveForecastCard metrics={metrics} />
-         </div>
-         <div className="lg:col-span-1">
-            <SentimentPulseCard metrics={metrics} />
-         </div>
+        <div className="lg:col-span-2">
+          <PredictiveForecastCard metrics={metrics} />
+        </div>
+        <div className="lg:col-span-1">
+          <SentimentPulseCard metrics={metrics} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -302,14 +313,14 @@ function RevenueLeakCard({ metrics }) {
     setAuditing(true);
     try {
       // Logic to call Python backend /api/proxy-ai/audit
-      const res = await fetch('/api/ai/audit', { 
-        method: 'POST', 
+      const res = await fetch('/api/ai/audit', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics || {}) 
+        body: JSON.stringify(metrics || {})
       });
-      
+
       console.log("AUDIT RESPONSE STATUS:", res.status);
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         console.error(`Audit failed with status ${res.status}:`, errorText);
@@ -331,7 +342,7 @@ function RevenueLeakCard({ metrics }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-red-300 p-7 h-full flex flex-col" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-red-300 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-start justify-between mb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -392,10 +403,10 @@ function GrowthStrategistCard({ metrics }) {
     console.log("GETTING STRATEGY: METRICS=", metrics);
     setLoading(true);
     try {
-      const res = await fetch('/api/ai/strategy', { 
-        method: 'POST', 
+      const res = await fetch('/api/ai/strategy', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics || {}) 
+        body: JSON.stringify(metrics || {})
       });
 
       console.log("STRATEGY RESPONSE STATUS:", res.status);
@@ -415,7 +426,7 @@ function GrowthStrategistCard({ metrics }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-blue-400 p-7 h-full flex flex-col" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-blue-400 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
@@ -475,7 +486,7 @@ function ActionCenter({ tasks }) {
   const urgentCount = tasks?.filter(t => t.priority === 'urgent' || (t.dueDate && new Date(t.dueDate) <= new Date())).length || 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-amber-400 p-7" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-amber-400 p-7" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
@@ -486,11 +497,10 @@ function ActionCenter({ tasks }) {
             <p className="text-xs text-slate-400">High-priority follow-ups</p>
           </div>
         </div>
-        <div className={`px-3 py-1.5 rounded-full border text-[10px] font-medium ${
-          urgentCount > 0
-            ? 'bg-rose-50 border-rose-100 text-rose-600'
-            : 'bg-slate-50 border-slate-100 text-slate-500'
-        }`}>
+        <div className={`px-3 py-1.5 rounded-full border text-[10px] font-medium ${urgentCount > 0
+          ? 'bg-rose-50 border-rose-100 text-rose-600'
+          : 'bg-slate-50 border-slate-100 text-slate-500'
+          }`}>
           {urgentCount > 0 ? `${urgentCount} overdue` : 'All clear'}
         </div>
       </div>
@@ -500,12 +510,10 @@ function ActionCenter({ tasks }) {
           tasks.slice(0, 4).map((task, idx) => {
             const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
             return (
-              <div key={idx} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
-                isOverdue ? 'bg-rose-50/50 border-rose-100' : 'bg-slate-50 border-slate-100 hover:border-slate-200'
-              }`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  isOverdue ? 'bg-rose-100 text-rose-600' : 'bg-white border border-slate-200 text-slate-500'
+              <div key={idx} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${isOverdue ? 'bg-rose-50/50 border-rose-100' : 'bg-slate-50 border-slate-100 hover:border-slate-200'
                 }`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isOverdue ? 'bg-rose-100 text-rose-600' : 'bg-white border border-slate-200 text-slate-500'
+                  }`}>
                   {task.type === 'call' ? <Activity className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -523,11 +531,10 @@ function ActionCenter({ tasks }) {
                 <button
                   disabled={!task.leadId}
                   onClick={() => task.leadId && window.open(`/automation/leads/${task.leadId._id || task.leadId}`, '_blank')}
-                  className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors flex-shrink-0 ${
-                    !task.leadId ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700'
+                  className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors flex-shrink-0 ${!task.leadId ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700'
                       : 'bg-slate-900 text-white hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   {task.leadId ? 'View' : '—'}
                 </button>
@@ -558,7 +565,7 @@ function ActivityPulse({ activities }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-indigo-400 p-7 h-full flex flex-col" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-indigo-400 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
@@ -664,10 +671,10 @@ function PredictiveForecastCard({ metrics }) {
     console.log("[Forecast] Triggering with metrics:", metrics);
     setLoading(true);
     try {
-      const res = await fetch('/api/ai/forecast', { 
-        method: 'POST', 
+      const res = await fetch('/api/ai/forecast', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics || {}) 
+        body: JSON.stringify(metrics || {})
       });
       console.log("[Forecast] Status:", res.status);
       if (!res.ok) {
@@ -684,7 +691,7 @@ function PredictiveForecastCard({ metrics }) {
   useEffect(() => { if (metrics) runForecast(); }, [metrics]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-emerald-400 p-7 h-full" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-emerald-400 p-7 h-full" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
@@ -704,8 +711,8 @@ function PredictiveForecastCard({ metrics }) {
       {loading ? (
         <div className="h-52 flex flex-col items-center justify-center gap-3">
           <div className="flex gap-1 items-end h-10">
-            {[40,65,55,80,70,95].map((h, i) => (
-              <div key={i} className="w-6 bg-emerald-200 rounded-sm animate-pulse" style={{ height: `${h}%`, animationDelay: `${i*0.1}s` }} />
+            {[40, 65, 55, 80, 70, 95].map((h, i) => (
+              <div key={i} className="w-6 bg-emerald-200 rounded-sm animate-pulse" style={{ height: `${h}%`, animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
           <p className="text-slate-400 text-xs">Processing projections...</p>
@@ -713,11 +720,11 @@ function PredictiveForecastCard({ metrics }) {
       ) : data && data.forecast ? (
         <div className="animate-in fade-in duration-700">
           {/* Chart */}
-          <div className="flex items-end gap-2 mb-3" style={{height:'160px'}}>
+          <div className="flex items-end gap-2 mb-3" style={{ height: '160px' }}>
             {data.forecast.map((f, i) => {
               const maxVal = Math.max(...data.forecast.map(x => x.value || 0));
               const pct = maxVal > 0 ? Math.max(8, Math.round((f.value / maxVal) * 100)) : 20;
-              const monthColors = ['bg-emerald-300','bg-emerald-400','bg-emerald-400','bg-emerald-500','bg-emerald-500','bg-emerald-600'];
+              const monthColors = ['bg-emerald-300', 'bg-emerald-400', 'bg-emerald-400', 'bg-emerald-500', 'bg-emerald-500', 'bg-emerald-600'];
               return (
                 <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 h-full group/bar">
                   <div
@@ -728,7 +735,7 @@ function PredictiveForecastCard({ metrics }) {
                       ₹{Math.round(f.value || 0).toLocaleString()}
                     </div>
                   </div>
-                  <span className="text-[9px] text-slate-400 font-medium">M{i+1}</span>
+                  <span className="text-[9px] text-slate-400 font-medium">M{i + 1}</span>
                 </div>
               );
             })}
@@ -745,11 +752,11 @@ function PredictiveForecastCard({ metrics }) {
       ) : (
         <div className="h-52 flex flex-col items-center justify-end gap-2 border-b border-slate-100 pb-4 mb-4">
           {/* Skeleton chart */}
-          <div className="flex items-end gap-2 w-full" style={{height:'120px'}}>
-            {[40,65,55,80,70,95].map((h, i) => (
+          <div className="flex items-end gap-2 w-full" style={{ height: '120px' }}>
+            {[40, 65, 55, 80, 70, 95].map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 h-full">
-                <div className="w-full bg-slate-100 rounded-t-lg" style={{height:`${h}%`}} />
-                <span className="text-[9px] text-slate-300">M{i+1}</span>
+                <div className="w-full bg-slate-100 rounded-t-lg" style={{ height: `${h}%` }} />
+                <span className="text-[9px] text-slate-300">M{i + 1}</span>
               </div>
             ))}
           </div>
@@ -768,10 +775,10 @@ function SentimentPulseCard({ metrics }) {
     console.log("[Sentiment] Triggering with metrics:", metrics);
     setLoading(true);
     try {
-      const res = await fetch('/api/ai/sentiment', { 
-        method: 'POST', 
+      const res = await fetch('/api/ai/sentiment', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics || {}) 
+        body: JSON.stringify(metrics || {})
       });
       console.log("[Sentiment] Status:", res.status);
       if (!res.ok) {
@@ -788,7 +795,7 @@ function SentimentPulseCard({ metrics }) {
   useEffect(() => { if (metrics) runPulse(); }, [metrics]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-7 h-full flex flex-col" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)'}}>
+    <div className="bg-white rounded-2xl border border-slate-100 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center gap-3 mb-6">
         <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
           <Activity className="w-4 h-4 text-indigo-600" />
@@ -844,9 +851,9 @@ function SentimentPulseCard({ metrics }) {
 
 function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverted = false, isTrial = false, isBlur = false, isProjected = false }) {
   const colorMap = {
-    blue:   { accent: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100',   dot: 'bg-blue-500' },
+    blue: { accent: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', dot: 'bg-blue-500' },
     orange: { accent: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', dot: 'bg-orange-500' },
-    green:  { accent: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-100',dot: 'bg-emerald-500' },
+    green: { accent: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', dot: 'bg-emerald-500' },
     purple: { accent: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', dot: 'bg-violet-500' },
   };
 
@@ -854,9 +861,9 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
   const isPositive = inverted ? change < 0 : change > 0;
 
   const cardTints = {
-    blue:   'border-t-2 border-t-blue-400',
+    blue: 'border-t-2 border-t-blue-400',
     orange: 'border-t-2 border-t-orange-400',
-    green:  'border-t-2 border-t-emerald-400',
+    green: 'border-t-2 border-t-emerald-400',
     purple: 'border-t-2 border-t-violet-400',
   };
   const tint = cardTints[color] || cardTints.blue;
@@ -867,16 +874,15 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
       hover:shadow-md hover:-translate-y-0.5
       transition-all duration-300
       ${isBlur ? 'blur-[6px] opacity-40 grayscale pointer-events-none' : ''}
-    `} style={{boxShadow:'0 1px 3px rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.04)'}}>
+    `} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.04)' }}>
 
       <div className="flex items-start justify-between mb-5">
         <div className={`w-10 h-10 rounded-xl ${scheme.bg} ${scheme.border} border flex items-center justify-center`}>
           <Icon className={`w-5 h-5 ${scheme.accent}`} />
         </div>
         {change !== undefined && !isTrial && !isBlur && (
-          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium ${
-            isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-500 border border-rose-100'
-          }`}>
+          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-500 border border-rose-100'
+            }`}>
             {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {Math.abs(change)}%
           </div>

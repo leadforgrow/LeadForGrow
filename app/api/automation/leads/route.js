@@ -45,6 +45,7 @@ export async function GET(request) {
     const source = searchParams.get('source');
     const assignedTo = searchParams.get('assignedTo');
     const search = searchParams.get('search');
+    const eventId = searchParams.get('eventId');
 
     const query = { businessId: business._id, archived: false };
 
@@ -59,6 +60,7 @@ export async function GET(request) {
 
     if (status) query.status = status;
     if (source) query.source = source;
+    if (eventId) query.eventId = eventId;
 
     if (search) {
       query.$or = [
@@ -75,6 +77,7 @@ export async function GET(request) {
     const leads = await Lead.find(query)
       .populate('assignedTo', 'email firstName lastName')
       .populate('formId', 'name')
+      .populate('eventId', 'name')
       .sort({ receivedAt: -1 })
       .lean();
 

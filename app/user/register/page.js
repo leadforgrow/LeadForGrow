@@ -66,13 +66,25 @@ export default function AuthPage() {
         localStorage.setItem('userEmail', formData.email);
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
+        localStorage.setItem('businessId', data.data.business.id);
+
+        // Add to cookie for middleware support
+        document.cookie = `token=${data.data.token}; path=/; max-age=604800; samesite=lax`;
+
         toast.success('Account created successfully!');
 
-        // Redirect based on plan
-        if (data.data.business.plan.toLowerCase().includes('agency')) {
-          router.push('/agency');
+        // Redirect based on plan and role
+        const role = (data.data.role || 'member').toLowerCase();
+        const plan = data.data.business.plan.toLowerCase();
+
+        if (role.includes('owner') || role.includes('admin')) {
+          if (plan.includes('agency')) {
+            router.push('/agency');
+          } else {
+            router.push('/automation');
+          }
         } else {
-          router.push('/automation');
+          router.push('/automation/leads');
         }
       } else {
         toast.error(data.error || 'Registration failed');
@@ -104,13 +116,25 @@ export default function AuthPage() {
         localStorage.setItem('userEmail', formData.email);
         localStorage.setItem('userRole', data.data.role);
         localStorage.setItem('userPlan', data.data.business.plan);
+        localStorage.setItem('businessId', data.data.business.id);
+
+        // Add to cookie for middleware support
+        document.cookie = `token=${data.data.token}; path=/; max-age=604800; samesite=lax`;
+
         toast.success('Logged in successfully!', { duration: 3000 });
 
-        // Redirect based on plan
-        if (data.data.business.plan.toLowerCase().includes('agency')) {
-          router.push('/agency');
+        // Redirect based on plan and role
+        const role = (data.data.role || 'member').toLowerCase();
+        const plan = data.data.business.plan.toLowerCase();
+
+        if (role.includes('owner') || role.includes('admin')) {
+          if (plan.includes('agency')) {
+            router.push('/agency');
+          } else {
+            router.push('/automation');
+          }
         } else {
-          router.push('/automation');
+          router.push('/automation/leads');
         }
       } else {
         toast.error(data.error || 'Login failed');

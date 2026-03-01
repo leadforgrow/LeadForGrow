@@ -37,6 +37,17 @@ export default function ReportsPage() {
   const [warmingLoading, setWarmingLoading] = useState(false);
 
   useEffect(() => {
+    const rawRole = localStorage.getItem('userRole') || 'member';
+    const userRole = rawRole.toLowerCase();
+
+    // Redirect if not authorized
+    if (!userRole.includes('owner') && !userRole.includes('admin')) {
+      router.push('/automation/leads');
+      return;
+    }
+  }, [router]);
+
+  useEffect(() => {
     fetchReports();
   }, [period]);
 
