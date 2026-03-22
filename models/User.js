@@ -28,8 +28,8 @@ const UserSchema = new mongoose.Schema({
   // User Role within the Business
   role: {
     type: String,
-    enum: ['SUPER_ADMIN', 'AGENCY_OWNER', 'CLIENT_ADMIN', 'TEAM_MEMBER', 'VIEW_ONLY'],
-    default: 'TEAM_MEMBER'
+    enum: ['SUPER_ADMIN', 'AGENCY_OWNER', 'CLIENT_ADMIN', 'TEAM_MEMBER', 'VIEW_ONLY', 'super', 'owner', 'admin', 'team_member', 'user'],
+    default: 'team_member'
   },
 
   // Personal Information
