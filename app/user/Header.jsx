@@ -40,6 +40,7 @@ const UserNavbar = () => {
   ];
 
   const resourcesDropdown = [
+    { label: "About Us", href: "/resources/about" },
     { label: "How It Works", href: "/resources/how-it-works" },
     { label: "Use Cases", href: "/resources/use-cases" },
     { label: "Case Studies", href: "/resources/case-studies" },
