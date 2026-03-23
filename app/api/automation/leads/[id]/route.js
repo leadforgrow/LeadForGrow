@@ -117,8 +117,22 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       });
     }
 
-    const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true }).populate('assignedTo', 'email');
+    const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true }).populate('assignedTo', 'email firstName lastName');
     if (activities.length > 0) await Activity.insertMany(activities);
+
+    // Human Assignment Notification
+    if (updates.assignedTo && updates.assignedTo !== lead.assignedTo?.toString()) {
+      const { sendAssignmentNotification } = await import('@/lib/integrations/email');
+      const Business = (await import('@/models/Business')).default;
+      const biz = await Business.findById(businessId);
+      const assignee = await User.findById(updates.assignedTo);
+
+      if (biz && assignee) {
+        sendAssignmentNotification(updatedLead, biz, assignee).catch(err => {
+          console.error('[Assignment] Notification failed:', err);
+        });
+      }
+    }
 
     // Trigger automation on status change
     if (status && status !== lead.status) {

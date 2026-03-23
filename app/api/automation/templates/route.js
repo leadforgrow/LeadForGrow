@@ -8,13 +8,13 @@ import Business from '@/models/Business';
 async function getBusiness(request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-  
+
   if (!userId) return null;
-  
+
   await dbConnect();
   const user = await User.findById(userId);
   if (!user || !user.businessId) return null;
-  
+
   return user.businessId;
 }
 
@@ -38,6 +38,12 @@ export async function GET(request) {
       type: 'follow_up_reminder'
     });
 
+    // Fetch manual templates
+    const manualTemplates = await AutomationRule.find({
+      businessId,
+      type: 'manual_template'
+    }).sort({ createdAt: -1 });
+
     return NextResponse.json({
       success: true,
       welcome: welcomeRule ? {
@@ -50,7 +56,15 @@ export async function GET(request) {
         body: followUpRule.config.messageTemplate || '',
         enabled: followUpRule.enabled,
         delayHours: followUpRule.config.delayHours || 24
-      } : null
+      } : null,
+      manual: manualTemplates.map(t => ({
+        id: t._id,
+        name: t.name,
+        subject: t.config.emailSubject || '',
+        body: t.config.messageTemplate || '',
+        channel: t.config.channel || 'whatsapp',
+        enabled: t.enabled
+      }))
     });
 
   } catch (error) {
@@ -74,9 +88,9 @@ export async function POST(request) {
     // 1. Update/Create 'Lead Welcome Email' (Instant Acknowledgement)
     if (welcome) {
       await AutomationRule.findOneAndUpdate(
-        { 
-          businessId, 
-          type: 'instant_acknowledgement' 
+        {
+          businessId,
+          type: 'instant_acknowledgement'
         },
         {
           $set: {
@@ -99,9 +113,9 @@ export async function POST(request) {
     // 2. Update/Create 'Follow-Up Email'
     if (followUp) {
       await AutomationRule.findOneAndUpdate(
-        { 
-          businessId, 
-          type: 'follow_up_reminder' 
+        {
+          businessId,
+          type: 'follow_up_reminder'
         },
         {
           $set: {
@@ -112,7 +126,7 @@ export async function POST(request) {
             'config.emailSubject': followUp.subject,
             'config.delayHours': followUp.delayHours,
             'triggers.onStatusChange': true, // Assuming generic status change trigger for now
-             // Note: Triggers might need refinement based on exact needed logic
+            // Note: Triggers might need refinement based on exact needed logic
           },
           $setOnInsert: {
             createdAt: new Date()
@@ -120,6 +134,51 @@ export async function POST(request) {
         },
         { upsert: true, new: true }
       );
+    }
+
+    // 3. Update/Create/Sync Manual Templates
+    if (body.manual) {
+      const manualTemplates = body.manual; // Array of { id, name, subject, body, channel }
+      for (const t of manualTemplates) {
+        if (t.id) {
+          // Update existing
+          await AutomationRule.findOneAndUpdate(
+            { _id: t.id, businessId, type: 'manual_template' },
+            {
+              $set: {
+                name: t.name,
+                description: 'Manual sending template',
+                'config.messageTemplate': t.body,
+                'config.emailSubject': t.subject,
+                'config.channel': t.channel || 'whatsapp'
+              }
+            }
+          );
+        } else {
+          // Create new
+          await AutomationRule.create({
+            businessId,
+            type: 'manual_template',
+            name: t.name,
+            description: 'Manual sending template',
+            enabled: true,
+            config: {
+              messageTemplate: t.body,
+              emailSubject: t.subject,
+              channel: t.channel || 'whatsapp'
+            }
+          });
+        }
+      }
+    }
+
+    // Handle deletions if provided
+    if (body.deleteManualIds) {
+      await AutomationRule.deleteMany({
+        _id: { $in: body.deleteManualIds },
+        businessId,
+        type: 'manual_template'
+      });
     }
 
     return NextResponse.json({ success: true });

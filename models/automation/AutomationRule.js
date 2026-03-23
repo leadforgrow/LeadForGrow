@@ -8,7 +8,7 @@ const AutomationRuleSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  
+
   // Rule Identification
   name: {
     type: String,
@@ -20,7 +20,7 @@ const AutomationRuleSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  
+
   // Rule Type
   type: {
     type: String,
@@ -29,17 +29,18 @@ const AutomationRuleSchema = new mongoose.Schema({
       'notify_team',
       'auto_assign',
       'follow_up_reminder',
-      'lost_lead_reengagement'
+      'lost_lead_reengagement',
+      'manual_template'
     ],
     required: true
   },
-  
+
   // Status
   enabled: {
     type: Boolean,
     default: true
   },
-  
+
   // Configuration
   config: {
     // For instant acknowledgement
@@ -67,7 +68,7 @@ const AutomationRuleSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
-    
+
     // For auto-assign
     assignmentRule: {
       type: String,
@@ -77,19 +78,19 @@ const AutomationRuleSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    
+
     // For follow-up reminders
     delayHours: {
       type: Number
     },
-    
+
     // For notifications
     notifyUsers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }]
   },
-  
+
   // Trigger Conditions
   triggers: {
     onLeadReceived: {
@@ -105,7 +106,7 @@ const AutomationRuleSchema = new mongoose.Schema({
       default: false
     }
   },
-  
+
   // Analytics
   executionCount: {
     type: Number,

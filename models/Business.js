@@ -133,7 +133,9 @@ const BusinessSettingsSchema = new mongoose.Schema({
       provider: { type: String, enum: ['vapi', 'retell', 'twilio'], default: 'vapi' },
       apiKey: { type: String, select: false },
       assistantId: { type: String },
-      phoneNumberId: { type: String }
+      phoneNumberId: { type: String },
+      twimlAppSid: { type: String },
+      apiSecret: { type: String, select: false }
     }
   }
 }, { _id: false });

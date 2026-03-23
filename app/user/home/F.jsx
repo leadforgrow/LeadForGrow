@@ -1,128 +1,277 @@
-'use client';
+"use client"
 
-import React from 'react';
-import { Target, Zap, ShieldCheck, BarChart3 } from 'lucide-react';
-import { useStaggerAnimation, useInView } from '@/app/hooks/useScrollAnimation';
+import { motion, useScroll, useTransform, useSpring } from "framer-motion"
+import { useRef } from "react"
+import {
+  Check,
+  ArrowRight,
+  Grid,
+  Users,
+  Mail,
+  Zap,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  Calendar
+} from "lucide-react"
 
 export default function LeadForGrowHero() {
-  const { ref: stepsRef, visibleItems: visibleSteps } = useStaggerAnimation(4, 200);
-  const { ref: cardsRef, visibleItems: visibleCards } = useStaggerAnimation(3, 150);
-  const { ref: imageRef, inView: imageInView } = useInView({ threshold: 0.3 });
+  const sectionRef = useRef(null)
 
-  const steps = [
-    { step: "01", title: "Instant Capture", desc: "Every call, WhatsApp, and form enquiry is captured instantly. No more lost sticky notes." },
-    { step: "02", title: "Smart Routing", desc: "Leads are assigned to the right team member in seconds based on availability and expertise." },
-    { step: "03", title: "Automated Persistence", desc: "The system enforces follow-ups through multi-channel sequences until the lead converts." },
-    { step: "04", title: "Revenue Visibility", desc: "See exactly how much revenue is 'At Risk' and who is closing the most deals." }
-  ];
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  })
 
-  const outcomes = [
-    { icon: Target, title: "Higher Conversion", desc: "Response time under 5 minutes increases conversion rates by up to 391%. We make it happen every time.", color: "text-emerald-500" },
-    { icon: ShieldCheck, title: "Zero Leakage", desc: "Every lead is accounted for. No more 'I forgot to call' or 'The lead was lost in my WhatsApp'.", color: "text-blue-500" },
-    { icon: Zap, title: "Operational Discipline at Scale", desc: "Manage 10 or 10,000 leads with the same level of discipline, automated precision, and leaderboard metrics.", color: "text-amber-500" }
-  ];
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 80,
+    damping: 25,
+    restDelta: 0.001,
+  })
+
+  const dashboardScale = useTransform(smoothProgress, [0.1, 0.25], [0.94, 1])
+  const dashboardOpacity = useTransform(smoothProgress, [0.1, 0.2], [0, 1])
+  const dashboardY = useTransform(smoothProgress, [0.1, 0.25], [12, 0])
+
+  const pointSlideDistance = 190
+  const leftPointsX = useTransform(smoothProgress, [0.25, 0.4], [0, -pointSlideDistance])
+  const rightPointsX = useTransform(smoothProgress, [0.25, 0.4], [0, pointSlideDistance])
+  const pointsOpacity = useTransform(smoothProgress, [0.25, 0.35], [0, 1])
+  const pointsScale = useTransform(smoothProgress, [0.25, 0.4], [0.8, 1])
+
+  const ctaOpacity = useTransform(smoothProgress, [0.4, 0.5], [0, 1])
+
+  const staticBulletPoints = [
+    "Eliminate 40+ hours of manual data entry",
+    "Improve lead response time by 300%",
+    "Direct integration with WhatsApp & Meta",
+    "Smart routing to available sales agents",
+  ]
+
+  const emergingPoints = [
+    { id: 1, side: "left", text: "Faster Response", top: "20%" },
+    { id: 2, side: "left", text: "Reduced Manual Work", top: "70%" },
+    { id: 3, side: "right", text: "Automated Routing", top: "35%" },
+    { id: 4, side: "right", text: "CRM Syncing", top: "80%" },
+  ]
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500 overflow-hidden relative border-t dark:border-slate-800">
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-600 rounded-full -translate-y-1/2 translate-x-1/2 opacity-10 blur-3xl animate-glow-pulse"></div>
-      <div className="absolute bottom-20 left-0 w-32 h-32 bg-blue-500 rounded-full -translate-x-1/2 opacity-10 blur-3xl animate-glow-pulse delay-500"></div>
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-grid pb-24 pt-32 md:pb-36 md:pt-48"
+    >
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-24">
 
-      <div className="max-w-7xl mx-auto px-8 py-24 relative z-10">
+          {/* LEFT COLUMN */}
+          <div className="relative z-30">
+            <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-600 ring-1 ring-blue-100">
+              Why LeadForGrow
+            </span>
 
-        {/* SECTION 3: HOW IT WORKS (SYSTEM VIEW) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-32">
-          <div ref={stepsRef}>
-            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4 opacity-0 animate-fade-in">The System</p>
-            <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight mb-8">
-              <span className="inline-block opacity-0 animate-fade-in-up delay-100">A Revenue engine</span>
-              <br />
-              <span className="inline-block opacity-0 animate-fade-in-up delay-200">
-                that never <span className="italic text-indigo-600">sleeps.</span>
-              </span>
+            <h2 className="mt-6 text-balance text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+              Why Growing Businesses Choose LeadForGrow
             </h2>
 
-            {/* Steps with Sequential Animation and Line Connectors */}
-            <div className="space-y-8">
-              {steps.map((item, idx) => (
-                <div key={idx} className="relative">
-                  {/* Animated connector line */}
-                  {idx < steps.length - 1 && (
-                    <div
-                      className={`absolute left-[18px] top-16 w-0.5 h-8 bg-gradient-to-b from-indigo-500 to-indigo-300 dark:from-indigo-400 dark:to-indigo-600 transition-all duration-500 ${visibleSteps.includes(idx + 1) ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'
-                        }`}
-                      style={{ transformOrigin: 'top' }}
-                    ></div>
-                  )}
+            <p className="mt-6 text-lg leading-relaxed text-slate-600">
+              LeadForGrow isn't just a tool; it's the engine that powers your sales operations.
+              Built for high-performance teams who demand speed, visibility, and automation.
+            </p>
 
-                  <div
-                    className={`flex gap-6 group transition-all duration-700 ${visibleSteps.includes(idx)
-                        ? 'opacity-100 translate-x-0'
-                        : 'opacity-0 -translate-x-8'
-                      }`}
-                  >
-                    {/* Number fades in before text */}
-                    <div className={`text-2xl font-black text-slate-200 dark:text-slate-800 group-hover:text-indigo-600 transition-all duration-300 ${visibleSteps.includes(idx) ? 'scale-100' : 'scale-50'
-                      }`}>
-                      {item.step}
+            <ul className="mt-10 space-y-4">
+              {staticBulletPoints.map((text, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <Check size={12} strokeWidth={4} />
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700">
+                    {text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div className="relative flex min-h-[500px] items-center justify-center">
+            <div className="relative w-full max-w-[560px]">
+
+              <motion.div
+                style={{
+                  scale: dashboardScale,
+                  opacity: dashboardOpacity,
+                  y: dashboardY,
+                }}
+                className="relative z-20 w-full overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white p-0 shadow-[0_45px_100px_-20px_rgba(0,0,0,0.15)] antialiased"
+              >
+                {/* Real Dashboard Mockup */}
+                <div className="flex h-[420px] w-full font-sans text-slate-900">
+                  {/* Sidebar */}
+                  <div className="hidden sm:flex w-44 flex-col bg-[#1A1F2E] p-5 text-[#94A3B8]">
+                    <div className="flex items-center gap-2 mb-8">
+                      <div className="h-6 w-6 rounded bg-blue-500 flex items-center justify-center">
+                        <Zap size={14} className="text-white" />
+                      </div>
+                      <span className="text-xs font-bold text-white uppercase tracking-tighter">LFG OS</span>
                     </div>
-                    <div>
-                      <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{item.title}</h4>
-                      <p className="text-slate-500 dark:text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+
+                    <div className="space-y-4">
+                      {[
+                        { icon: Grid, label: "Overview", active: true },
+                        { icon: Users, label: "Leads" },
+                        { icon: Zap, label: "Automation" },
+                        { icon: Mail, label: "Campaigns" },
+                        { icon: BarChart3, label: "Reports" },
+                      ].map((item, idx) => (
+                        <div key={idx} className={`flex items-center gap-3 px-1 py-0.5 transition-colors cursor-pointer ${item.active ? "text-white" : "hover:text-slate-300"}`}>
+                          <item.icon size={15} />
+                          <span className="text-[11px] font-semibold">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-auto space-y-4">
+                      <div className="flex items-center gap-3 px-1 text-slate-500">
+                        <Settings size={15} />
+                        <span className="text-[11px] font-semibold">Settings</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full w-2/3 bg-blue-500" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Workspace */}
+                  <div className="flex-1 flex flex-col bg-[#F9FBFC]">
+                    {/* Top Bar */}
+                    <div className="h-12 border-b border-slate-100 bg-white flex items-center justify-between px-6">
+                      <div className="flex items-center gap-4 text-slate-300">
+                        <div className="h-4 w-32 bg-slate-50 rounded" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-slate-100" />
+                        <ChevronDown size={14} className="text-slate-400" />
+                      </div>
+                    </div>
+
+                    <div className="p-6 space-y-6">
+                      {/* Charts Grid */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-2">Conversions</div>
+                          <div className="flex items-end gap-1 h-12">
+                            {[40, 70, 45, 90, 65, 80].map((h, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ height: 0 }}
+                                animate={{ height: `${h}%` }}
+                                transition={{ delay: 0.5 + i * 0.1 }}
+                                className="flex-1 rounded-t-sm bg-blue-100 hover:bg-blue-500 transition-colors"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-2">New Leads</div>
+                          <div className="text-xl font-extrabold text-slate-900">+128%</div>
+                          <div className="text-[9px] text-green-500 font-bold mt-1">▲ 12.4% this week</div>
+                        </div>
+                      </div>
+
+                      {/* Lead List */}
+                      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-900 uppercase">Recent Activity</span>
+                          <span className="text-[9px] font-bold text-blue-600">View All</span>
+                        </div>
+                        <div className="divide-y divide-slate-50">
+                          {[
+                            { name: "John Doe", time: "2m ago", status: "Active" },
+                            { name: "Sarah Smith", time: "15m ago", status: "New" },
+                            { name: "Mike Ross", time: "1h ago", status: "Closed" },
+                          ].map((lead, i) => (
+                            <div key={i} className="px-4 py-2.5 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="h-6 w-6 rounded-full bg-slate-100" />
+                                <div>
+                                  <div className="text-[11px] font-bold text-slate-900">{lead.name}</div>
+                                  <div className="text-[9px] text-slate-400">{lead.time}</div>
+                                </div>
+                              </div>
+                              <div className={`px-2 py-0.5 rounded-full text-[8px] font-extrabold ${lead.status === "Active" ? "bg-green-50 text-green-600" : lead.status === "New" ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>
+                                {lead.status}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </motion.div>
 
-          {/* System Image with Scale Animation */}
-          <div ref={imageRef} className="relative">
-            <div className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[3rem] p-4 shadow-2xl overflow-hidden group transition-all duration-1000 ${imageInView ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-90 rotate-2'
-              }`}>
-              <img
-                src="/rev-os-flow.png"
-                alt="LeadForGrow System Architecture"
-                className="w-full h-auto rounded-[2.5rem] group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <div className={`absolute -bottom-10 -right-10 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl transition-opacity duration-1000 ${imageInView ? 'opacity-100' : 'opacity-0'
-              }`}></div>
-          </div>
-        </div>
-
-        {/* SECTION 5: KEY OUTCOMES */}
-        <div className="pt-24 border-t border-slate-200 dark:border-slate-900">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mb-6 opacity-0 animate-fade-in-up">
-              Designed for Revenue, not just dashboards.
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto opacity-0 animate-fade-in-up delay-200">
-              We stopped selling "features" and started selling "results". Here is what changes on Day 1.
-            </p>
-          </div>
-
-          {/* Outcome Cards with Stagger */}
-          <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {outcomes.map((item, i) => (
-              <div
-                key={i}
-                className={`bg-white dark:bg-slate-900/40 p-10 rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:border-indigo-500/50 dark:hover:border-indigo-500/50 transition-all duration-500 group ${visibleCards.includes(i)
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-12'
-                  }`}
-              >
-                <div className={`w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-8 group-hover:bg-slate-900 dark:group-hover:bg-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                  <item.icon className="w-6 h-6 text-slate-400 group-hover:text-white dark:group-hover:text-slate-900 transition-colors" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.title}</h3>
-                <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{item.desc}</p>
+              {/* Emerging Floating Points */}
+              <div className="absolute inset-0 z-30 hidden lg:block">
+                {emergingPoints.map((point) => (
+                  <motion.div
+                    key={point.id}
+                    style={{
+                      top: point.top,
+                      x: point.side === "left" ? leftPointsX : rightPointsX,
+                      opacity: pointsOpacity,
+                      scale: pointsScale,
+                    }}
+                    className={`absolute flex items-center gap-2.5 whitespace-nowrap rounded-lg bg-white px-3.5 py-2.5 text-[13px] font-bold text-slate-800 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.08)] ring-1 ring-slate-100 ${point.side === "left"
+                      ? "right-1/2 mr-4 shadow-[-4px_0_12px_rgba(0,0,0,0.02)]"
+                      : "left-1/2 ml-4 shadow-[4px_0_12px_rgba(0,0,0,0.02)]"
+                      }`}
+                  >
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white">
+                      <Check size={12} strokeWidth={4} />
+                    </div>
+                    {point.text}
+                  </motion.div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
+        {/* Mobile Fallback */}
+        <div className="mt-12 grid grid-cols-2 gap-3 lg:hidden">
+          {emergingPoints.map((point) => (
+            <div
+              key={point.id}
+              className="flex items-center gap-2.5 rounded-xl border border-slate-100 p-3.5 bg-slate-50"
+            >
+              <Check size={14} className="text-blue-600" />
+              <span className="text-xs font-bold text-slate-800">
+                {point.text}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+
+      {/* CTA SECTION */}
+      <motion.div
+        style={{ opacity: ctaOpacity }}
+        className="mt-20 flex w-full justify-center"
+      >
+        <div className="flex w-full max-w-4xl flex-col items-center justify-between gap-6 border-t border-slate-100 bg-[#EBF3FF] px-8 py-6 sm:flex-row sm:rounded-full sm:ring-1 sm:ring-blue-100 lg:px-12">
+          <span className="text-lg font-bold text-blue-900">
+            Ready to See It in Action?
+          </span>
+
+          <button className="group flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200">
+            Book a Demo Today
+            <ArrowRight
+              size={16}
+              className="transition-transform group-hover:translate-x-1"
+            />
+          </button>
+        </div>
+      </motion.div>
+    </section>
+  )
 }

@@ -1,4 +1,0 @@
-Roles for Team Members:
-moodli.track@gmail.com : Role=member | ID=695e98a8cf9a4d5536aaab6b
-riyasingh22@gmail.com : Role=owner | ID=695e9532cf9a4d5536aaaa12
-yashi123@gmail.com : Role=member | ID=695e9723cf9a4d5536aaaab8

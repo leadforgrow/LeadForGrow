@@ -1,126 +1,247 @@
-'use client';
+"use client"
 
-import React from 'react';
-import { AlertTriangle, Clock, Users, ZapOff } from 'lucide-react';
-import { useStaggerAnimation, useInView } from '@/app/hooks/useScrollAnimation';
+import { motion, AnimatePresence } from "framer-motion"
+import { Search, Zap, UserPlus, TrendingUp } from "lucide-react"
+import { useState } from "react"
 
-export default function PainSection() {
-  const { ref: cardsRef, visibleItems } = useStaggerAnimation(4, 150);
-  const { ref: quoteRef, inView: quoteInView } = useInView({ threshold: 0.5 });
+const steps = [
+  {
+    id: 1,
+    title: "Capture",
+    description:
+      "Leads enter from website, social media, WhatsApp or campaigns automatically.",
+    icon: Search,
+    x: "10%",
+    y: "50%",
+  },
+  {
+    id: 2,
+    title: "Automate",
+    description:
+      "Instant WhatsApp reply is sent. Follow-up sequences are triggered.",
+    icon: Zap,
+    x: "36.5%",
+    y: "25%",
+  },
+  {
+    id: 3,
+    title: "Assign",
+    description:
+      "Lead is routed to the right sales agent with reminders and tracking.",
+    icon: UserPlus,
+    x: "63.5%",
+    y: "75%",
+  },
+  {
+    id: 4,
+    title: "Convert",
+    description:
+      "Track activity, monitor engagement and close deals faster.",
+    icon: TrendingUp,
+    x: "90%",
+    y: "50%",
+  },
+]
 
-  const painPoints = [
-    {
-      icon: Clock,
-      title: "The Speed Gap",
-      desc: "Leads go cold in minutes, not days. If you aren't responding instantly, your competitor is.",
-      color: "text-rose-500",
-      bg: "bg-rose-50 dark:bg-rose-950/20",
-      borderColor: "border-rose-200 dark:border-rose-900/30"
-    },
-    {
-      icon: ZapOff,
-      title: "Manual Chaos",
-      desc: "WhatsApp groups and spreadsheets break at scale. Enquiries slip through the cracks every single day.",
-      color: "text-amber-500",
-      bg: "bg-amber-50 dark:bg-amber-950/20",
-      borderColor: "border-amber-200 dark:border-amber-900/30"
-    },
-    {
-      icon: Users,
-      title: "Zero Accountability",
-      desc: "Who called the lead? When? What happened? Without a system, there is no team accountability.",
-      color: "text-blue-500",
-      bg: "bg-blue-50 dark:bg-blue-950/20",
-      borderColor: "border-blue-200 dark:border-blue-900/30"
-    },
-    {
-      icon: AlertTriangle,
-      title: "Revenue Leakage",
-      desc: "You're spending on ads and marketing but losing the ROI at the very last step: the follow-up.",
-      color: "text-indigo-500",
-      bg: "bg-indigo-50 dark:bg-indigo-950/20",
-      borderColor: "border-indigo-200 dark:border-indigo-900/30"
-    }
-  ];
+export default function Pain() {
+  const [hoveredStep, setHoveredStep] = useState(null)
 
   return (
-    <div className="py-24 bg-white dark:bg-black transition-colors border-t border-slate-100 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto px-8">
-        {/* Header Section */}
-        <div className="max-w-3xl mb-16">
-          <p className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-4 opacity-0 animate-fade-in">The Revenue Leak</p>
-          <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white leading-tight mb-8">
-            <span className="inline-block opacity-0 animate-fade-in-up delay-100">Your CRM is where</span>
-            <br />
-            <span className="inline-block opacity-0 animate-fade-in-up delay-200">
-              leads go to <span className="text-rose-600">die.</span>
-            </span>
-          </h2>
-          <p className="text-xl text-slate-600 dark:text-slate-400 font-medium leading-relaxed opacity-0 animate-fade-in-up delay-300">
-            CRMs are built for tracking history and managing pipelines. They aren't built for the <span className="text-slate-900 dark:text-white font-bold">first 5 minutes</span> of an enquiry—the most critical window for your revenue.
-          </p>
+    <section className="relative w-full overflow-hidden py-24 md:py-32 bg-gradient-to-b from-[#add5ff] to-white">
+      <div className="relative z-[10] mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-20 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-balance text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl"
+          >
+            How LeadForGrow Works
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-6 text-xl font-medium text-slate-500/80"
+          >
+            A simple 4-step system designed for automation and growth
+          </motion.p>
         </div>
 
-        {/* Pain Point Cards with Sequential Animation */}
-        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {painPoints.map((item, i) => (
-            <div
-              key={i}
-              className={`group p-8 rounded-3xl border ${item.borderColor} hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-500 ${visibleItems.includes(i)
-                  ? 'opacity-100 translate-y-0'
-                  : 'opacity-0 translate-y-12'
-                }`}
-              style={{
-                transitionDelay: `${i * 100}ms`
+        {/* Journey Path */}
+        <div className="relative mx-auto h-[320px] w-full max-w-5xl">
+          <svg
+            viewBox="0 0 1000 400"
+            fill="none"
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+          >
+            <motion.path
+              d="M 100 200 C 250 200, 250 100, 365 100 C 480 100, 520 300, 635 300 C 750 300, 750 200, 900 200"
+              stroke="#e2e8f0"
+              strokeWidth="6"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+            />
+
+            <motion.path
+              d="M 100 200 C 250 200, 250 100, 365 100 C 480 100, 520 300, 635 300 C 750 300, 750 200, 900 200"
+              stroke="url(#path-gradient)"
+              strokeWidth="6"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{
+                pathLength: hoveredStep ? (hoveredStep - 1) / 3 : 0,
               }}
-            >
-              {/* Animated divider that draws itself */}
-              <div className="relative mb-6">
-                <div className={`w-12 h-12 ${item.bg} ${item.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon className="w-6 h-6" />
+              transition={{ duration: 0.8, ease: "circOut" }}
+            />
+
+            <defs>
+              <linearGradient id="path-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="60%" stopColor="#2563eb" />
+                <stop offset="100%" stopColor="#eab308" />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          {/* Nodes */}
+          {steps.map((step) => {
+            const Icon = step.icon
+            const isHovered = hoveredStep === step.id
+            const isActive = hoveredStep !== null && hoveredStep >= step.id
+
+            return (
+              <div
+                key={step.id}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                style={{ left: step.x, top: step.y }}
+              >
+                <div className="relative">
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1.2 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        className={`absolute -inset-6 rounded-full blur-2xl ${step.id === 4
+                          ? "bg-yellow-400/20"
+                          : "bg-primary/20"
+                          }`}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  <motion.div
+                    onMouseEnter={() => setHoveredStep(step.id)}
+                    onMouseLeave={() => setHoveredStep(null)}
+                    whileHover={{ scale: 1.15, y: -5 }}
+                    className={`relative z-10 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-white shadow-2xl ${isActive
+                      ? step.id === 4
+                        ? "border-2 border-yellow-500"
+                        : "border-2 border-primary"
+                      : "border-2 border-slate-100"
+                      }`}
+                  >
+                    <Icon
+                      size={26}
+                      className={
+                        isActive
+                          ? step.id === 4
+                            ? "text-yellow-600"
+                            : "text-primary"
+                          : "text-slate-400"
+                      }
+                    />
+
+                    {isActive && (
+                      <motion.div
+                        className={`absolute inset-0 rounded-full ${step.id === 4
+                          ? "bg-yellow-500/10"
+                          : "bg-primary/10"
+                          }`}
+                        animate={{ scale: [1, 1.4], opacity: [0.5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      />
+                    )}
+
+                    <AnimatePresence>
+                      {isHovered && (
+                        <motion.div
+                          initial={{
+                            opacity: 0,
+                            y: 15,
+                            x: "-50%",
+                            scale: 0.9,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: -25,
+                            x: "-50%",
+                            scale: 1,
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 15,
+                            x: "-50%",
+                            scale: 0.9,
+                          }}
+                          className="absolute bottom-full left-1/2 z-30 w-72 rounded-3xl bg-white/95 p-6 backdrop-blur-sm shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-slate-200"
+                        >
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-[0.2em] ${step.id === 4
+                              ? "text-yellow-600"
+                              : "text-primary"
+                              }`}
+                          >
+                            Phase 0{step.id}
+                          </span>
+                          <h4 className="mt-1 text-xl font-bold text-slate-900">
+                            {step.title}
+                          </h4>
+                          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                            {step.description}
+                          </p>
+                          <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-slate-200 bg-white" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  <div className="mt-8 text-center">
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? "text-slate-900" : "text-slate-400"
+                        }`}
+                    >
+                      {step.title}
+                    </span>
+                  </div>
                 </div>
-                {i < painPoints.length - 1 && (
-                  <div className="absolute top-full left-6 w-0.5 h-8 bg-gradient-to-b from-slate-200 dark:from-slate-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                )}
               </div>
-
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-slate-900 group-hover:to-slate-600 dark:group-hover:from-white dark:group-hover:to-slate-400 transition-all duration-300">
-                {item.title}
-              </h3>
-              <p className="text-slate-500 dark:text-slate-500 text-sm leading-relaxed font-medium">
-                {item.desc}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        {/* Quote Section with Delayed Appearance */}
-        <div
-          ref={quoteRef}
-          className={`mt-20 p-8 md:p-12 bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 transition-all duration-700 ${quoteInView
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8'
-            }`}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mt-12 text-center"
         >
-          <div className="max-w-xl">
-            <h4 className={`text-2xl font-bold text-slate-900 dark:text-white mb-4 transition-all duration-700 delay-200 ${quoteInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-              }`}>
-              "We have a CRM, we're fine."
-            </h4>
-            <p className={`text-slate-600 dark:text-slate-400 font-medium transition-all duration-700 delay-400 ${quoteInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-              }`}>
-              That's what 90% of business owners say right before they realize their Sales team only logs 20% of incoming enquiries. LeadForGrow captures <span className="text-indigo-600 dark:text-indigo-400 font-bold">100%</span> of calls, forms, and chats before they ever reach your CRM.
-            </p>
-          </div>
-          <button className={`group px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:bg-indigo-600 dark:hover:bg-indigo-500 dark:hover:text-white transition-all duration-300 whitespace-nowrap hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30 ${quoteInView ? 'opacity-100 translate-x-0 delay-600' : 'opacity-0 translate-x-4'
-            }`}>
-            <span className="relative">
-              Audit My Follow-Ups
-              <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl -z-10"></span>
-            </span>
-          </button>
-        </div>
+          <p className="inline-block rounded-full bg-slate-50 px-6 py-2 text-sm font-medium text-slate-500 ring-1 ring-slate-100">
+            From first enquiry to final conversion — everything happens in one
+            platform.
+          </p>
+        </motion.div>
       </div>
-    </div>
-  );
+    </section>
+  )
 }

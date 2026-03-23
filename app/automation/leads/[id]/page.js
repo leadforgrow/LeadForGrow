@@ -57,6 +57,21 @@ export default function LeadDetailPage({ params }) {
   const [templates, setTemplates] = useState([]);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
   const [intelligence, setIntelligence] = useState(null);
+  const [quickSchedule, setQuickSchedule] = useState({ show: false, type: 'call', time: '' });
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [showAssignDropdown, setShowAssignDropdown] = useState(false);
+  const [userRole, setUserRole] = useState('TEAM_MEMBER');
+
+  const fetchTeam = async () => {
+    try {
+      const uId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/team?userId=${uId}`);
+      const data = await res.json();
+      if (data.success) setTeamMembers(data.data);
+    } catch (error) {
+      console.error('Error fetching team:', error);
+    }
+  };
 
   const fetchLeadDetails = async () => {
     try {
@@ -72,6 +87,9 @@ export default function LeadDetailPage({ params }) {
         // Compute intelligence
         const intel = computeLeadIntelligence(data.data, [], null);
         setIntelligence(intel.intelligence);
+        // Set user role for UI permissions
+        const role = localStorage.getItem('userRole') || 'TEAM_MEMBER';
+        setUserRole(role.toLowerCase());
       }
       setLoading(false);
     } catch (error) {
@@ -93,10 +111,11 @@ export default function LeadDetailPage({ params }) {
 
   const fetchTemplates = async () => {
     try {
-      const res = await fetch(`/api/automation/automation-rules?userId=${localStorage.getItem('userid')}`);
+      const res = await fetch(`/api/automation/templates?userId=${localStorage.getItem('userid')}`);
       const data = await res.json();
       if (data.success) {
-        setTemplates(data.data.filter(rule => rule.enabled));
+        // Collect all available manual templates
+        setTemplates(data.manual || []);
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -107,7 +126,16 @@ export default function LeadDetailPage({ params }) {
     fetchLeadDetails();
     fetchLeadsTasks();
     fetchTemplates();
-  }, [id]);
+    fetchTeam();
+
+    const handleClickAway = (e) => {
+      if (showAssignDropdown && !e.target.closest('.assign-trigger') && !e.target.closest('.assign-dropdown')) {
+        setShowAssignDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickAway);
+    return () => document.removeEventListener('mousedown', handleClickAway);
+  }, [id, showAssignDropdown]);
 
   const handleUpdateStatus = async (newStatus) => {
     try {
@@ -123,6 +151,7 @@ export default function LeadDetailPage({ params }) {
       });
       const data = await res.json();
       if (data.success) {
+        setLead(data.data); // Update local state immediately
         toast.success(`Status updated to ${newStatus}`);
         if (newStatus === 'converted') {
           setShowWonModal(true);
@@ -133,6 +162,32 @@ export default function LeadDetailPage({ params }) {
     } catch (error) {
       setUpdating(false);
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleAssignLead = async (newAssigneeId) => {
+    try {
+      setUpdating(true);
+      const userId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/leads/${id}?userId=${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignedTo: newAssigneeId,
+          performedBy: userId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLead(data.data);
+        toast.success('Lead re-assigned successfully');
+        setShowAssignDropdown(false);
+        fetchLeadDetails(); // Refresh to get populated details
+      }
+      setUpdating(false);
+    } catch (error) {
+      setUpdating(false);
+      toast.error('Failed to assign lead');
     }
   };
 
@@ -201,12 +256,49 @@ export default function LeadDetailPage({ params }) {
     }
   };
 
-  const handleCommunication = (channel, taskId = null, customMessage = '') => {
+  const handleCommunication = async (channel, taskId = null, customMessage = '') => {
     let url = '';
     const phone = lead.phone.replace(/\D/g, '');
     const encodedMessage = encodeURIComponent(customMessage);
 
-    if (channel === 'call') url = `tel:${lead.phone}`;
+    if (channel === 'call') {
+      if (!lead.phone) {
+        toast.error('Lead has no phone number');
+        return;
+      }
+      const tid = toast.loading(`Initiating call to ${lead.name}...`);
+      try {
+        const bId = localStorage.getItem('businessId');
+        const uId = localStorage.getItem('userid');
+
+        const res = await fetch('/api/automation/calls/initiate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            userId: uId,
+            businessId: bId,
+            leadId: lead._id,
+            leadPhone: lead.phone
+          })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          window.dispatchEvent(new CustomEvent('lfg-initiate-call', { detail: result.data }));
+          toast.dismiss(tid);
+          if (taskId) handleCompleteTask(taskId, true);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        toast.error(error.message || 'Failed to start call', { id: tid });
+      }
+      return;
+    }
+
     if (channel === 'whatsapp') url = `https://wa.me/${phone}${customMessage ? `?text=${encodedMessage}` : ''}`;
     if (channel === 'email') url = `mailto:${lead.email}${customMessage ? `?body=${encodedMessage}` : ''}`;
 
@@ -343,10 +435,10 @@ export default function LeadDetailPage({ params }) {
               <div>
                 <h1 className="text-xl font-bold text-slate-900">{lead.name}</h1>
                 <span className={`inline-block px-2 py-0.5 text-xs font-black uppercase tracking-wider rounded mt-1 ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                    lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
-                      lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
-                        lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-slate-100 text-slate-700'
+                  lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
+                    lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
+                      lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
+                        'bg-slate-100 text-slate-700'
                   }`}>
                   {lead.status === 'new' ? 'Pending' :
                     lead.status === 'contacted' ? 'Connected' :
@@ -422,19 +514,22 @@ export default function LeadDetailPage({ params }) {
                       <p className="text-xs font-semibold text-slate-600">Select Template</p>
                     </div>
                     {templates.length > 0 ? (
-                      templates.map((rule) => (
+                      templates.map((template) => (
                         <button
-                          key={rule._id}
+                          key={template.id}
                           onClick={() => {
-                            const msg = renderMessageFromTemplate(rule.config?.messageTemplate);
-                            handleCommunication(rule.config?.channel === 'email' ? 'email' : 'whatsapp', null, msg);
+                            const msg = renderMessageFromTemplate(template.body);
+                            handleCommunication(template.channel === 'email' ? 'email' : 'whatsapp', null, msg);
                             setShowTemplateDropdown(false);
                           }}
                           className="w-full text-left p-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
                         >
-                          <p className="text-sm font-semibold text-slate-900">{rule.name}</p>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${template.channel === 'whatsapp' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                            <p className="text-sm font-semibold text-slate-900">{template.name}</p>
+                          </div>
                           <p className="text-xs text-slate-500 line-clamp-1 mt-1">
-                            {rule.config?.messageTemplate || 'No message'}
+                            {template.body || 'No message content'}
                           </p>
                         </button>
                       ))
@@ -473,17 +568,23 @@ export default function LeadDetailPage({ params }) {
         {/* RIGHT PANEL: Intelligence + History */}
         <div className="lg:col-span-2 space-y-6">
           {/* NEW: Recommendation / Next Best Action Card */}
+          {/* NEW: Recommendation / Next Best Action Card */}
           {intelligence?.nextAction && (
-            <div className={`p-4 rounded-lg border-2 shadow-sm mb-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500 ${intelligence.nextAction.color.replace('bg-', 'bg-opacity-10 bg-').replace('text-white', '')} border-current border-opacity-20`}>
-              <div className="w-10 h-10 rounded-full bg-white bg-opacity-90 flex items-center justify-center text-xl shadow-sm">
+            <div className={`p-5 rounded-[18px] shadow-lg mb-8 flex items-start gap-5 animate-in fade-in slide-in-from-top-4 duration-500 ${intelligence.nextAction.color} border-none relative overflow-hidden`}>
+              {/* Background Decoration */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12 blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/20">
                 {intelligence.nextAction.icon}
               </div>
-              <div className="flex-1">
-                <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-0.5">Recommended Next Action</p>
-                <h3 className={`text-lg font-bold ${intelligence.nextAction.urgency === 'critical' ? 'text-red-800' : 'text-slate-900'}`}>
+
+              <div className="flex-1 relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 mb-1">Recommended Next Action</p>
+                <h3 className="text-xl font-black text-white leading-tight">
                   {intelligence.nextAction.action}
                 </h3>
-                <p className="text-sm opacity-80 mt-1">
+                <p className="text-sm text-white/80 mt-2 font-medium leading-relaxed max-w-xl">
                   {intelligence.nextAction.action === 'Stale Lead Recovery'
                     ? 'This lead has been inactive for over 24 hours. Attempt a recovery contact to see if they are still interested.'
                     : intelligence.nextAction.urgency === 'critical'
@@ -491,12 +592,22 @@ export default function LeadDetailPage({ params }) {
                       : 'Keep the momentum going by completing the next step in the journey.'}
                 </p>
               </div>
+
               {intelligence.nextAction.urgency === 'critical' && (
                 <button
                   onClick={() => handleCommunication('call')}
-                  className="px-4 py-2 bg-white text-red-600 rounded-lg font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors"
+                  className="relative z-10 self-center px-6 py-3 bg-white text-red-600 rounded-[14px] font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95"
                 >
                   Call Now
+                </button>
+              )}
+
+              {intelligence.nextAction.action === 'Schedule follow-up' && (
+                <button
+                  onClick={() => setQuickSchedule(s => ({ ...s, show: true }))}
+                  className="relative z-10 self-center px-6 py-3 bg-white/20 text-white border border-white/30 rounded-[14px] font-black text-xs uppercase tracking-widest shadow-lg hover:bg-white/30 transition-all active:scale-95"
+                >
+                  Schedule
                 </button>
               )}
             </div>
@@ -557,12 +668,74 @@ export default function LeadDetailPage({ params }) {
             </div>
 
             {/* Card 4: Follow-up Status */}
-            <div className="bg-white border border-slate-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-slate-400" />
-                <p className="text-xs font-medium text-slate-500">Follow-up</p>
+            <div className="bg-white border border-slate-200 rounded-lg p-4 relative group">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs font-medium text-slate-500">Follow-up</p>
+                </div>
+                {!quickSchedule.show && (
+                  <button
+                    onClick={() => setQuickSchedule(s => ({ ...s, show: true }))}
+                    className="p-1.5 hover:bg-indigo-50 rounded-md text-slate-300 hover:text-indigo-600 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Quick Schedule Follow-up"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
-              {tasks.length > 0 ? (
+
+              {quickSchedule.show ? (
+                <div className="animate-in fade-in zoom-in duration-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <select
+                      className="bg-indigo-50 border-none text-[10px] font-bold text-indigo-700 rounded px-1 py-0.5 outline-none"
+                      value={quickSchedule.type}
+                      onChange={(e) => setQuickSchedule(s => ({ ...s, type: e.target.value }))}
+                    >
+                      <option value="call">Call</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="email">Email</option>
+                    </select>
+                    <button onClick={() => setQuickSchedule({ ...quickSchedule, show: false })} className="text-slate-400 hover:text-red-500">
+                      <XCircle className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <input
+                    type="datetime-local"
+                    className="w-full text-[10px] font-bold text-slate-700 bg-slate-50 border border-slate-100 rounded p-1 outline-none focus:border-indigo-400"
+                    value={quickSchedule.time}
+                    onChange={(e) => setQuickSchedule(s => ({ ...s, time: e.target.value }))}
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!quickSchedule.time) return toast.error('Pick a time');
+                      const userId = localStorage.getItem('userid');
+                      const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          leadId: id,
+                          type: quickSchedule.type,
+                          title: `Quick ${quickSchedule.type} Follow-up`,
+                          dueDate: new Date(quickSchedule.time),
+                          assignedTo: userId
+                        })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        toast.success('Follow-up scheduled');
+                        setQuickSchedule({ show: false, type: 'call', time: '' });
+                        fetchLeadsTasks();
+                        fetchLeadDetails();
+                      }
+                    }}
+                    className="w-full bg-indigo-600 text-white py-1 rounded text-[10px] font-bold hover:bg-indigo-700 transition-colors"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              ) : tasks.length > 0 ? (
                 <>
                   <p className="text-lg font-bold text-indigo-600">{tasks.length} pending</p>
                   <p className="text-xs text-slate-600 mt-2">Next: {tasks[0]?.type}</p>
@@ -616,19 +789,75 @@ export default function LeadDetailPage({ params }) {
               )}
             </div>
 
-            {/* Card 7: Owner Performance (Placeholder) */}
-            <div className="bg-white border border-slate-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-slate-400" />
-                <p className="text-xs font-medium text-slate-500">Owner</p>
+            {/* Card 7: Owner / Lead Assignment */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4 relative group">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs font-medium text-slate-500">Lead Owner</p>
+                </div>
+                {(userRole.includes('owner') || userRole.includes('admin') || userRole.includes('super')) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAssignDropdown(!showAssignDropdown);
+                    }}
+                    className="assign-trigger p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-indigo-600 transition-all flex items-center gap-1.5"
+                  >
+                    <div className={`w-1 h-1 rounded-full transition-all duration-300 ${showAssignDropdown ? 'bg-indigo-600 scale-125' : 'bg-slate-300 opacity-0 group-hover:opacity-100'}`} />
+                  </button>
+                )}
               </div>
-              {lead.assignedTo ? (
-                <>
-                  <p className="text-sm font-semibold text-slate-900 truncate">{lead.assignedTo.email?.split('@')[0]}</p>
-                  <p className="text-xs text-slate-600 mt-2">Active</p>
-                </>
-              ) : (
-                <p className="text-sm text-slate-500">Unassigned</p>
+
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
+                  {lead.assignedTo?.firstName?.charAt(0) || lead.assignedTo?.email?.charAt(0) || '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">
+                    {lead.assignedTo ? (lead.assignedTo.firstName ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName || ''}` : lead.assignedTo.email.split('@')[0]) : 'Unassigned'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-medium tracking-tight">
+                    {lead.assignedTo ? 'Current Assignee' : 'Ready for assignment'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Assignment Dropdown */}
+              {showAssignDropdown && (
+                <div className="assign-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                  <div className="p-2 border-b border-slate-50 bg-slate-50/50">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Reassign To</p>
+                  </div>
+                  {teamMembers.length > 0 ? (
+                    teamMembers.map((member) => (
+                      <button
+                        key={member._id}
+                        onClick={() => handleAssignLead(member.userId._id)}
+                        className={`w-full text-left p-3 hover:bg-indigo-50 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-0 ${lead.assignedTo?._id === member.userId._id ? 'bg-indigo-50/50' : ''}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-black text-indigo-600 border border-indigo-100 uppercase shadow-sm shrink-0">
+                          {member.userId?.firstName?.charAt(0) || member.userId?.email?.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-bold truncate ${lead.assignedTo?._id === member.userId._id ? 'text-indigo-600' : 'text-slate-900'}`}>
+                            {member.userId?.firstName ? `${member.userId.firstName} ${member.userId.lastName || ''}` : member.userId?.email.split('@')[0]}
+                          </p>
+                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                            {member.role === 'owner' ? 'Account Owner' : 'Team Member'}
+                          </p>
+                        </div>
+                        {lead.assignedTo?._id === member.userId._id && (
+                          <CheckCircle className="w-4 h-4 text-indigo-600" />
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center">
+                      <p className="text-[10px] text-slate-400">No team members found</p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -736,42 +965,74 @@ export default function LeadDetailPage({ params }) {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setActiveTab('calls')}
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'calls' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                <Phone className="w-4 h-4" />
+                Call History
+                {lead.activities?.filter(a => a.type === 'contacted').length > 0 && (
+                  <span className="bg-rose-500 text-white px-1.5 py-0.5 rounded-full text-[10px] ml-1 shadow-sm">
+                    {lead.activities.filter(a => a.type === 'contacted').length}
+                  </span>
+                )}
+              </button>
             </div>
 
             <div className="p-6">
               {activeTab === 'activity' ? (
-                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-                  {lead.activities?.slice(0, 10).map((activity, idx) => (
-                    <div key={idx} className="relative flex gap-4 pl-8">
-                      <div className={`absolute left-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center ${activity.type === 'lead_created' ? 'bg-indigo-600' :
+                <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+                  {(lead.activities || []).slice().sort((a, b) => new Date(b.performedAt || b.timestamp || b.createdAt) - new Date(a.performedAt || a.timestamp || a.createdAt)).slice(0, 10).map((activity, idx) => (
+                    <div key={idx} className="relative flex gap-5 pl-10 group">
+                      <div className={`absolute left-0 w-8 h-8 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 ${activity.type === 'lead_created' ? 'bg-indigo-600' :
                         activity.type === 'status_changed' ? 'bg-amber-500' :
-                          activity.type === 'note_added' ? 'bg-blue-500' :
+                          activity.type === 'note_added' ? 'bg-blue-600' :
                             activity.type === 'whatsapp_received' ? 'bg-emerald-500' :
-                              'bg-slate-400'
+                              activity.type === 'contacted' ? 'bg-indigo-600' :
+                                'bg-slate-500'
                         }`}>
                         {activity.type === 'lead_created' && <Plus className="w-3 h-3 text-white" />}
                         {activity.type === 'status_changed' && <Calendar className="w-3 h-3 text-white" />}
                         {activity.type === 'note_added' && <Send className="w-3 h-3 text-white" />}
                         {activity.type === 'whatsapp_received' && <MessageCircle className="w-3 h-3 text-white" />}
+                        {activity.type === 'contacted' && <Phone className="w-3 h-3 text-white" />}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900">{activity.description}</p>
-                        {activity.metadata?.message && (
-                          <div className="mt-2 p-2 bg-slate-50 rounded border border-slate-100 text-[11px] text-slate-600 italic line-clamp-2">
-                            "{activity.metadata.message}"
+                        <div className="flex items-center justify-between gap-4">
+                          <p className="text-[13px] font-bold text-slate-800 leading-snug">{activity.description}</p>
+                          {activity.type === 'contacted' && activity.metadata?.durationSeconds && (
+                            <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 uppercase tracking-tighter shrink-0">
+                              {activity.metadata.durationSeconds}s
+                            </span>
+                          )}
+                        </div>
+                        {activity.metadata?.notes && (
+                          <div className="mt-2.5 p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-600 italic leading-relaxed line-clamp-2">
+                            "{activity.metadata.notes}"
                           </div>
                         )}
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        {activity.type === 'contacted' && (
+                          <button
+                            onClick={() => setActiveTab('calls')}
+                            className="mt-2 text-[10px] text-indigo-600 font-black uppercase tracking-wider hover:underline flex items-center gap-1.5"
+                          >
+                            <Activity className="w-3 h-3" />
+                            Listen to Recording →
+                          </button>
+                        )}
+                        <p className="text-[11px] font-bold text-slate-400 mt-2 flex items-center gap-1.5">
+                          <Clock className="w-3 h-3" />
                           {(() => {
                             const date = activity.performedAt || activity.timestamp || activity.createdAt;
-                            return date ? new Date(date).toLocaleString() : 'Recent';
+                            return date ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent';
                           })()}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : activeTab === 'chat' ? (
                 <div className="space-y-4 min-h-[400px]">
                   {lead.messages?.length > 0 ? (
                     <div className="flex flex-col gap-3">
@@ -799,6 +1060,69 @@ export default function LeadDetailPage({ params }) {
                       <h3 className="text-slate-900 font-bold">No messages yet</h3>
                       <p className="text-slate-500 text-sm max-w-[240px] mt-1">
                         When you send a WhatsApp or receive a reply, the conversation history will appear here.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-6 min-h-[400px]">
+                  {lead.activities?.filter(a => a.type === 'contacted').length > 0 ? (
+                    lead.activities.filter(a => a.type === 'contacted').reverse().map((call, idx) => (
+                      <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
+                              <Phone className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">Desktop Call Session</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                {new Date(call.performedAt || call.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-900 text-white px-3 py-1 rounded-full text-[10px] font-bold">
+                            {call.metadata?.durationSeconds || 0}s
+                          </div>
+                        </div>
+
+                        {call.metadata?.notes && (
+                          <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Discussion Notes</p>
+                            <p className="text-sm text-slate-700 leading-relaxed font-medium whitespace-pre-wrap">
+                              {call.metadata.notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {call.metadata?.recordingUrl && (
+                          <div className="mt-4 pt-4 border-t border-slate-100">
+                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></div>
+                              Voice Recording Available
+                            </p>
+                            <audio controls className="w-full h-10">
+                              <source src={call.metadata.recordingUrl} type="audio/mpeg" />
+                              Your browser does not support audio playback.
+                            </audio>
+                          </div>
+                        )}
+
+                        {!call.metadata?.recordingUrl && (
+                          <div className="mt-2 text-[10px] font-bold text-slate-400 italic">
+                            Recording processing or notes saved.
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <Phone className="w-8 h-8 text-slate-300" />
+                      </div>
+                      <h3 className="text-slate-900 font-bold">No calls recorded</h3>
+                      <p className="text-slate-500 text-sm max-w-[240px] mt-1">
+                        Call the lead using the "Call Lead" button to start tracking discussions.
                       </p>
                     </div>
                   )}
