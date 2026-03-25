@@ -70,7 +70,7 @@ const FadeInView = ({ children, delay = 0, className = "" }) => {
 
 export default function UseCases() {
   return (
-    <div className="min-h-screen bg-white font-sans text-[#64748B] overflow-x-hidden pt-20 flex flex-col selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-white font-sans dark:text-slate-300 text-[#64748B] overflow-x-hidden pt-20 flex flex-col selection:bg-blue-100 selection:text-blue-900">
       <UserNavbar />
 
       {/* GLOBAL BACKGROUND ELEMENTS */}
@@ -99,7 +99,7 @@ export default function UseCases() {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+              <h1 className="text-5xl md:text-7xl font-serif font-bold tracking-tighter text-gray-900 mb-6 leading-[1.1]">
                 Use Cases for <br className="hidden md:block" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#60A5FA]">LeadForGrow</span>
               </h1>
@@ -181,7 +181,7 @@ export default function UseCases() {
         <section className="py-24 bg-[#F8FAFC] px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F0]">
           <div className="max-w-7xl mx-auto">
             <FadeInView className="mb-16">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Built for Teams That Handle Leads</h2>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tracking-tighter">Built for Teams That Handle Leads</h2>
               <p className="text-xl text-[#64748B] mt-4 max-w-2xl">Modern tools explicitly designed for velocity, visibility, and conversion.</p>
             </FadeInView>
 
@@ -222,7 +222,7 @@ export default function UseCases() {
                     <div className="w-16 h-16 rounded-[14px] bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center group-hover:bg-[#2563EB] group-hover:text-white transition-colors duration-300">
                       {card.icon}
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900">{card.title}</h3>
+                    <h3 className="text-2xl font-serif font-bold text-gray-900">{card.title}</h3>
                   </div>
 
                   <div className="space-y-6">
@@ -264,7 +264,7 @@ export default function UseCases() {
         <section className="py-24 bg-white px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F0]">
           <div className="max-w-7xl mx-auto">
             <FadeInView className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Industry Use Cases</h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-4 tracking-tighter">Industry Use Cases</h2>
               <p className="text-xl text-[#64748B] max-w-2xl mx-auto">Wherever there are enquiries, LeadForGrow is the operational system driving them towards a close.</p>
             </FadeInView>
 
@@ -281,7 +281,7 @@ export default function UseCases() {
                   <div className="w-12 h-12 bg-[#F8FAFC] rounded-[10px] text-[#2563EB] flex items-center justify-center mb-6 border border-[#E2E8F0] group-hover:bg-[#EFF6FF] group-hover:border-[#BFDBFE] transition-colors">
                     {React.cloneElement(industry.icon, { className: "w-6 h-6" })}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{industry.title}</h3>
+                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-3">{industry.title}</h3>
                   <p className="text-[#64748B] leading-relaxed text-sm">{industry.desc}</p>
                 </FadeInView>
               ))}
@@ -293,7 +293,7 @@ export default function UseCases() {
         <section className="py-24 bg-[#F8FAFC] px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F0]">
           <div className="max-w-7xl mx-auto text-center">
             <FadeInView className="mb-16">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight">Why Businesses Use LeadForGrow</h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tighter">Why Businesses Use LeadForGrow</h2>
               <p className="text-xl text-[#64748B] mt-4 max-w-2xl mx-auto">We solve the friction that occurs naturally when scaling revenue operations.</p>
             </FadeInView>
 
@@ -322,7 +322,7 @@ export default function UseCases() {
                   <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-6 border ${feature.bg} ${feature.border}`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <h3 className="text-xl font-serif font-bold text-gray-900 mb-3">{feature.title}</h3>
                   <p className="text-[#64748B]">{feature.desc}</p>
                 </FadeInView>
               ))}
@@ -334,7 +334,7 @@ export default function UseCases() {
         <section className="py-24 bg-white px-4 sm:px-6 lg:px-8 border-b border-[#E2E8F0]">
           <div className="max-w-5xl mx-auto">
             <FadeInView className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Real Workflow Example</h2>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tracking-tighter mb-4">Real Workflow Example</h2>
               <p className="text-xl text-[#64748B] max-w-2xl mx-auto">From an anonymous website visitor to actionable pipeline dashboard metrics in mere minutes.</p>
             </FadeInView>
 
@@ -388,7 +388,7 @@ export default function UseCases() {
 
           <div className="max-w-7xl mx-auto">
             <FadeInView className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">Results Businesses See</h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-6 tracking-tighter">Results Businesses See</h2>
               <p className="text-xl text-[#64748B] max-w-2xl mx-auto">Focusing exclusively on process and agility yields undeniable impacts on the bottom line.</p>
             </FadeInView>
 
@@ -402,7 +402,7 @@ export default function UseCases() {
                   {card.isPrimary && (
                     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#2563EB] to-[#60A5FA] opacity-5 rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform`} />
                   )}
-                  <h4 className={`text-2xl font-bold mb-3 ${card.isPrimary ? 'text-[#2563EB]' : 'text-gray-900'}`}>{card.title}</h4>
+                  <h4 className={`text-2xl font-serif font-bold mb-3 ${card.isPrimary ? 'text-[#2563EB]' : 'text-gray-900'}`}>{card.title}</h4>
                   <p className="leading-relaxed text-[#64748B] font-medium">{card.desc}</p>
                 </FadeInView>
               ))}
@@ -418,7 +418,7 @@ export default function UseCases() {
 
           <div className="max-w-4xl mx-auto relative z-10 text-center">
             <FadeInView>
-              <h2 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-white">
+              <h2 className="text-5xl md:text-6xl font-serif font-bold mb-6 tracking-tighter text-white">
                 Stop Losing Leads to <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Slow Follow-Ups</span>
               </h2>
@@ -439,7 +439,7 @@ export default function UseCases() {
         </section>
 
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

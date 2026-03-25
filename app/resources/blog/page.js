@@ -43,7 +43,7 @@ export default function BlogPage() {
 
                 {/* Hero Content */}
                 <div className="relative z-10 text-center px-4">
-                    <h1 className="text-6xl md:text-9xl font-serif text-white tracking-tighter mb-6 opacity-0 animate-fade-in-up">
+                    <h1 className="text-6xl md:text-9xl font-serif text-white tracking-tighter mb-6">
                         leadforgrow
                     </h1>
 
@@ -53,7 +53,7 @@ export default function BlogPage() {
             {/* Main Content Area */}
             <div className="max-w-7xl mx-auto px-8 py-24 w-full flex-grow">
                 {/* Title & Underline */}
-                <div className="mb-16 opacity-0 animate-fade-in-left delay-400">
+                <div className="mb-16">
                     <h2 className="text-4xl md:text-6xl font-serif text-slate-900 dark:text-white mb-4">
                         Our Stories
                     </h2>
@@ -61,7 +61,7 @@ export default function BlogPage() {
                 </div>
 
                 {/* Filter & Search Bar */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16 opacity-0 animate-fade-in-up delay-500">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
                     {/* Category Tabs */}
                     <div className="flex flex-wrap gap-2">
                         {categories.map((category) => (
@@ -104,7 +104,7 @@ export default function BlogPage() {
                             <Link
                                 href={`/resources/blog/${post.slug}`}
                                 key={post.id}
-                                className={`group flex flex-col bg-white dark:bg-slate-900/30 rounded-[3rem] overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_40px_80px_-15px_rgba(79,70,229,0.1)] transition-all duration-500 opacity-0 animate-fade-in-up cursor-pointer delay-${Math.min((idx + 1) * 100 + 400, 800)}`}
+                                className={`group flex flex-col bg-white dark:bg-slate-900/30 rounded-[3rem] overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_40px_80px_-15px_rgba(79,70,229,0.1)] transition-all duration-500 cursor-pointer`}
                             >
                                 {/* Post Image Container */}
                                 <div className="relative aspect-[16/11] overflow-hidden rounded-[2.5rem] m-3">
@@ -207,7 +207,7 @@ export default function BlogPage() {
                 </div>
             </div>
 
-            <Footer />
+            {/* <Footer /> */}
         </div >
     );
 }

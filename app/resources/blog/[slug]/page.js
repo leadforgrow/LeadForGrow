@@ -21,7 +21,7 @@ export default function BlogDetailPage() {
                 <Link href="/resources/blog" className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold">
                     Back to Stories
                 </Link>
-                <Footer />
+                {/* <Footer /> */}
             </div>
         );
     }
@@ -133,7 +133,7 @@ export default function BlogDetailPage() {
                 </div>
             </div>
 
-            <Footer />
+            {/* <Footer /> */}
         </div>
     );
 }

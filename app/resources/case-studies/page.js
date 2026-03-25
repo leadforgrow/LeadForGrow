@@ -141,19 +141,19 @@ const testimonials = [
   {
     name: "John Danforth",
     role: "Director, Nexus Real Estate",
-    image: "https://xsgames.co/randomusers/assets/avatars/male/45.jpg",
+    image: "https://randomuser.me/api/portraits/men/45.jpg",
     content: "LeadForGrow didn't just give us a tool; they gave us a system for growth. Our conversion rates have skyrocketed since we started using their automated follow-ups."
   },
   {
     name: "Sarah Jenkins",
     role: "Founder, ScaleUp SaaS",
-    image: "https://xsgames.co/randomusers/assets/avatars/female/24.jpg",
+    image: "https://randomuser.me/api/portraits/women/24.jpg",
     content: "The best CRM we've used for client retention. The automated re-engagement triggers are a game-changer for any SaaS business."
   },
   {
     name: "Michael Chen",
     role: "CEO, Ecom Accelerate",
-    image: "https://xsgames.co/randomusers/assets/avatars/male/12.jpg",
+    image: "https://randomuser.me/api/portraits/men/12.jpg",
     content: "Scaling an agency is hard, but LeadForGrow makes it manageable. We manage 10x the clients with the same team size now."
   }
 ];
@@ -530,7 +530,7 @@ export default function CaseStudiesPage() {
                   </p>
                   <div className="mt-6 flex items-center gap-4">
                     <img
-                      src="https://xsgames.co/randomusers/assets/avatars/male/45.jpg"
+                      src="https://randomuser.me/api/portraits/men/45.jpg"
                       alt="Quote"
                       className="w-12 h-12 rounded-full object-cover"
                     />
