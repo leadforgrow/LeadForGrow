@@ -176,5 +176,7 @@ async def get_sentiment_pulse(request: Request):
     }
 
 if __name__ == "__main__":
-    print("STARTING LFG REVENUE INTELLIGENCE AI — Business-Specific Engine v4.0")
-    uvicorn.run(app, host="0.0.0.0", port=5055)
+    import os
+    port = int(os.environ.get("PORT", 5055))
+    print(f"STARTING LFG REVENUE INTELLIGENCE AI — Business-Specific Engine v4.0 on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
