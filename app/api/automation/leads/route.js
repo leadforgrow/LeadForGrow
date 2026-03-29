@@ -8,6 +8,8 @@ import Business from '@/models/Business';
 import Form from '@/models/Form';
 import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to get user and business
 async function getUserAndBusiness(request) {
   const { searchParams } = new URL(request.url);
@@ -62,9 +64,6 @@ export async function GET(request) {
     if (source) query.source = source;
     if (eventId) {
       query.eventId = eventId;
-    } else {
-      // Only show leads that are NOT associated with any event/session by default
-      query.eventId = { $exists: false };
     }
 
     if (search) {

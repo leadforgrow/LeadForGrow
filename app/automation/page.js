@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -48,10 +48,10 @@ export default function RevenueIntelligenceDashboard() {
 
       // Fetch revenue config + metrics in parallel for speed
       const [configRes, metricsRes, activitiesRes, tasksRes] = await Promise.all([
-        fetch(`/api/business/revenue-config?userId=${userId}`),
-        fetch(`/api/business/revenue-metric?userId=${userId}`),
-        fetch(`/api/automation/activities?userId=${userId}&limit=10`),
-        fetch(`/api/automation/tasks?userId=${userId}&filter=today`)
+        fetch(`/api/business/revenue-config?userId=${userId}`, { cache: 'no-store' }),
+        fetch(`/api/business/revenue-metric?userId=${userId}`, { cache: 'no-store' }),
+        fetch(`/api/automation/activities?userId=${userId}&limit=10`, { cache: 'no-store' }),
+        fetch(`/api/automation/tasks?userId=${userId}&filter=today`, { cache: 'no-store' })
       ]);
 
       const [configData, metricsData, activitiesData, tasksData] = await Promise.all([
