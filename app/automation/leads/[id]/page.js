@@ -26,7 +26,7 @@ import {
   Activity,
   Target,
   CheckCircle,
-  Zap,
+  Sparkles,
   Shield,
   BarChart3,
   FileCheck,
@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
+import IntelligenceIcon from '@/app/components/ui/IntelligenceIcon';
 
 export default function LeadDetailPage({ params }) {
   const router = useRouter();
@@ -575,8 +576,8 @@ export default function LeadDetailPage({ params }) {
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12 blur-2xl pointer-events-none" />
 
-              <div className="relative z-10 w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/20">
-                {intelligence.nextAction.icon}
+              <div className="relative z-10 w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/20">
+                <IntelligenceIcon name={intelligence.nextAction.icon} className="w-6 h-6 text-white" strokeWidth={2.5} />
               </div>
 
               <div className="flex-1 relative z-10">
@@ -671,7 +672,7 @@ export default function LeadDetailPage({ params }) {
             <div className="bg-white border border-slate-200 rounded-lg p-4 relative group">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-slate-400" />
+                  <Sparkles className="w-4 h-4 text-slate-400" />
                   <p className="text-xs font-medium text-slate-500">Follow-up</p>
                 </div>
                 {!quickSchedule.show && (
@@ -946,7 +947,7 @@ export default function LeadDetailPage({ params }) {
             <div className="flex border-b border-slate-200">
               <button
                 onClick={() => setActiveTab('activity')}
-                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'activity' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-start px-8 gap-2 transition-colors ${activeTab === 'activity' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <Clock className="w-4 h-4" />
@@ -954,7 +955,7 @@ export default function LeadDetailPage({ params }) {
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'chat' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-start px-8 gap-2 transition-colors ${activeTab === 'chat' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <MessageSquare className="w-4 h-4" />
@@ -967,7 +968,7 @@ export default function LeadDetailPage({ params }) {
               </button>
               <button
                 onClick={() => setActiveTab('calls')}
-                className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'calls' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
+                className={`flex-1 py-4 text-sm font-bold flex items-center justify-start px-8 gap-2 transition-colors ${activeTab === 'calls' ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-slate-50 text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <Phone className="w-4 h-4" />
@@ -1053,12 +1054,12 @@ export default function LeadDetailPage({ params }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="flex flex-col items-start justify-center py-20 text-left">
                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <MessageSquare className="w-8 h-8 text-slate-300" />
                       </div>
                       <h3 className="text-slate-900 font-bold">No messages yet</h3>
-                      <p className="text-slate-500 text-sm max-w-[240px] mt-1">
+                        <p className="text-slate-500 text-sm max-w-md mt-1">
                         When you send a WhatsApp or receive a reply, the conversation history will appear here.
                       </p>
                     </div>
@@ -1116,12 +1117,12 @@ export default function LeadDetailPage({ params }) {
                       </div>
                     ))
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="flex flex-col items-start justify-center py-20 text-left">
                       <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                         <Phone className="w-8 h-8 text-slate-300" />
                       </div>
                       <h3 className="text-slate-900 font-bold">No calls recorded</h3>
-                      <p className="text-slate-500 text-sm max-w-[240px] mt-1">
+                        <p className="text-slate-500 text-sm max-w-md mt-1">
                         Call the lead using the "Call Lead" button to start tracking discussions.
                       </p>
                     </div>
@@ -1242,9 +1243,9 @@ export default function LeadDetailPage({ params }) {
       {/* Won Modal */}
       {showWonModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-8 max-w-sm w-full text-center">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trophy className="w-8 h-8 text-emerald-600" />
+          <div className="bg-white rounded-[32px] p-10 max-w-md w-full text-left border border-slate-200 shadow-2xl">
+            <div className="w-20 h-20 bg-emerald-50 rounded-[24px] flex items-center justify-center mb-6">
+              <Trophy className="w-10 h-10 text-emerald-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Victory!</h2>
             <p className="text-slate-600 mb-6">Lead successfully converted</p>

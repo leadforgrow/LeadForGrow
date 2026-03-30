@@ -18,7 +18,6 @@ import {
   Check,
   TrendingUp,
   ShieldCheck,
-  Zap,
   Palette,
   Plus,
   Trash2,

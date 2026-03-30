@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ChevronDown, Plus, Home, GraduationCap, Landmark, HeartPulse, Briefcase, Shield, Wallet, Plane, Globe, Zap, Share2, Search, TrendingUp, Users } from "lucide-react";
+import { ChevronDown, Plus, Home, GraduationCap, Landmark, HeartPulse, Briefcase, Shield, Wallet, Plane, Globe, Sparkles, Share2, Search, TrendingUp, Users } from "lucide-react";
 
 const UserNavbar = () => {
   // 1. State Hooks
@@ -25,7 +25,7 @@ const UserNavbar = () => {
   const servicesDropdown = [
     { label: "Done-For-You Website", href: "/services/dfy-website", description: "We build your site end-to-end", icon: Globe },
     { label: "Lead System Setup", href: "/services/lead-setup", description: "CRM & capture configured for you", icon: Users },
-    { label: "Automation Setup", href: "/services/automation-setup", description: "Hands-free workflow automation", icon: Zap },
+    { label: "Automation Setup", href: "/services/automation-setup", description: "Hands-free workflow automation", icon: Sparkles },
     { label: "Social Profile Setup", href: "/services/social-setup", description: "Branded social presence setup", icon: Share2 },
     { label: "SEO Setup", href: "/services/seo-setup", description: "Rank higher on Google", icon: Search },
     { label: "Managed Growth Service", href: "/services/managed-growth", description: "Full-service growth management", icon: TrendingUp },

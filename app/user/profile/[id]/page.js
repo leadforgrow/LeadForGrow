@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, Shield, CreditCard, 
   CheckCircle, Edit3, Save, X, ArrowLeft,
   Loader2, Camera, LogOut, ChevronRight,
-  Plus, Layout, Zap, Globe, Briefcase,
+  Plus, Layout, Sparkles, Globe, Briefcase,
   TrendingUp, Activity, BarChart3, Settings
 } from "lucide-react";
 import UserNavbar from "../../Header";
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-indigo-500/10 transition-colors">
                    <div className="flex items-center gap-4">
-                      <Zap className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                      <Sparkles className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                       <span className="text-sm font-bold text-slate-700 dark:text-slate-300">API Access Key</span>
                    </div>
                    <span className="text-indigo-600 font-bold text-xs">Reveal</span>

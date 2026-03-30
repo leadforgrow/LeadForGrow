@@ -11,12 +11,13 @@ import {
   CheckCircle2,
   Briefcase,
   Building2,
-  Zap,
+  Sparkles,
   Users,
   Database,
   Shield
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function PricingSection() {
   const [planType, setPlanType] = useState('business');
@@ -297,9 +298,9 @@ export default function PricingSection() {
 
         {/* Header & Toggle */}
         <div className="text-center mb-20 max-w-4xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-serif text-slate-900 dark:text-white mb-8 tracking-tight">
+          <Heading level={1} className="text-4xl md:text-6xl mb-8 tracking-tight">
             Plans that pay for themselves.
-          </h2>
+          </Heading>
 
           {/* Combined Toggles in One Row */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
@@ -364,9 +365,7 @@ export default function PricingSection() {
               <div className="mb-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
-
+                    <Heading level={3} className="text-xl mb-2">{plan.name}</Heading>
                   </div>
                   <div className="relative group/info">
                     <Info className="w-4 h-4 text-slate-300 dark:text-slate-700 cursor-help" />
@@ -390,8 +389,8 @@ export default function PricingSection() {
 
               {/* Limits Section for Agency Plans */}
               {plan.limits && (
-                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                  <p className="text-[9px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 mb-2">Limits</p>
+                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-black">
+                  <p className="text-[10px] uppercase font-medium tracking-widest text-slate-400 dark:text-slate-500 mb-2">Limits</p>
                   <div className="space-y-1.5">
                     {plan.limits.map((limit, i) => (
                       <div key={i} className="flex items-center gap-2">
@@ -406,7 +405,7 @@ export default function PricingSection() {
               {/* Features */}
               <div className="flex-1 space-y-2.5 mb-8">
                 {plan.limits && (
-                  <p className="text-[9px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 mb-2">Includes</p>
+                  <p className="text-[10px] uppercase font-medium tracking-widest text-slate-400 dark:text-slate-500 mb-2">Includes</p>
                 )}
                 {plan.features.map((feature, i) => {
                   const isGreen = feature.includes('clients') ||
@@ -445,9 +444,9 @@ export default function PricingSection() {
         {/* Add-ons Section */}
         <div className="mb-32">
           <div className="text-center mb-16">
-            <h3 className="text-3xl md:text-5xl font-serif text-slate-900 dark:text-white mb-4 tracking-tight">
+            <Heading level={2} className="text-3xl md:text-5xl mb-4 tracking-tight">
               Power-Up Your Plan
-            </h3>
+            </Heading>
             <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">
               Scale seamlessly with India-friendly add-ons
             </p>
@@ -465,9 +464,9 @@ export default function PricingSection() {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 flex items-center justify-center border border-indigo-100 dark:border-indigo-800 mb-6 group-hover:scale-110 transition-transform">
                     <Icon className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-3">
+                  <Heading level={4} className="text-lg mb-3">
                     {addon.name}
-                  </h4>
+                  </Heading>
                   <div className="mb-4">
                     {!isIncluded && (
                       <div className="flex items-baseline gap-1 mb-1">
@@ -481,7 +480,7 @@ export default function PricingSection() {
                         <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">Included</span>
                       </div>
                     )}
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">{addon.period}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-widest">{addon.period}</p>
                   </div>
                   <p className="text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
                     {addon.description}
@@ -522,14 +521,14 @@ export default function PricingSection() {
                 <Mail className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
               </div>
 
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter">Ready to Scale?</h3>
+              <Heading level={2} className="text-3xl mb-4">Ready to Scale?</Heading>
               <p className="text-[15px] text-slate-500 dark:text-slate-400 font-medium mb-10 leading-relaxed max-w-[320px] mx-auto">
                 Please reach out to our team to activate <span className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedPlan.name}</span> and discuss your requirements.
               </p>
 
               <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 mb-10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500 mb-3">Primary Contact</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Primary Contact</p>
                   <a href="mailto:contact@leadforgrow.com" className="text-xl font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
                     contact@leadforgrow.com
                   </a>

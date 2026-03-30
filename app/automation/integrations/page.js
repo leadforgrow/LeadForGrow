@@ -21,6 +21,7 @@ import {
   Activity
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function IntegrationsPage() {
   const router = useRouter();
@@ -137,36 +138,41 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Mobile Header */}
-      <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Lead Sources</h1>
-            <p className="text-xs text-slate-500">{activeSources.length} active</p>
+    <div className="min-h-screen bg-slate-50 px-8 py-10">
+      <div className="w-full">
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Heading level={1} className="text-lg">Lead Sources</Heading>
+              <p className="text-xs">{activeSources.length} active</p>
+            </div>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
-      </div>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-slate-900/50 z-40"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-slate-900/50 z-40"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
 
-      <div className="p-4 lg:p-6 max-w-7xl mx-auto">
         {/* Desktop Header */}
-        <div className="hidden lg:block mb-6">
-          <h1 className="text-2xl font-semibold text-slate-900 mb-1">Lead Sources</h1>
-          <p className="text-sm text-slate-500">Manage how leads enter LeadForGrow</p>
+        <div className="hidden lg:flex items-center gap-3 mb-10">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <Globe className="w-5 h-5 text-blue-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Lead Integrations</h1>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Connect external platforms and tracking scripts</p>
+          </div>
         </div>
 
         {/* Status Strip */}
@@ -348,13 +354,13 @@ export default function IntegrationsPage() {
         </div>
 
         {/* Script Section - Compact */}
-        <div className="bg-slate-900 rounded-lg p-6 text-white">
+        <div className="bg-slate-900 rounded-lg p-6 text-white mt-12">
           <div className="flex items-start gap-4 mb-4">
             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
               <Code className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <h2 className="text-base font-semibold mb-1">Universal Tracking Script</h2>
+              <Heading level={2} className="text-base text-white">Universal Tracking Script</Heading>
               <p className="text-xs text-slate-400">
                 Paste into your website's &lt;head&gt; tag to enable all sources
               </p>

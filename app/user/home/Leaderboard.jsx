@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Zap, Users } from 'lucide-react';
+import { ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { useInView, useCountUp } from '@/app/hooks/useScrollAnimation';
 
 export default function LeaderboardSection() {
@@ -31,7 +31,7 @@ export default function LeaderboardSection() {
                 }`}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl flex items-center justify-center text-emerald-600 animate-pulse">
-                    <Zap className="w-6 h-6" />
+                    <Sparkles className="w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Response Speed</p>
@@ -83,7 +83,7 @@ export default function LeaderboardSection() {
               </div>
               <div className={`p-8 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-500 group ${inView ? 'opacity-100 translate-x-0 delay-800' : 'opacity-0 -translate-x-8'
                 }`}>
-                <Zap className="w-8 h-8 text-emerald-500 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
+                <Sparkles className="w-8 h-8 text-emerald-500 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
                 <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Instant Alerts</h4>
                 <p className="text-sm text-slate-500 font-medium">Managers get notified the second a lead goes unanswered past the 5-minute mark.</p>
               </div>

@@ -116,15 +116,17 @@ export default function EventsPage() {
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="px-8 py-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <Calendar className="w-7 h-7 text-indigo-600" />
-                        Events & Sessions
-                    </h1>
-                    <p className="text-slate-500 mt-1">Manage your event-based lead capture and sequences.</p>
+            <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-purple-600" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Events & Sessions</h1>
+                        <p className="text-xs text-slate-500 font-medium">Monitor live customer interactions and session data</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
@@ -293,9 +295,17 @@ export default function EventsPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {events.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                                        No events found. Create your first session to start tracking!
+                                <tr className="group/row">
+                                    <td colSpan="5" className="px-8 py-20 text-left">
+                                        <div className="flex flex-col items-start gap-4">
+                                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
+                                                <Calendar className="w-6 h-6 text-slate-300" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-900">No events found</p>
+                                                <p className="text-[11px] text-slate-400 mt-1">Create your first session to start tracking leads and conversions.</p>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : events.map((event) => (

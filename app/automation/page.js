@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -9,13 +9,31 @@ import {
   CheckCircle2,
   Clock,
   Target,
-  Zap,
   Activity,
   ArrowUpRight,
   ArrowDownRight,
-  Info
+  Info,
+  Award,
+  Timer,
+  HelpCircle,
+  Trash2,
+  Calendar,
+  CheckSquare,
+  Square,
+  MessageSquare,
+  RefreshCw,
+  Phone,
+  ClipboardList,
+  BarChart3,
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Heading from '../components/ui/Heading';
+import Badge from '../components/ui/Badge';
+import Input from '../components/ui/Input';
 
 export default function RevenueIntelligenceDashboard() {
   const router = useRouter();
@@ -134,45 +152,35 @@ export default function RevenueIntelligenceDashboard() {
         </div>
 
         {/* Premium Unlock Overlay */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-          <div className="max-w-xl w-full bg-white/80 backdrop-blur-2xl rounded-[40px] border border-white p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] text-center relative overflow-hidden group">
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors duration-700" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-colors duration-700" />
-
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 bg-slate-50/20 backdrop-blur-[2px]">
+          <Card className="max-w-md w-full p-10 text-center shadow-xl border-slate-200/60 relative overflow-hidden group">
             <div className="relative z-10">
-              <div className="w-20 h-20 rounded-[28px] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-blue-200 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                <Zap className="w-10 h-10 text-white fill-white/20" />
+              <div className="w-16 h-16 rounded-xl bg-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200">
+                <Sparkles className="w-8 h-8 text-white fill-white/10" />
               </div>
 
-              <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Unlock Revenue Intelligence</h3>
-              <p className="text-slate-500 mb-10 text-lg leading-relaxed max-w-md mx-auto">
-                Transform your lead data into <span className="text-blue-600 font-bold">predictable revenue</span>. Configure your business metrics to see real-time risk calculations.
+              <Heading level={2} className="mb-3 text-slate-900">Unlock Revenue Intelligence</Heading>
+              <p className="text-slate-500 mb-8 text-sm leading-relaxed max-w-[280px] mx-auto">
+                Transform your lead data into <span className="text-indigo-600 font-semibold">predictable revenue</span>. Configure your business metrics to see risk calculations.
               </p>
 
-              <a
-                href="/automation/settings/details"
-                className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] hover:-translate-y-1 active:scale-95 group"
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full shadow-md"
+                onClick={() => router.push('/automation/settings/details')}
+                icon={ArrowUpRight}
               >
                 Start Configuration
-                <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </a>
+              </Button>
 
-              <div className="mt-8 flex items-center justify-center gap-6 text-[11px] font-bold text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  REAL-TIME RISK
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  SLA COMPLIANCE
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  PIPELINE VALUE
-                </div>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <Badge variant="success">Real-time Risk</Badge>
+                <Badge variant="success">SLA Compliance</Badge>
+                <Badge variant="success">Pipeline Value</Badge>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     );
@@ -183,6 +191,13 @@ export default function RevenueIntelligenceDashboard() {
     return `${symbol}${parseFloat(value || 0).toLocaleString()}`;
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   return (
     <DashboardContent
       config={config}
@@ -191,38 +206,40 @@ export default function RevenueIntelligenceDashboard() {
       formatCurrency={formatCurrency}
       activities={activities}
       tasks={tasks}
+      greeting={getGreeting()}
     />
   );
 }
 
-function DashboardContent({ config, metrics, userPlan, formatCurrency, activities, tasks, isBlur = false }) {
+function DashboardContent({ config, metrics, userPlan, formatCurrency, activities, tasks, greeting, isBlur = false }) {
   const safeFormat = (val) => formatCurrency ? formatCurrency(val) : `₹${val.toLocaleString()}`;
 
   return (
-    <div className={`space-y-10 px-8 py-10 ${isBlur ? '' : ''}`}>
+    <div className={`space-y-8 px-8 py-10 ${isBlur ? '' : ''}`}>
       {/* Header */}
       {!isBlur && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center">
-              <Activity className="w-4.5 h-4.5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Revenue Intelligence</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Real-time financial insights powered by LFG AI</p>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-8 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+               <Badge variant="indigo" className="font-black">PRO</Badge>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {config?.businessName || 'Revenue'} Command Center
+                </span>
+             </div>
+            <Heading level={1} className="flex items-center gap-3">
+              {greeting}, {config?.businessName?.split(' ')[0] || 'Partner'} <span className="animate-bounce-slow">👋</span>
+            </Heading>
+            <p className="text-slate-500 mt-1 max-w-none">Here's your revenue performance and automated recovery overview for today.</p>
           </div>
+          
           <div className="flex items-center gap-3">
-            <a
-              href="/automation/settings/details"
-              className="px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Edit Config
-            </a>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-100 bg-emerald-50">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-emerald-100 bg-emerald-50/50">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-medium text-emerald-700">System Active</span>
+              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-tight">AI Active</span>
             </div>
+            <Button variant="outline" size="sm" onClick={() => window.location.href='/automation/settings/details'}>
+              System Config
+            </Button>
           </div>
         </div>
       )}
@@ -344,15 +361,14 @@ function RevenueLeakCard({ metrics }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-red-300 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-start justify-between mb-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-            </div>
-            <span className="text-[10px] font-medium text-red-500 uppercase tracking-widest">Loss Prevention</span>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-red-600" strokeWidth={2} />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900">Revenue Leak Auditor</h3>
-          <p className="text-slate-400 text-xs mt-0.5 leading-snug">AI scans your pipeline for missed opportunities and cold leads.</p>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Revenue Leak Auditor</h3>
+            <p className="text-xs text-slate-500 font-medium">Automatic pipeline scan and recovery</p>
+          </div>
         </div>
       </div>
 
@@ -429,12 +445,12 @@ function GrowthStrategistCard({ metrics }) {
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-blue-400 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-blue-600" />
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-blue-600" strokeWidth={2} />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Growth Strategist</h3>
-            <p className="text-xs text-slate-400">AI-generated 3-step revenue blueprint</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Growth Strategist</h3>
+            <p className="text-xs text-slate-500 font-medium">Personalized AI revenue blueprint</p>
           </div>
         </div>
         {!strategy && (
@@ -471,11 +487,12 @@ function GrowthStrategistCard({ metrics }) {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-center py-8 border-2 border-dashed border-slate-100 rounded-xl">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3">
-            <Zap className="w-5 h-5 text-blue-400" />
+        <div className="flex-1 flex flex-col items-start justify-start text-left p-10 border border-slate-100 rounded-[28px] bg-slate-50/30">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
+            <Sparkles className="w-6 h-6 text-blue-400" />
           </div>
-          <p className="text-slate-500 text-sm">Click Generate to build your personalised strategy.</p>
+          <p className="text-slate-900 font-bold mb-2">Build your strategy</p>
+          <p className="text-slate-500 text-sm max-w-xs leading-relaxed">Click "Generate" to build a personalised revenue blueprint based on your current lead flow.</p>
         </div>
       )}
     </div>
@@ -488,13 +505,13 @@ function ActionCenter({ tasks }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-amber-400 p-7" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-amber-600" />
+        <div className="flex-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-amber-600" strokeWidth={2} />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Action Center</h3>
-            <p className="text-xs text-slate-400">High-priority follow-ups</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Action Center</h3>
+            <p className="text-xs text-slate-500 font-medium">High-priority engagement tasks</p>
           </div>
         </div>
         <div className={`px-3 py-1.5 rounded-full border text-[10px] font-medium ${urgentCount > 0
@@ -542,9 +559,14 @@ function ActionCenter({ tasks }) {
             );
           })
         ) : (
-          <div className="py-10 text-center border-2 border-dashed border-slate-100 rounded-xl space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-            <p className="text-slate-500 text-sm">All caught up — no pending tasks.</p>
+          <div className="py-12 text-left bg-slate-50/30 border border-slate-100 rounded-[24px] px-8 flex flex-col items-start gap-4">
+            <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-slate-900 font-bold">All caught up</p>
+              <p className="text-slate-500 text-sm mt-1">There are no pending high-priority tasks for today.</p>
+            </div>
           </div>
         )}
       </div>
@@ -555,23 +577,26 @@ function ActionCenter({ tasks }) {
 
 function ActivityPulse({ activities }) {
   const getActivityIcon = (type) => {
-    if (!type) return '💬';
-    if (type.includes('convert')) return '🏆';
-    if (type.includes('follow')) return '🔁';
-    if (type.includes('call')) return '📞';
-    if (type.includes('status')) return '📋';
-    if (type.includes('schedule')) return '🗓';
-    return '⚡';
+    if (!type) return MessageSquare;
+    if (type.includes('convert')) return Award;
+    if (type.includes('follow')) return RefreshCw;
+    if (type.includes('call')) return Phone;
+    if (type.includes('status')) return ClipboardList;
+    if (type.includes('schedule')) return Calendar;
+    return Sparkles;
   };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-indigo-400 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-            <Activity className="w-4 h-4 text-indigo-600" />
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-indigo-600" strokeWidth={2} />
           </div>
-          <h3 className="text-base font-semibold text-slate-900">Business Pulse</h3>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Pulse</h3>
+            <p className="text-xs text-slate-500 font-medium">Real-time automation events</p>
+          </div>
         </div>
         {activities.length > 0 && (
           <span className="text-[10px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
@@ -584,10 +609,12 @@ function ActivityPulse({ activities }) {
         {activities.length > 0 ? (
           <>
             <div className="absolute left-4 top-0 bottom-0 w-px bg-slate-100" />
-            {activities.slice(0, 8).map((activity, idx) => (
-              <div key={idx} className="relative pl-10 py-2.5 group">
-                <div className="absolute left-0 top-2.5 w-8 h-8 rounded-lg bg-white border border-slate-100 shadow-sm flex items-center justify-center text-sm z-10 group-hover:border-indigo-100 transition-colors">
-                  {getActivityIcon(activity.description || activity.type)}
+            {activities.slice(0, 8).map((activity, idx) => {
+              const Icon = getActivityIcon(activity.description || activity.type);
+              return (
+                <div key={idx} className="relative pl-10 py-2.5 group">
+                <div className="absolute left-0 top-2.5 w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center z-10 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300">
+                  <Icon className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" strokeWidth={2.5} />
                 </div>
                 <p className="text-sm text-slate-700 leading-snug">
                   {activity.description || activity.type || 'Activity recorded'}
@@ -600,13 +627,19 @@ function ActivityPulse({ activities }) {
                     <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{activity.leadId.name}</span>
                   )}
                 </div>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </>
         ) : (
-          <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl">⚡</div>
-            <p className="text-slate-500 text-sm">Pulse activates when leads are added.</p>
+          <div className="h-full min-h-[180px] flex flex-col items-start justify-start text-left gap-4 py-8">
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-6 h-6 text-slate-300" />
+            </div>
+            <div>
+              <p className="text-slate-800 font-bold">Pulse inactive</p>
+              <p className="text-slate-500 text-sm mt-1">Real-time activity will appear once your first leads start flowing.</p>
+            </div>
           </div>
         )}
       </div>
@@ -622,7 +655,7 @@ function AIInsightCard({ insights }) {
 
       <div>
         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6">
-          <Zap className="w-6 h-6 text-white" />
+          <Sparkles className="w-6 h-6 text-white" />
         </div>
         <h3 className="text-2xl font-black tracking-tight mb-2">LFG AI Insight</h3>
         <p className="text-indigo-100 font-medium leading-relaxed">
@@ -694,12 +727,12 @@ function PredictiveForecastCard({ metrics }) {
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-emerald-400 p-7 h-full" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-emerald-600" strokeWidth={2} />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">AI Revenue Projection</h3>
-            <p className="text-xs text-slate-400">6-Month Predictive Modeling</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">AI Revenue Projection</h3>
+            <p className="text-xs text-slate-500 font-medium">6-Month Predictive Modeling</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100">
@@ -797,12 +830,12 @@ function SentimentPulseCard({ metrics }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-          <Activity className="w-4 h-4 text-indigo-600" />
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+          <Activity className="w-5 h-5 text-indigo-600" strokeWidth={2} />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Market Sentiment</h3>
-          <p className="text-xs text-slate-400">Lead Psychological Analysis</p>
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Market Sentiment</h3>
+          <p className="text-xs text-slate-500 font-medium">Lead Psychological Analysis</p>
         </div>
       </div>
 
@@ -850,64 +883,46 @@ function SentimentPulseCard({ metrics }) {
 }
 
 function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverted = false, isTrial = false, isBlur = false, isProjected = false }) {
-  const colorMap = {
-    blue: { accent: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', dot: 'bg-blue-500' },
-    orange: { accent: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', dot: 'bg-orange-500' },
-    green: { accent: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', dot: 'bg-emerald-500' },
-    purple: { accent: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', dot: 'bg-violet-500' },
-  };
-
-  const scheme = colorMap[color] || colorMap.blue;
   const isPositive = inverted ? change < 0 : change > 0;
 
-  const cardTints = {
-    blue: 'border-t-2 border-t-blue-400',
-    orange: 'border-t-2 border-t-orange-400',
-    green: 'border-t-2 border-t-emerald-400',
-    purple: 'border-t-2 border-t-violet-400',
-  };
-  const tint = cardTints[color] || cardTints.blue;
-
   return (
-    <div className={`
-      relative bg-white rounded-2xl border border-slate-100 p-6 ${tint}
-      hover:shadow-md hover:-translate-y-0.5
-      transition-all duration-300
-      ${isBlur ? 'blur-[6px] opacity-40 grayscale pointer-events-none' : ''}
-    `} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05),0 4px 12px rgba(0,0,0,0.04)' }}>
-
-      <div className="flex items-start justify-between mb-5">
-        <div className={`w-10 h-10 rounded-xl ${scheme.bg} ${scheme.border} border flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${scheme.accent}`} />
+    <Card 
+      className={`relative group hover:border-slate-300 transition-all duration-200 ${isBlur ? 'blur-[6px] opacity-40 grayscale pointer-events-none' : ''}`}
+      padding="p-5"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-colors">
+          <Icon className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
         </div>
+        
         {change !== undefined && !isTrial && !isBlur && (
-          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-500 border border-rose-100'
-            }`}>
-            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {Math.abs(change)}%
+          <Badge variant={isPositive ? 'success' : 'error'} className="font-black">
+            {isPositive ? '+' : ''}{change}%
+          </Badge>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{title}</p>
+        
+        {isTrial ? (
+          <p className="text-xl font-bold text-slate-200 select-none">••••••</p>
+        ) : (
+          <div className="flex items-baseline gap-2">
+            <Heading level={3} className="text-xl text-slate-900 leading-none">{value}</Heading>
+            {isProjected && (
+              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-tighter">AI Est.</span>
+            )}
           </div>
         )}
       </div>
 
-      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1.5">{title}</p>
-
-      {isTrial ? (
-        <p className="text-2xl font-bold text-slate-900/10 select-none blur-[6px]">₹850,000</p>
-      ) : (
-        <div>
-          {isProjected && (
-            <span className="text-[9px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wider inline-block mb-1">AI Est.</span>
-          )}
-          <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
-        </div>
-      )}
-
       {subtitle && (
-        <p className="text-[11px] text-slate-400 mt-2 flex items-center gap-1.5">
-          <span className={`w-1.5 h-1.5 rounded-full ${scheme.dot} flex-shrink-0`} />
+        <p className="text-[11px] text-slate-400 mt-3 flex items-center gap-1.5 truncate">
+          <span className="w-1 h-1 rounded-full bg-slate-200 group-hover:bg-indigo-400 transition-colors" />
           {subtitle}
         </p>
       )}
-    </div>
+    </Card>
   );
 }

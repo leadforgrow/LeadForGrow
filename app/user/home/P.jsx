@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Briefcase,
   Building2,
-  Zap,
   Users,
   Database,
   Shield

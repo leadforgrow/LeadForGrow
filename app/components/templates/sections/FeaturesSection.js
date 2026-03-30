@@ -1,10 +1,10 @@
 "use client";
 
 import React from 'react';
-import { Sparkles, Zap, Shield, Star, Rocket, Target } from 'lucide-react';
+import { Sparkles, Shield, Star, Rocket, Target } from 'lucide-react';
 
 const icons = {
-  Zap, Sparkles, Shield, Star, Rocket, Target
+  Sparkles, Shield, Star, Rocket, Target
 };
 
 export default function FeaturesSection({ content }) {

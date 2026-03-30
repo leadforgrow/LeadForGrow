@@ -8,7 +8,14 @@ import {
   Play,
   Phone,
   PhoneOff,
-  Trash2
+  Trash2,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  PhoneMissed,
+  Cpu,
+  MessageSquare,
+  Check
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -328,16 +335,17 @@ export default function CallIntegrationPage() {
   };
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen bg-[#FDFDFF] font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="px-8 py-10 min-h-screen bg-[#FDFDFF] font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* 1️⃣ Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-        <div>
-          <h1 className="text-[40px] font-bold text-slate-900 tracking-[-0.03em] leading-tight mb-1">
-            Call Recovery
-          </h1>
-          <p className="text-slate-500 font-medium text-lg tracking-tight">
-            Automatically capture and recover unanswered calls
-          </p>
+      <div className="flex items-center justify-between mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+            <PhoneCall className="w-5 h-5 text-red-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Call Recovery</h1>
+            <p className="text-xs text-slate-500 font-medium">Automatically capture and recover unanswered calls</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -364,10 +372,10 @@ export default function CallIntegrationPage() {
       </div>
 
       {wizardStep === 1 && (
-        <div className="max-w-xl mx-auto mt-20">
+        <div className="max-w-xl">
           <div className="bg-white rounded-[32px] p-12 shadow-2xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden">
-            <div className="relative z-10 text-center mb-10">
-              <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[24px] flex items-center justify-center mx-auto mb-8">
+            <div className="relative z-10 text-left mb-10">
+              <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[24px] flex items-center justify-center mb-8">
                 <Phone className="w-10 h-10" />
               </div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Connect Your Line</h2>
@@ -397,132 +405,210 @@ export default function CallIntegrationPage() {
       )}
 
       {wizardStep === 2 && (
-        <div className="max-w-2xl mx-auto mt-20">
-          <div className="bg-white rounded-[32px] p-12 shadow-2xl shadow-slate-200/50 border border-slate-100">
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
-                <Settings className="w-6 h-6 text-indigo-600" />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12 items-start animate-in fade-in slide-in-from-bottom-8 duration-700">
+          {/* Provider Settings (Left) */}
+          <div className="xl:col-span-7">
+            <div className="bg-white rounded-[32px] p-8 lg:p-12 shadow-2xl shadow-slate-200/40 border border-slate-100 flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-10">
+                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                  <Settings className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight flex-1 pr-12">Provider Settings</h2>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight text-center flex-1 pr-12">Provider Settings</h2>
-            </div>
 
-            <div className="flex gap-4 mb-10 p-1.5 bg-slate-50 rounded-[20px] border border-slate-100">
-              {['vapi', 'twilio'].map(p => (
-                <button
-                  key={p}
-                  onClick={() => setSettings(s => ({ ...s, telephony: { ...s.telephony, provider: p } }))}
-                  className={`flex-1 py-3.5 px-6 rounded-[16px] font-bold tracking-tight text-sm transition-all duration-300 ${settings.telephony.provider === p
-                      ? 'bg-white shadow-md text-slate-900'
-                      : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                >
-                  {p.toUpperCase()}
-                </button>
-              ))}
-            </div>
+              <div className="flex gap-4 mb-10 p-1.5 bg-slate-50 rounded-[20px] border border-slate-100">
+                {['vapi', 'twilio'].map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setSettings(s => ({ ...s, telephony: { ...s.telephony, provider: p } }))}
+                    className={`flex-1 py-3.5 px-6 rounded-[16px] font-bold tracking-tight text-sm transition-all duration-300 ${settings.telephony.provider === p
+                        ? 'bg-white shadow-md text-slate-900'
+                        : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                  >
+                    {p.toUpperCase()}
+                  </button>
+                ))}
+              </div>
 
-            <div className="space-y-8">
-              {settings.telephony.provider === 'vapi' ? (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vapi API Key</label>
-                    <input
-                      type="password"
-                      placeholder="Paste Private API Key"
-                      value={settings.telephony.apiKey}
-                      onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, apiKey: e.target.value } }))}
-                      className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-8 flex-1">
+                {settings.telephony.provider === 'vapi' ? (
+                  <>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Assistant ID</label>
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vapi API Key</label>
                       <input
-                        type="text"
-                        placeholder="id_..."
-                        value={settings.telephony.assistantId}
-                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, assistantId: e.target.value } }))}
-                        className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vapi Phone Number ID</label>
-                      <input
-                        type="text"
-                        placeholder="+1..."
-                        value={settings.telephony.phoneNumberId}
-                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, phoneNumberId: e.target.value } }))}
-                        className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Twilio Account SID</label>
-                    <input
-                      type="text"
-                      placeholder="AC..."
-                      value={settings.telephony.assistantId}
-                      onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, assistantId: e.target.value } }))}
-                      className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">API Key (SK...)</label>
-                      <input
-                        type="text"
-                        placeholder="SK..."
+                        type="password"
+                        placeholder="Paste Private API Key"
                         value={settings.telephony.apiKey}
                         onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, apiKey: e.target.value } }))}
                         className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">API Secret</label>
-                      <input
-                        type="password"
-                        placeholder="Twilio Secret"
-                        value={settings.telephony.apiSecret}
-                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, apiSecret: e.target.value } }))}
-                        className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Assistant ID</label>
+                        <input
+                          type="text"
+                          placeholder="id_..."
+                          value={settings.telephony.assistantId}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, assistantId: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number ID</label>
+                        <input
+                          type="text"
+                          placeholder="+1..."
+                          value={settings.telephony.phoneNumberId}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, phoneNumberId: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
+                  </>
+                ) : (
+                  <>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">TwiML App SID</label>
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Twilio Account SID</label>
                       <input
                         type="text"
-                        placeholder="AP..."
-                        value={settings.telephony.twimlAppSid}
-                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, twimlAppSid: e.target.value } }))}
+                        placeholder="AC..."
+                        value={settings.telephony.assistantId}
+                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, assistantId: e.target.value } }))}
                         className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Twilio Phone Number</label>
-                      <input
-                        type="text"
-                        placeholder="+1..."
-                        value={settings.telephony.phoneNumberId}
-                        onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, phoneNumberId: e.target.value } }))}
-                        className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">API Key (SK...)</label>
+                        <input
+                          type="text"
+                          placeholder="SK..."
+                          value={settings.telephony.apiKey}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, apiKey: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">API Secret</label>
+                        <input
+                          type="password"
+                          placeholder="Twilio Secret"
+                          value={settings.telephony.apiSecret}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, apiSecret: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">TwiML App SID</label>
+                        <input
+                          type="text"
+                          placeholder="AP..."
+                          value={settings.telephony.twimlAppSid}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, twimlAppSid: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                        <input
+                          type="text"
+                          placeholder="+1..."
+                          value={settings.telephony.phoneNumberId}
+                          onChange={(e) => setSettings(s => ({ ...s, telephony: { ...s.telephony, phoneNumberId: e.target.value } }))}
+                          className="w-full px-7 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[18px] focus:border-indigo-600 outline-none transition-all text-slate-900 font-bold"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
-              <button
-                onClick={handleVerifyCredentials}
-                disabled={verifying}
-                className="w-full py-5 bg-indigo-600 text-white rounded-[20px] font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 disabled:opacity-50"
-              >
-                {verifying ? 'Verifying...' : 'Complete Setup'}
-              </button>
+                <button
+                  onClick={handleVerifyCredentials}
+                  disabled={verifying}
+                  className="w-full py-5 bg-indigo-600 text-white rounded-[24px] font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-6 disabled:opacity-50 flex items-center justify-center gap-2 group"
+                >
+                  {verifying ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <><ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" /> Complete Setup</>}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Setup Blueprint (Right) */}
+          <div className="xl:col-span-5 h-full">
+            <div className="bg-slate-900 rounded-[32px] p-10 h-full text-white shadow-2xl shadow-indigo-900/10 flex flex-col relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 blur-[100px] -mr-32 -mt-32"></div>
+               
+               <div className="relative z-10 flex-1">
+                 <div className="flex items-center gap-3 mb-12">
+                   <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                     <Sparkles className="w-5 h-5 text-indigo-400" />
+                   </div>
+                   <div>
+                     <h3 className="text-xl font-bold tracking-tight text-white leading-none mb-1">Recovery Blueprint</h3>
+                     <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">Setup Intelligence Guide</p>
+                   </div>
+                 </div>
+
+                 <div className="space-y-10">
+                   {/* Step 1 */}
+                   <div className="flex gap-5 relative">
+                     <div className="absolute top-10 left-5 w-px h-[calc(100%+24px)] bg-slate-800"></div>
+                     <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shrink-0 border border-slate-700 relative z-10">
+                       <PhoneMissed className="w-5 h-5 text-slate-400" />
+                     </div>
+                     <div className="pt-1">
+                       <h4 className="font-bold text-slate-100 mb-1">Detect Call</h4>
+                       <p className="text-sm text-slate-400 leading-relaxed">The system monitors your connected line 24/7 for missed opportunities.</p>
+                     </div>
+                   </div>
+
+                   {/* Step 2 */}
+                   <div className="flex gap-5 relative">
+                     <div className="absolute top-10 left-5 w-px h-[calc(100%+24px)] bg-slate-800"></div>
+                     <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/20 relative z-10">
+                       <Cpu className="w-5 h-5 text-white" />
+                     </div>
+                     <div className="pt-1">
+                       <h4 className="font-bold text-white mb-1">AI Context Mapping</h4>
+                       <p className="text-sm text-slate-300 leading-relaxed font-medium">LFG AI analyzes the lead's history and business context in under 2 seconds.</p>
+                     </div>
+                   </div>
+
+                   {/* Step 3 */}
+                   <div className="flex gap-5 relative">
+                     <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shrink-0 border border-slate-700 relative z-10">
+                       <MessageSquare className="w-5 h-5 text-slate-400" />
+                     </div>
+                     <div className="pt-1">
+                       <h4 className="font-bold text-slate-100 mb-1">Automated Recovery</h4>
+                       <p className="text-sm text-slate-400 leading-relaxed">Personalized recovery messages are sent via SMS/WhatsApp to secure the lead.</p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+               <div className="mt-12 p-6 bg-slate-800/40 rounded-2xl border border-slate-800 relative z-10">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                     <TrendingUp className="w-4 h-4 text-emerald-400" />
+                   </div>
+                   <span className="text-sm font-bold text-slate-100">Recovery Impact</span>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Lead Retention</p>
+                     <p className="text-xl font-black text-emerald-400">+99.2%</p>
+                   </div>
+                   <div>
+                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avg. Response</p>
+                     <p className="text-xl font-black text-indigo-400">12s</p>
+                   </div>
+                 </div>
+               </div>
             </div>
           </div>
         </div>

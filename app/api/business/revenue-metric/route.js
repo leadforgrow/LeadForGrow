@@ -225,7 +225,7 @@ function generateAIProjections(business, leads, { dealValue, currency, businessN
     insights: [
       `🤖 AI Baseline for ${businessName}: Responding to ${topSource} leads within ${slaMinutes} mins can boost your conversion by 18-22%.`,
       `📈 At your ₹${dealValue.toLocaleString()} avg deal value, closing just 2 extra leads/month adds ₹${(dealValue * 2).toLocaleString()} in monthly revenue.`,
-      `⚡ Activate automated follow-up sequences to turn your first 10 leads into a measurable pipeline instantly.`
+      `✨ Activate automated follow-up sequences to turn your first 10 leads into a measurable pipeline instantly.`
     ],
     totalLeads: leads.length,
     activeLeads: leads.length,

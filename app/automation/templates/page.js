@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Mail, Clock, Save, Info, AlertCircle, ArrowRight, LayoutTemplate, Plus, Trash2, MessageCircle, Edit3, CheckCircle, Search, Sparkles } from 'lucide-react';
+import { Mail, Clock, Save, Info, AlertCircle, ArrowRight, LayoutTemplate, Plus, Trash2, MessageCircle, Edit3, CheckCircle, Search, Sparkles, FileText, MessageSquare } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function TemplatesPage() {
   const [activeTab, setActiveTab] = useState('library');
@@ -133,18 +134,14 @@ export default function TemplatesPage() {
   return (
     <div className="flex flex-col h-full bg-slate-50 min-h-screen">
       {/* Premium Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-6 flex justify-between items-center sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
-            <LayoutTemplate className="w-6 h-6" />
+      <div className="bg-white border-b border-slate-100 px-8 py-10 flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-emerald-600" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Message Library</h1>
-            <div className="flex items-center gap-2 text-slate-500 mt-1">
-              <p className="text-sm font-medium">Design & organize your response templates</p>
-              <span className="w-1 h-1 bg-slate-300 rounded-full" />
-              <p className="text-xs font-bold uppercase tracking-widest text-indigo-600">{manualTemplates.length} Templates</p>
-            </div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Message Library</h1>
+            <p className="text-xs text-slate-500 font-medium">Standardized library for Email and WhatsApp communication</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -158,7 +155,7 @@ export default function TemplatesPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group active:scale-95"
+            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group active:scale-95"
           >
             <Save className={`w-4 h-4 ${saving ? 'animate-pulse' : 'group-hover:scale-110 transition-transform'}`} />
             {saving ? 'Syncing...' : 'Save Changes'}
@@ -166,12 +163,12 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      <div className="p-8 max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-8">
+      <div className="px-8 py-10 w-full flex flex-col lg:flex-row gap-8">
 
         {/* Navigation Sidebar */}
         <div className="w-full lg:w-72 space-y-6">
           <div className="space-y-1.5">
-            <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Main Categories</p>
+            <p className="px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">Main Categories</p>
             <button
               onClick={() => setActiveTab('library')}
               className={`w-full text-left px-5 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 ${activeTab === 'library'
@@ -206,7 +203,7 @@ export default function TemplatesPage() {
 
           <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-indigo-100 transition-colors" />
-            <h3 className="text-slate-900 font-black flex items-center gap-2 text-xs mb-3 relative z-10">
+            <h3 className="text-slate-900 font-medium flex items-center gap-2 text-[10px] mb-3 relative z-10 uppercase tracking-widest">
               <Info className="w-4 h-4 text-indigo-500" />
               SMART TOKENS
             </h3>
@@ -221,7 +218,7 @@ export default function TemplatesPage() {
                   <span className="text-[10px] font-mono opacity-0 group-hover/token:opacity-40">{p.value}</span>
                 </button>
               ))}
-              <p className="text-[9px] text-slate-400 mt-2 leading-relaxed text-center font-medium">Click to copy token</p>
+              <p className="text-[9px] text-slate-400 mt-2 leading-relaxed text-left px-1 font-medium">Click to copy token</p>
             </div>
           </div>
         </div>
@@ -254,7 +251,7 @@ export default function TemplatesPage() {
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${template.channel === 'whatsapp' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
                           {template.channel === 'whatsapp' ? <MessageCircle className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
                         </div>
-                        <h3 className="font-black text-slate-900 truncate max-w-[180px]">{template.name}</h3>
+                        <Heading level={3} className="text-base truncate max-w-[180px]">{template.name}</Heading>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -323,7 +320,7 @@ export default function TemplatesPage() {
                         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                           <div className="flex items-center gap-1.5">
                             <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ready to use</span>
+                            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Ready to use</span>
                           </div>
                           <button
                             onClick={() => setEditingTemplate(template)}
@@ -340,12 +337,15 @@ export default function TemplatesPage() {
 
                 <button
                   onClick={addManualTemplate}
-                  className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-[28px] flex flex-col items-center justify-center gap-3 text-slate-400 hover:bg-white hover:border-indigo-300 hover:text-indigo-500 transition-all group"
+                  className="bg-slate-50 border-2 border-dashed border-slate-200 p-8 rounded-[28px] flex flex-col items-start justify-start gap-4 text-slate-400 hover:bg-white hover:border-indigo-300 hover:text-indigo-500 transition-all group"
                 >
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
                     <Plus className="w-6 h-6" />
                   </div>
-                  <p className="font-bold text-sm">Create New Template</p>
+                  <div className="text-left">
+                    <p className="font-bold text-sm text-slate-600 group-hover:text-indigo-600">Create New Template</p>
+                    <p className="text-[10px] font-medium text-slate-400 mt-1">Add a custom message to your library</p>
+                  </div>
                 </button>
               </div>
             </div>
@@ -358,8 +358,8 @@ export default function TemplatesPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-wider">Automated Flow</div>
-                      <h2 className="text-2xl font-black text-slate-900">{activeTab === 'welcome' ? 'Lead Welcome Email' : 'Follow-Up Sequence'}</h2>
+                      <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-medium uppercase tracking-wider">Automated Flow</div>
+                      <Heading level={2} className="text-2xl">{activeTab === 'welcome' ? 'Lead Welcome Email' : 'Follow-Up Sequence'}</Heading>
                     </div>
                     <p className="text-slate-500 font-medium">
                       {activeTab === 'welcome'
@@ -387,7 +387,7 @@ export default function TemplatesPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Email Subject</label>
+                      <label className="block text-[10px] font-medium uppercase tracking-[0.15em] text-slate-400 ml-1">Email Subject</label>
                       <input
                         type="text"
                         value={activeTab === 'welcome' ? welcomeTemplate.subject : followUpTemplate.subject}
@@ -402,7 +402,7 @@ export default function TemplatesPage() {
 
                     {activeTab === 'followup' && (
                       <div className="space-y-2">
-                        <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Wait Duration (Hours)</label>
+                        <label className="block text-[10px] font-medium uppercase tracking-[0.15em] text-slate-400 ml-1">Wait Duration (Hours)</label>
                         <div className="relative">
                           <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
@@ -419,7 +419,7 @@ export default function TemplatesPage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center px-1">
-                      <label className="block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Message Blueprint</label>
+                      <label className="block text-[10px] font-medium uppercase tracking-[0.15em] text-slate-400">Message Blueprint</label>
                       <button
                         onClick={() => setShowPreview(!showPreview)}
                         className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import Heading from '@/app/components/ui/Heading';
 
 export default function RevenueIntelligenceConfig() {
   const router = useRouter();
@@ -211,12 +212,12 @@ export default function RevenueIntelligenceConfig() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-200">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-blue-600" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">Revenue Intelligence Setup</h1>
-                <p className="text-sm text-slate-500">Configure your business metrics</p>
+                <Heading level={1} className="text-xl">Revenue Intelligence Setup</Heading>
+                <p className="text-sm text-slate-500 font-medium whitespace-nowrap">Configure your business metrics</p>
               </div>
             </div>
             <div className="text-sm font-semibold text-slate-600">
@@ -247,7 +248,7 @@ export default function RevenueIntelligenceConfig() {
                       <Icon className={`w-6 h-6 ${isActive || isCompleted ? 'text-white' : 'text-slate-400'}`} />
                     </div>
                     <div className="mt-2 text-center">
-                      <p className={`text-xs font-bold ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                      <p className={`text-[10px] font-medium uppercase tracking-widest ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
                         {step.title}
                       </p>
                     </div>
@@ -341,8 +342,8 @@ function DealValueStep({ config, setConfig }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">What is the average value of one successful lead?</h2>
-        <p className="text-slate-600">This powers our revenue risk and recovery calculations.</p>
+        <Heading level={2} className="text-2xl mb-2">What is the average value of one successful lead?</Heading>
+        <p className="text-slate-600 font-medium">This powers our revenue risk and recovery calculations.</p>
       </div>
 
       <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
@@ -351,8 +352,8 @@ function DealValueStep({ config, setConfig }) {
             <Info className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 mb-1">Why we ask this</h4>
-            <p className="text-sm text-slate-700 leading-relaxed">
+            <Heading level={4} className="text-sm mb-1">Why we ask this</Heading>
+            <p className="text-sm text-slate-700 leading-relaxed font-medium">
               Understanding your deal values helps us calculate revenue at risk, prioritize high-value leads, and show you exactly how much money you're recovering through better follow-up.
             </p>
           </div>
@@ -445,8 +446,8 @@ function DealValueStep({ config, setConfig }) {
       <div className="pt-6 border-t-2 border-slate-100">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Service-wise Deal Values (Optional)</h3>
-            <p className="text-sm text-slate-600">Different services have different values</p>
+            <Heading level={3} className="text-lg">Service-wise Deal Values (Optional)</Heading>
+            <p className="text-sm text-slate-600 font-medium">Different services have different values</p>
           </div>
           <button
             onClick={addService}
@@ -528,8 +529,8 @@ function SalesProcessStep({ config, setConfig }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Define Your Sales Response Standards</h2>
-        <p className="text-slate-600">Help us understand when leads should be contacted and when your team is available.</p>
+        <Heading level={2} className="text-2xl mb-2">Define Your Sales Response Standards</Heading>
+        <p className="text-slate-600 font-medium">Help us understand when leads should be contacted and when your team is available.</p>
       </div>
 
       {/* Response Time SLA */}
@@ -539,8 +540,8 @@ function SalesProcessStep({ config, setConfig }) {
             <Clock className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 mb-1">Ideal Response Time (SLA)</h4>
-            <p className="text-sm text-slate-700">Within how many minutes should a lead ideally be contacted?</p>
+            <Heading level={4} className="text-sm mb-1">Ideal Response Time (SLA)</Heading>
+            <p className="text-sm text-slate-700 font-medium">Within how many minutes should a lead ideally be contacted?</p>
           </div>
         </div>
 
@@ -585,10 +586,10 @@ function SalesProcessStep({ config, setConfig }) {
 
       {/* Working Hours */}
       <div className="space-y-6">
-        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <Heading level={3} className="text-lg flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-600" />
           Business Working Hours
-        </h3>
+        </Heading>
 
         {/* Days of Week */}
         <div>
@@ -598,7 +599,7 @@ function SalesProcessStep({ config, setConfig }) {
               <button
                 key={day.id}
                 onClick={() => toggleDay(day.id)}
-                className={`px-6 py-3 rounded-xl font-bold transition-all ${config.workingHours.days.includes(day.id)
+                className={`px-6 py-3 rounded-xl font-medium transition-all ${config.workingHours.days.includes(day.id)
                   ? 'bg-blue-500 text-white shadow-md'
                   : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                   }`}
@@ -666,8 +667,8 @@ function ConversionStep({ config, setConfig }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">What's Your Realistic Conversion Rate?</h2>
-        <p className="text-slate-600">No guesses needed - just give us a rough range based on your experience.</p>
+        <Heading level={2} className="text-2xl mb-2">What's Your Realistic Conversion Rate?</Heading>
+        <p className="text-slate-600 font-medium">No guesses needed - just give us a rough range based on your experience.</p>
       </div>
 
       <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-6">
@@ -676,8 +677,8 @@ function ConversionStep({ config, setConfig }) {
             <Target className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 mb-1">Out of 100 leads, roughly how many convert?</h4>
-            <p className="text-sm text-slate-700 leading-relaxed">
+            <Heading level={4} className="text-sm mb-1">Out of 100 leads, roughly how many convert?</Heading>
+            <p className="text-sm text-slate-700 leading-relaxed font-medium">
               This helps us calculate revenue recovery confidence. Be realistic - lower is better than optimistic guessing.
             </p>
           </div>

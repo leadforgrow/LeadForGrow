@@ -8,12 +8,13 @@ import {
   Grid,
   Users,
   Mail,
-  Zap,
+  Sparkles,
   BarChart3,
   Settings,
   ChevronDown,
   Calendar
 } from "lucide-react"
+import Heading from "@/app/components/ui/Heading"
 
 export default function LeadForGrowHero() {
   const sectionRef = useRef(null)
@@ -69,11 +70,11 @@ export default function LeadForGrowHero() {
               Why LeadForGrow
             </span>
 
-            <h2 className="mt-6 text-balance text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+            <Heading level={2} className="mt-6 text-balance">
               Why Growing Businesses Choose LeadForGrow
-            </h2>
+            </Heading>
 
-            <p className="mt-6 text-lg leading-relaxed text-slate-600">
+            <p className="mt-6">
               LeadForGrow isn't just a tool; it's the engine that powers your sales operations.
               Built for high-performance teams who demand speed, visibility, and automation.
             </p>
@@ -110,7 +111,7 @@ export default function LeadForGrowHero() {
                   <div className="hidden sm:flex w-44 flex-col bg-[#1A1F2E] p-5 text-[#94A3B8]">
                     <div className="flex items-center gap-2 mb-8">
                       <div className="h-6 w-6 rounded bg-blue-500 flex items-center justify-center">
-                        <Zap size={14} className="text-white" />
+                        <Sparkles size={14} className="text-white" />
                       </div>
                       <span className="text-xs font-bold text-white uppercase tracking-tighter">LFG OS</span>
                     </div>
@@ -119,7 +120,7 @@ export default function LeadForGrowHero() {
                       {[
                         { icon: Grid, label: "Overview", active: true },
                         { icon: Users, label: "Leads" },
-                        { icon: Zap, label: "Automation" },
+                        { icon: Sparkles, label: "Automation" },
                         { icon: Mail, label: "Campaigns" },
                         { icon: BarChart3, label: "Reports" },
                       ].map((item, idx) => (

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPlus, Users, Shield, TrendingUp, CheckCircle2, UserCircle, RefreshCcw } from 'lucide-react';
+import { UserPlus, Users, Shield, TrendingUp, CheckCircle2, UserCircle, RefreshCcw, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function TeamPage() {
   const [assignmentStrategy, setAssignmentStrategy] = useState('solo');
@@ -123,19 +124,26 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-10">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Team & Ownership</h1>
-        <p className="text-slate-600">Decide who handles new leads and manage your team</p>
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-slate-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Team & Ownership</h1>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Manage workspace members and lead assignment policies</p>
+          </div>
+        </div>
       </div>
 
       {/* Ownership Strategy Selection */}
       <div className="bg-white rounded-[32px] border border-slate-200 p-8 mb-8">
-        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <Heading level={3} className="text-xl mb-6 flex items-center gap-2">
           <Shield className="w-6 h-6 text-indigo-600" />
           Lead Assignment Strategy
-        </h2>
+        </Heading>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <button
@@ -148,7 +156,7 @@ export default function TeamPage() {
             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
               <UserCircle className={`w-7 h-7 ${assignmentStrategy === 'solo' ? 'text-indigo-600' : 'text-slate-400'}`} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Only Me (Solo)</h3>
+            <Heading level={3} className="text-xl mb-2">Only Me (Solo)</Heading>
             <p className="text-sm text-slate-600 leading-relaxed">
               Every new lead will be assigned directly to you. Perfect if you handle sales personally.
             </p>
@@ -169,7 +177,7 @@ export default function TeamPage() {
             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
               <RefreshCcw className={`w-7 h-7 ${assignmentStrategy === 'round-robin' ? 'text-indigo-600' : 'text-slate-400'}`} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Round Robin (Team)</h3>
+            <Heading level={3} className="text-xl mb-2">Round Robin (Team)</Heading>
             <p className="text-sm text-slate-600 leading-relaxed">
               Automatically distribute leads equally among all active team members.
             </p>
@@ -185,7 +193,7 @@ export default function TeamPage() {
           <button
             onClick={handleSaveOwnership}
             disabled={saving}
-            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-200"
+            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100"
           >
             {saving ? 'Saving...' : 'Save Ownership Settings'}
           </button>
@@ -195,10 +203,10 @@ export default function TeamPage() {
       {/* Team Member Management */}
       <div className="bg-white rounded-[32px] border border-slate-200 p-8">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <Heading level={3} className="text-xl flex items-center gap-2">
             <Users className="w-6 h-6 text-indigo-600" />
             Team Members
-          </h2>
+          </Heading>
           <button
             onClick={() => setShowAddModal(true)}
             className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-800 transition-colors"
@@ -212,7 +220,7 @@ export default function TeamPage() {
           <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-2 text-blue-800">
               <Shield className="w-5 h-5" />
-              <span className="text-sm font-bold">Free Trial: Limited to 2 team members</span>
+              <span className="text-sm font-medium">Free Trial: Limited to 2 team members</span>
             </div>
             <p className="text-xs text-blue-600 font-medium">{team.length} / 2 used</p>
           </div>
@@ -223,7 +231,7 @@ export default function TeamPage() {
         ) : team.length === 0 ? (
           <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
             <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-slate-900">No team members yet</h3>
+            <Heading level={3}>No team members yet</Heading>
             <p className="text-sm text-slate-500 max-w-xs mx-auto mt-2">
               Add your sales staff or partners to start distributing leads automatically.
             </p>
@@ -236,14 +244,14 @@ export default function TeamPage() {
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50/30 rounded-full blur-2xl group-hover:bg-indigo-100/40 transition-colors" />
 
                 <div className="flex items-center gap-5 mb-6 relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-xl shadow-inner border border-white">
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 font-bold text-xl shadow-inner border border-white">
                     {member.userId?.firstName?.charAt(0) || <UserCircle className="w-7 h-7 text-indigo-400" />}
                   </div>
                   <div>
-                    <h4 className="font-black text-slate-800 text-lg leading-tight">
+                    <Heading level={3} className="text-lg leading-tight">
                       {member.userId?.firstName ? `${member.userId.firstName} ${member.userId.lastName || ''}` : member.role === 'owner' ? 'Business Owner' : member.userId?.email || 'Unnamed Member'}
-                    </h4>
-                    <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                    </Heading>
+                    <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">
                       {member.role === 'owner' ? 'Account Owner' : member.userId?.email ? 'Team Member' : 'Invitation Pending'}
                     </p>
                   </div>
@@ -251,18 +259,18 @@ export default function TeamPage() {
 
                 <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50 relative z-10">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase mb-2 tracking-tighter">Status</p>
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tight ${member.active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-100'
+                    <p className="text-[10px] text-slate-400 font-medium uppercase mb-2 tracking-widest">Status</p>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-medium uppercase tracking-widest ${member.active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-100'
                       }`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${member.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                       {member.active ? 'Online' : 'Inactive'}
                     </span>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase mb-2 tracking-tighter">Performance</p>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase mb-2 tracking-widest">Performance</p>
                     <div className="flex items-baseline gap-1">
-                      <p className="text-sm font-black text-slate-800">{member.metrics?.totalLeadsHandled || 0}</p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase">Leads</p>
+                      <p className="text-sm font-bold text-slate-800">{member.metrics?.totalLeadsHandled || 0}</p>
+                      <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Leads</p>
                     </div>
                   </div>
                 </div>

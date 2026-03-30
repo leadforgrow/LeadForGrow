@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, Zap, UserPlus, TrendingUp } from "lucide-react"
+import { Search, Sparkles, UserPlus, TrendingUp } from "lucide-react"
 import { useState } from "react"
 
 const steps = [
@@ -19,7 +19,7 @@ const steps = [
     title: "Automate",
     description:
       "Instant WhatsApp reply is sent. Follow-up sequences are triggered.",
-    icon: Zap,
+    icon: Sparkles,
     x: "36.5%",
     y: "25%",
   },

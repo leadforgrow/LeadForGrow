@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, TrendingUp, Users, FileText, Shield, Zap } from 'lucide-react';
+import { AlertCircle, TrendingUp, Users, FileText, Shield, Sparkles } from 'lucide-react';
 
 export default function UsagePage() {
   const [usage, setUsage] = useState(null);
@@ -64,7 +64,7 @@ export default function UsagePage() {
       max: usage.limits.maxLeadsPerMonth,
       percentage: usage.percentages.leads,
       remaining: usage.remaining.leads,
-      icon: Zap,
+      icon: Sparkles,
       color: 'amber'
     }
   ];

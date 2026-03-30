@@ -13,6 +13,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function NotificationSettingsPage() {
   const router = useRouter();
@@ -150,16 +151,26 @@ export default function NotificationSettingsPage() {
   return (
     <div className="p-8 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-4 transition-colors font-medium"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Settings
-        </button>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Notification Settings</h1>
-        <p className="text-slate-600">Control who gets notified when new leads arrive</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-6 transition-colors font-medium text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Settings
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-purple-600" strokeWidth={2.5} />
+            </div>
+            <div>
+              <Heading level={1} className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Notification Settings</Heading>
+              <p className="text-xs text-slate-500 font-medium">Control who gets notified when new leads arrive</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8">
@@ -171,8 +182,8 @@ export default function NotificationSettingsPage() {
                 <Mail className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Email Notifications</h3>
-                <p className="text-slate-500 text-sm">Receive instant alerts for new leads</p>
+                <Heading level={3} className="text-lg">Email Notifications</Heading>
+                <p className="text-slate-500 text-sm font-medium">Receive instant alerts for new leads</p>
               </div>
             </div>
             {/* Toggle Switch */}
@@ -191,7 +202,7 @@ export default function NotificationSettingsPage() {
             {settings.email.enabled ? (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-3">
+                  <label className="block text-[10px] font-medium uppercase text-slate-400 mb-3 tracking-widest">
                     Team Recruiting List
                   </label>
                   

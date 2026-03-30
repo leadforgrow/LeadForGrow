@@ -17,7 +17,7 @@ import {
   Calendar,
   ArrowRight,
   FileText,
-  Zap,
+  Sparkles,
   Play,
   X,
   Send
@@ -205,7 +205,7 @@ export default function HelpCenter() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 { icon: <BookOpen />, title: "Getting Started", desc: "Learn how to set up your LeadForGrow account and capture your first lead." },
-                { icon: <Zap />, title: "Lead Capture Setup", desc: "Configure website forms, WhatsApp leads, and third-party integrations." },
+                { icon: <Sparkles />, title: "Lead Capture Setup", desc: "Configure website forms, WhatsApp leads, and third-party integrations." },
                 { icon: <Repeat />, title: "Automation & Follow-Ups", desc: "Set up automated reminders, messaging sequences, and SLA rules." },
                 { icon: <Users />, title: "Team & User Management", desc: "Add team members, configure routing rules, and assign leads automatically." },
                 { icon: <BarChart3 />, title: "Dashboard & Analytics", desc: "Understand revenue dashboards, metrics, and team performance reports." },
@@ -494,7 +494,7 @@ export default function HelpCenter() {
                 {demoSubmitted ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6">
-                      <Zap className="w-8 h-8" />
+                      <Sparkles className="w-8 h-8" />
                     </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-2">Thanks!</h4>
                     <p className="text-gray-500">Our team will contact you shortly to confirm your demo.</p>

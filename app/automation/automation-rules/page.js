@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { 
-  Zap, 
+  Sparkles, 
   MessageCircle, 
   Bell, 
   RefreshCw, 
@@ -18,6 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function AutomationRulesPage() {
   const [rules, setRules] = useState([]);
@@ -161,7 +162,7 @@ export default function AutomationRulesPage() {
       'notify_team': Bell,
       'follow_up_reminder': RefreshCw
     };
-    return icons[type] || Zap;
+    return icons[type] || Sparkles;
   };
 
   if (loading) {
@@ -173,12 +174,17 @@ export default function AutomationRulesPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="px-8 py-10">
       {/* SaaS Premium Header */}
       <div className="flex items-center justify-between mb-12">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Automation Cloud</h1>
-          <p className="text-slate-500">Manage rules that work for your business 24/7.</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-orange-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Automation Rules</h1>
+            <p className="text-xs text-slate-500 font-medium">Configure smart triggers and automated business logic</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2">
@@ -210,14 +216,14 @@ export default function AutomationRulesPage() {
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Heading level={3} className="flex items-center gap-2">
                         {rule.name}
                         {rule.executionCount > 0 && (
                           <span className="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full">
                             {rule.executionCount} Runs
                           </span>
                         )}
-                      </h3>
+                      </Heading>
                       <p className="text-sm text-slate-500 mt-1">{rule.description}</p>
                       
                       {/* Configuration Preview */}
@@ -270,7 +276,7 @@ export default function AutomationRulesPage() {
           {editingRule ? (
             <div className="bg-white rounded-[32px] border-2 border-slate-100 p-8 sticky top-8 animate-in slide-in-from-right duration-300">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black text-slate-900">Configure Rule</h2>
+                <Heading level={2}>Configure Rule</Heading>
                 <button 
                   onClick={() => setEditingRule(null)}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -479,7 +485,7 @@ export default function AutomationRulesPage() {
                     {/* Cloudinary Settings Toggle */}
                     <div className="mt-3 p-3 bg-slate-100 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-2 mb-2">
-                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⚡ Enable Large Video Uploads (Cloudinary)</span>
+                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">✨ Enable Large Video Uploads (Cloudinary)</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <input 
@@ -537,20 +543,12 @@ export default function AutomationRulesPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-slate-50 rounded-[32px] p-8 border-2 border-dashed border-slate-200 text-center">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
-                <Settings className="w-8 h-8 text-slate-300" />
+            <div className="bg-white border border-slate-200 rounded-[40px] p-10 text-left sticky top-8 shadow-sm">
+              <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-8">
+                <Sparkles className="w-10 h-10 text-slate-200" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Configuration Required</h3>
-              <p className="text-sm text-slate-500 leading-relaxed mb-8">
-                Select a rule to customize its behavior, change messaging, or adjust timings.
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-left p-3 bg-white rounded-xl border border-slate-100">
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
-                  <p className="text-[11px] text-slate-600 font-medium">Verify your SMTP settings to ensure emails send correctly.</p>
-                </div>
-              </div>
+              <Heading level={2} className="text-slate-400">Configuration Required</Heading>
+              <p className="text-slate-400 mt-2 max-w-xs font-medium italic">Select a rule from the explorer to manage automation intelligence.</p>
             </div>
           )}
         </div>

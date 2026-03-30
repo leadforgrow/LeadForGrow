@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import MarketingLayout from '@/app/components/MarketingLayout';
+import Heading from '@/app/components/ui/Heading';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -29,7 +30,7 @@ export default function ContactPage() {
         {/* Left Side: Contact Info */}
         <div className="space-y-12">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Contact Information</h2>
+            <Heading level={2} className="text-3xl mb-6 text-slate-900 dark:text-white">Contact Information</Heading>
             <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed mb-8">
               Whether you're a solo freelancer or a global agency, we'd love to hear from you. 
               Our experts are ready to show you how LeadForGrow can transform your operations.
@@ -67,7 +68,7 @@ export default function ContactPage() {
 
           <div className="bg-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
             <div className="relative z-10">
-              <h3 className="text-2xl font-bold mb-4">Are you an Agency?</h3>
+              <Heading level={3} className="text-2xl mb-4 text-white">Are you an Agency?</Heading>
               <p className="opacity-90 mb-6 font-light">
                 Ask about our White-Label solutions and Agency-only pricing tiers.
               </p>
@@ -87,7 +88,7 @@ export default function ContactPage() {
               <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-8">
                 <CheckCircle2 className="w-12 h-12" />
               </div>
-              <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Message Sent!</h3>
+              <Heading level={3} className="text-3xl mb-4">Message Sent!</Heading>
               <p className="text-slate-600 dark:text-slate-400 text-lg mb-8 max-w-sm">
                 Thank you for reaching out. One of our growth specialists will get back to you within 24 hours.
               </p>
@@ -102,37 +103,37 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Your Name</label>
+                  <label className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Your Name</label>
                   <input 
                     required
                     type="text" 
                     placeholder="John Doe"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none" 
+                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold" 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address</label>
+                  <label className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Email Address</label>
                   <input 
                     required
                     type="email" 
                     placeholder="john@agency.com"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none" 
+                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold" 
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Company / Agency Name</label>
+                <label className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Company / Agency Name</label>
                 <input 
                   type="text" 
                   placeholder="LFG Agency"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none" 
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold" 
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Subject</label>
-                <select className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none">
+                <label className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Subject</label>
+                <select className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold">
                   <option>General Inquiry</option>
                   <option>Sales & Demo</option>
                   <option>Agency White-Label</option>
@@ -141,12 +142,12 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Your Message</label>
+                <label className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Your Message</label>
                 <textarea 
                   required
                   rows="5"
                   placeholder="Tell us about your agency goals..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none resize-none" 
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none resize-none font-medium" 
                 ></textarea>
               </div>
 

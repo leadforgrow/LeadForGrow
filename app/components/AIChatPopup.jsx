@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { HelpCircle, Mail, X, ChevronRight, Sparkles, Zap, Settings, Phone, CreditCard } from 'lucide-react';
+import { HelpCircle, Mail, X, ChevronRight, Sparkles, Settings, Phone, CreditCard } from 'lucide-react';
 
 export default function AIChatPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +11,7 @@ export default function AIChatPopup() {
       text: 'Hi — need help with leads, automation, or setup?',
       options: [
         '🛠️ Get help with setup',
-        '⚡ Automate lead follow-ups',
+        '✨ Automate lead follow-ups',
         '📊 Understand pricing',
         '📞 Talk to sales'
       ]
@@ -66,7 +66,7 @@ export default function AIChatPopup() {
           botResponse.text = "Setup is straightforward:\n1. **Create Account**: Sign up instantly.\n2. **Connect**: Link your Ad accounts or Website forms.\n3. **Map Fields**: Match lead inputs to our CRM.\n\nWould you like a guide?";
           botResponse.options = ['View Setup Guide', 'Back to Menu'];
           break;
-        case '⚡ Automate lead follow-ups':
+        case '✨ Automate lead follow-ups':
           botResponse.text = "Our core feature. We connect with:\n• WhatsApp Business API\n• Email (SMTP/Gmail)\n• SMS Providers\n\nYou define the triggers, we send the messages instantly.";
           botResponse.options = ['See Integrations', 'Back to Menu'];
           break;
@@ -96,7 +96,7 @@ export default function AIChatPopup() {
           botResponse.text = "How can we assist you?";
           botResponse.options = [
             '🛠️ Get help with setup',
-            '⚡ Automate lead follow-ups',
+            '✨ Automate lead follow-ups',
             '📊 Understand pricing',
             '📞 Talk to sales'
           ];

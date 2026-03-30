@@ -4,6 +4,7 @@ import React from 'react';
 import UserNavbar from '../user/Header';
 import { useTheme } from './ThemeContext';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import Heading from '@/app/components/ui/Heading';
 
 export default function MarketingLayout({
   title,
@@ -27,9 +28,9 @@ export default function MarketingLayout({
       <div className="relative pt-48 pb-24 px-8 border-b border-slate-50 dark:border-slate-800/50">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
-            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">
+            <Heading level={1} className="text-5xl md:text-7xl leading-tight tracking-tight">
               {title}
-            </h1>
+            </Heading>
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 font-light leading-relaxed">
               {subtitle}
             </p>
@@ -68,7 +69,7 @@ export default function MarketingLayout({
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{benefit.title}</h3>
+                <Heading level={3} className="text-xl mb-4">{benefit.title}</Heading>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-light">{benefit.text}</p>
               </div>
             ))}
@@ -80,7 +81,7 @@ export default function MarketingLayout({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {whoIsThisFor && (
               <div className="bg-indigo-600 rounded-[3rem] p-12 text-white shadow-2xl relative overflow-hidden h-full">
-                <h3 className="text-3xl font-bold mb-8 relative z-10">Who Is This For?</h3>
+                <Heading level={3} className="text-3xl mb-8 text-white">Who Is This For?</Heading>
                 <div className="space-y-6 relative z-10">
                   {whoIsThisFor.map((target, idx) => (
                     <div key={idx} className="flex items-start gap-4">
@@ -97,7 +98,7 @@ export default function MarketingLayout({
 
             {whyItMatters && (
               <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-12 border border-slate-100 dark:border-slate-800 shadow-xl h-full">
-                <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Why This Matters?</h3>
+                <Heading level={3} className="text-3xl mb-8">Why This Matters?</Heading>
                 <div className="space-y-6">
                   {whyItMatters.map((point, idx) => (
                     <div key={idx} className="flex items-start gap-4">
@@ -123,11 +124,11 @@ export default function MarketingLayout({
         {/* FAQ Section */}
         {faq.length > 0 && (
           <div className="py-24 border-t border-slate-50 dark:border-slate-800/50">
-            <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-16 text-center">Frequently Asked Questions</h2>
+            <Heading level={2} className="text-4xl mb-16 text-center">Frequently Asked Questions</Heading>
             <div className="max-w-4xl mx-auto space-y-8">
               {faq.map((item, idx) => (
                 <div key={idx} className="bg-slate-50 dark:bg-slate-900/40 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm hover:shadow-xl">
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.q}</h3>
+                  <Heading level={3} className="text-2xl mb-4">{item.q}</Heading>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-light text-xl italic">{item.a}</p>
                 </div>
               ))}
@@ -137,7 +138,7 @@ export default function MarketingLayout({
 
         {/* Closing CTA */}
         <div className="py-24 text-center border-t border-slate-50 dark:border-slate-800/50">
-          <h2 className="text-5xl font-bold text-slate-900 dark:text-white mb-8">Ready to transform your business?</h2>
+          <Heading level={2} className="text-5xl mb-8">Ready to transform your business?</Heading>
           <p className="text-2xl text-slate-500 dark:text-slate-400 mb-12 font-light">Join 500+ agencies and businesses scaling with LeadForGrow.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-8">
             <a

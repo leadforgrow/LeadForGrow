@@ -10,7 +10,7 @@ import {
   CheckCircle2, 
   XCircle, 
   ArrowRight, 
-  Zap,
+  Sparkles,
   Lock,
   Loader2
 } from 'lucide-react';
@@ -544,7 +544,7 @@ export default function PublicWebsite({ website }) {
                   <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start gap-24">
                     <div className="lg:w-1/2 lg:pt-10">
                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-100 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] mb-8 text-emerald-600">
-                         <Zap className="w-3.5 h-3.5 fill-current" /> Instant Response
+                         <Sparkles className="w-3.5 h-3.5 fill-current" /> Instant Response
                       </div>
                       <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight text-slate-900 leading-[1.1]">{section.content.title}</h2>
                       <p className="text-lg text-slate-500 font-medium leading-relaxed mb-12 max-w-md">

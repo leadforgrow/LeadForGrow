@@ -2,35 +2,42 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  Search,
-  Plus,
-  Phone,
-  Mail,
-  Clock,
-  ArrowRight,
+import { 
+  Plus, 
+  Search, 
+  ChevronDown, 
+  ChevronUp, 
+  MoreVertical, 
+  CheckSquare, 
+  Square, 
+  Mail, 
+  Phone, 
+  Clock, 
+  Calendar, 
+  UserPlus, 
+  HelpCircle, 
+  Activity, 
+  Layout, 
+  Columns, 
+  Download, 
+  Filter,
   Users,
+  Timer,
+  ArrowRight,
   MessageCircle,
-  ChevronDown,
-  ChevronUp,
-  Download,
   RefreshCw,
   Target,
   TrendingUp,
-  Activity,
   Award,
   AlertTriangle,
-  Timer,
   Info,
-  HelpCircle,
   Trash2,
-  Calendar,
-  CheckSquare,
-  Square,
   MessageSquare
 } from 'lucide-react';
+import IntelligenceIcon from '@/app/components/ui/IntelligenceIcon';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
+import Heading from '@/app/components/ui/Heading';
 
 export default function EnterpriseLeadsPage() {
   const router = useRouter();
@@ -448,15 +455,20 @@ export default function EnterpriseLeadsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="p-6 max-w-full mx-auto">
+      <div className="px-8 py-10">
         {/* Compact Header */}
-        <div className="mb-6 max-w-[1800px] mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Lead Management</h1>
-              <p className="text-sm text-slate-500 mt-0.5">{sortedLeads.length} leads</p>
+        <div className="mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-indigo-600" strokeWidth={2.5} />
             </div>
-            <div className="flex items-center gap-2">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Lead Management</h1>
+              <p className="text-xs text-slate-500 font-medium">{leads.length} active leads in pipeline</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
               <button
                 onClick={fetchLeads}
                 className="px-3 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg text-sm hover:bg-slate-50 transition-colors flex items-center gap-2"
@@ -506,7 +518,7 @@ export default function EnterpriseLeadsPage() {
           <div className="grid grid-cols-5 gap-3 mb-4">
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Immediate Rescue</span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Immediate Rescue</span>
                 <span className="text-xl font-bold text-red-600">
                   {sortedLeads.filter(l => l.intelligence.nextAction.urgency === 'critical').length}
                 </span>
@@ -514,13 +526,13 @@ export default function EnterpriseLeadsPage() {
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SLA Breach</span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">SLA Breach</span>
                 <span className="text-xl font-bold text-orange-600">{stats.slaBreached}</span>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Handshake OK</span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Handshake OK</span>
                 <span className="text-xl font-bold text-emerald-600">
                   {sortedLeads.filter(l => l.metadata?.handshakeSent).length}
                 </span>
@@ -528,13 +540,13 @@ export default function EnterpriseLeadsPage() {
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">High Engage</span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">High Engage</span>
                 <span className="text-xl font-bold text-indigo-600">{stats.highEngagement}</span>
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Quality</span>
+                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Avg Quality</span>
                 <span className="text-xl font-bold text-slate-900">{stats.avgEngagement.toFixed(1)}</span>
               </div>
             </div>
@@ -588,12 +600,22 @@ export default function EnterpriseLeadsPage() {
 
         {/* Enterprise Table - Flat Design */}
         {sortedLeads.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-lg p-12 text-center max-w-[1800px] mx-auto">
-            <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">No leads found</h3>
-            <p className="text-sm text-slate-500">
-              {searchTerm ? 'Try adjusting your search' : 'New leads will appear here'}
+          <div className="bg-white border border-slate-200 rounded-[32px] p-16 text-left">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
+              <Users className="w-8 h-8 text-slate-300" />
+            </div>
+            <Heading level={2} className="mb-2">No leads found</Heading>
+            <p className="text-slate-500 max-w-md mb-8">
+              {searchTerm ? 'Try adjusting your search criteria or filters to find what you are looking for.' : 'New leads will automatically appear here as soon as they are captured by your active flows.'}
             </p>
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="text-indigo-600 font-bold hover:underline text-sm"
+              >
+                Clear Search →
+              </button>
+            )}
           </div>
         ) : (
           <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
@@ -715,12 +737,12 @@ export default function EnterpriseLeadsPage() {
 
                         {/* Next Action - ONLY PILL (Single Decision Signal) */}
                         <td className="px-4 py-3">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${intel.nextAction.urgency === 'critical' ? 'bg-red-600 text-white' :
+                          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${intel.nextAction.urgency === 'critical' ? 'bg-red-600 text-white' :
                             intel.nextAction.urgency === 'high' ? 'bg-orange-600 text-white' :
                               intel.nextAction.urgency === 'medium' ? 'bg-indigo-600 text-white' :
                                 'bg-slate-600 text-white'
                             } whitespace-nowrap shadow-sm`}>
-                            <span>{intel.nextAction.icon}</span>
+                            <IntelligenceIcon name={intel.nextAction.icon} className="w-3 h-3 text-white" strokeWidth={3} />
                             {intel.nextAction.action}
                           </div>
                         </td>
@@ -732,7 +754,7 @@ export default function EnterpriseLeadsPage() {
                               {lead.name}
                             </span>
                             <div className="flex items-center gap-2">
-                              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
                                 lead.status === 'contacted' ? 'bg-indigo-100 text-indigo-700' :
                                   lead.status === 'follow-up' ? 'bg-purple-100 text-purple-700' :
                                     lead.status === 'converted' ? 'bg-emerald-100 text-emerald-700' :
@@ -745,7 +767,7 @@ export default function EnterpriseLeadsPage() {
                                         lead.status}
                               </span>
                               {lead.metadata?.handshakeSent && (
-                                <span className="flex items-center gap-0.5 text-[9px] font-black text-emerald-600 uppercase">
+                                <span className="flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 uppercase">
                                   <Activity className="w-2 h-2" /> Handshake Sent
                                 </span>
                               )}

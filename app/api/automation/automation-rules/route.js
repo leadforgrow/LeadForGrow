@@ -31,7 +31,7 @@ export const GET = withPlanAccess('automation', async (req) => {
         {
           businessId,
           name: 'Notify Team on New Lead',
-          description: 'Zapier-style instant notification to the assigned team member.',
+          description: 'High-speed instant notification to the assigned team member.',
           type: 'notify_team',
           enabled: true,
           config: { delayHours: 0 },

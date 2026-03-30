@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Zap, 
+  Sparkles, 
   Settings2, 
   Bell, 
   ShieldCheck, 
@@ -108,7 +108,7 @@ export default function AgencyAutomationPage() {
         <AutomationCard title="Instant Alerts" description="Global push notifications for high-priority leads detected across any client endpoint." icon={Bell} active={false} type="NOTIFICATION" />
         <AutomationCard title="Client SMS Auto-pilot" description="AI-driven initial response system to qualify leads before they reach the dashboard." icon={MessageSquare} active={false} type="CONVERSION" />
         <AutomationCard title="Cross-Client Sync" description="Mirror templates, forms, and workflows across all connected client accounts with one click." icon={Shield} active={false} type="MANAGEMENT" />
-        <AutomationCard title="External Webhooks" description="Push global agency data to Zapier, Make, or custom CRM endpoints in standard JSON." icon={Zap} active={true} type="INTEGRATION" />
+        <AutomationCard title="External Webhooks" description="Push global agency data to Zapier, Make, or custom CRM endpoints in standard JSON." icon={Sparkles} active={true} type="INTEGRATION" />
       </div>
 
       {/* Health Signal Footer */}

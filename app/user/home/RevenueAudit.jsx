@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, MessageCircle, Globe, GitBranch, BarChart3, ChevronRight, Check } from "lucide-react"
+import Heading from "@/app/components/ui/Heading"
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -382,32 +383,33 @@ export default function RevenueAudit() {
       <div className="relative z-[5] mx-auto w-full max-w-7xl">
         <div className="flex flex-col items-center text-center">
           {/* Heading */}
-          <motion.h1
+          <motion.div
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             custom={0.1}
-            className="text-balance text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
           >
-            Built for Teams That Want
-            <br />
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, oklch(0.55 0.22 255), oklch(0.62 0.2 240))",
-              }}
-            >
-              Faster Conversions
-            </span>
-          </motion.h1>
+            <Heading level={1} className="text-balance">
+              Built for Teams That Want
+              <br />
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, oklch(0.55 0.22 255), oklch(0.62 0.2 240))",
+                }}
+              >
+                Faster Conversions
+              </span>
+            </Heading>
+          </motion.div>
 
           <motion.p
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             custom={0.3}
-            className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl"
+            className="mt-6"
           >
             LeadForGrow transforms how businesses capture, manage and convert
             leads using automation and smart workflows.
@@ -456,10 +458,9 @@ export default function RevenueAudit() {
                 </div>
 
                 <div className="flex-1">
-                  <h3 className={`text-lg font-bold transition-colors duration-300 ${activeIndex === i ? "text-slate-900" : "text-slate-400 group-hover:text-slate-600"
-                    }`}>
+                  <Heading level={3} className={activeIndex === i ? "text-slate-900" : "text-slate-400 group-hover:text-slate-600"}>
                     {feature.title}
-                  </h3>
+                  </Heading>
                 </div>
 
                 <ChevronRight
@@ -500,9 +501,9 @@ export default function RevenueAudit() {
                       </span>
                     </div>
 
-                    <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-8 leading-[1.1] tracking-tight">
+                    <Heading level={2} className="mb-8 text-balance">
                       {features[activeIndex].headline}
-                    </h2>
+                    </Heading>
 
                     <ul className="space-y-5 mb-10">
                       {features[activeIndex].bullets.map((bullet, idx) => (

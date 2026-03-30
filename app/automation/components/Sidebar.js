@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   Users,
   CheckSquare,
-  Zap,
+  Sparkles,
   UserCog,
   BarChart3,
   Settings,
@@ -172,8 +172,8 @@ export default function Sidebar() {
     {
       label: 'Automation',
       items: [
-        { name: 'Automation Rules', href: '/automation/automation-rules', icon: Zap, count: contextualData.activeAutomations, status: 'active' },
-        { name: 'Automation Sequences', href: '/automation/sequences', icon: Zap },
+        { name: 'Automation Rules', href: '/automation/automation-rules', icon: Sparkles, count: contextualData.activeAutomations, status: 'active' },
+        { name: 'Automation Sequences', href: '/automation/sequences', icon: Sparkles },
         { name: 'Email Templates', href: '/automation/templates', icon: FileText },
         { name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
         { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' },

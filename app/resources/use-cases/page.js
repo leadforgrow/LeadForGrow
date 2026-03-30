@@ -20,7 +20,7 @@ import {
   ArrowDown,
   Play,
   CheckCircle2,
-  Zap,
+  Sparkles,
   Network,
   Database,
   Smartphone,
@@ -131,7 +131,7 @@ export default function UseCases() {
                 {/* Visual Pathway */}
                 <div className="flex-1 flex flex-col items-center gap-2 relative">
                   <div className="w-16 h-16 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-sm relative z-10">
-                    <Zap className="w-7 h-7" />
+                    <Sparkles className="w-7 h-7" />
                   </div>
                   <span className="font-bold text-gray-800 text-sm">Lead Capture</span>
                 </div>

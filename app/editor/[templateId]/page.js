@@ -13,7 +13,7 @@ import {
   Palette, 
   Layout as LayoutIcon,
   Sparkles,
-  Zap,
+  CheckCircle2,
   X,
   User,
   ShoppingBag,
@@ -194,7 +194,7 @@ function EditorContent() {
         <div className="flex items-center gap-3">
           {showStatus && (
             <span className="text-xs font-bold text-emerald-500 flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
-              <Zap className="w-3.5 h-3.5 fill-emerald-500" /> Changes Saved!
+              <CheckCircle2 className="w-3.5 h-3.5 fill-emerald-500 text-white" /> Changes Saved!
             </span>
           )}
           <button 
@@ -569,7 +569,7 @@ function EditorContent() {
 
                 <div className="space-y-4 pt-4 border-t border-slate-50">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-indigo-600" /> Header CTA
+                    <Sparkles className="w-4 h-4 text-indigo-600" /> Header CTA
                   </h3>
                   <div className="space-y-4">
                     <div className="space-y-2">

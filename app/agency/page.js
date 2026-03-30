@@ -6,14 +6,14 @@ import {
   TrendingUp, 
   ArrowUpRight, 
   ArrowDownRight, 
-  Zap, 
   Layers,
   Shield,
   Plus,
   ArrowRight,
   MoreHorizontal,
   Loader2,
-  Activity
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
@@ -214,7 +214,7 @@ export default function AgencyDashboard() {
                      { label: 'Clients', icon: Users, href: '/agency/clients' },
                      { label: 'Invoices', icon: FileText, href: '/agency/invoices' },
                      { label: 'Reports', icon: TrendingUp, href: '/agency/reports' },
-                     { label: 'Automation', icon: Zap, href: '/agency/automation' }
+                     { label: 'Automation', icon: Sparkles, href: '/agency/automation' }
                   ].map((action, i) => (
                     <Link key={i} href={action.href} className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
                        <action.icon className="w-5 h-5 text-slate-400 group-hover:text-indigo-600" />

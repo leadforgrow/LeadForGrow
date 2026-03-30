@@ -53,6 +53,7 @@ import UserNavbar from '../user/Header';
 import Footer from '../components/Footer';
 import { useTheme } from '../components/ThemeContext';
 import { Users, BarChart3, Timer, Globe, ArrowRight, Smartphone, Terminal, AppWindow } from 'lucide-react';
+import Heading from '@/app/components/ui/Heading';
 
 export default function AboutPage() {
   const { theme } = useTheme();
@@ -116,12 +117,13 @@ export default function AboutPage() {
         {/* Hero Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
           <div className="max-w-4xl space-y-6">
-            <h1
-              className="text-6xl md:text-8xl font-black text-white tracking-widest uppercase drop-shadow-lg"
+            <Heading
+              level={1}
+              className="text-6xl md:text-8xl text-white tracking-widest uppercase drop-shadow-lg"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}
             >
               Lead For Grow
-            </h1>
+            </Heading>
           </div>
         </div>
       </div>
@@ -157,9 +159,9 @@ export default function AboutPage() {
         {/* Stats Section - Zomato Style */}
         <div className="space-y-16 mb-32">
           <div className="border-l-4 border-indigo-600 pl-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <Heading level={2} className="text-4xl md:text-5xl tracking-tight">
               Fueling growth through every interaction
-            </h2>
+            </Heading>
             <p className="text-xl text-slate-500 dark:text-slate-400 mt-4 font-light">
               LeadForGrow has created an intricate network of businesses, automation, and revenue flow.
             </p>
@@ -171,7 +173,7 @@ export default function AboutPage() {
                 <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 overflow-hidden">
                   {stat.icon}
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{stat.value}</h3>
+                <Heading level={3} className="text-3xl mb-2">{stat.value}</Heading>
                 <p className="text-slate-500 dark:text-slate-400 font-light">{stat.description}</p>
               </div>
             ))}
@@ -182,9 +184,9 @@ export default function AboutPage() {
         <div className="bg-slate-100 dark:bg-slate-950 p-12 md:p-20 rounded-[4rem] relative overflow-hidden mb-32 shadow-xl border border-slate-200 dark:border-slate-800 group cursor-pointer">
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-16 items-center relative z-10">
             <div className="space-y-8">
-              <h2 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+              <Heading level={2} className="text-4xl md:text-6xl leading-tight">
                 Scale your business <br /> in the cloud.
-              </h2>
+              </Heading>
               <p className="text-xl text-slate-600 dark:text-slate-400 font-light">
                 Experience seamless revenue management on the LeadForGrow platform.
                 Secure, fast, and built for the future.
@@ -245,9 +247,9 @@ export default function AboutPage() {
         {/* Ecosystem Section - Zomato Style */}
         <div className="space-y-16">
           <div className="border-l-4 border-indigo-600 pl-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <Heading level={2} className="text-4xl md:text-5xl tracking-tight">
               Our Core Ecosystem
-            </h2>
+            </Heading>
             <p className="text-xl text-slate-500 dark:text-slate-400 mt-4 font-light">
               Empowering modern agencies through integrated technology solutions.
             </p>
@@ -264,14 +266,14 @@ export default function AboutPage() {
                   />
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors"></div>
                   <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-white">
-                    <h4 className="text-5xl font-black uppercase tracking-tighter group-hover:scale-110 transition-transform duration-700">
+                    <Heading level={4} className="text-5xl uppercase tracking-tighter group-hover:scale-110 transition-transform duration-700 text-white">
                       {biz.name}
-                    </h4>
+                    </Heading>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-indigo-600 transition-colors">
+                <Heading level={3} className="text-2xl mb-3 group-hover:text-indigo-600 transition-colors">
                   {biz.title}
-                </h3>
+                </Heading>
                 <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed mb-6">
                   {biz.description}
                 </p>
@@ -285,9 +287,9 @@ export default function AboutPage() {
 
         {/* Final Quote Section */}
         <div className="mt-32 pt-32 border-t border-slate-100 dark:border-slate-800 text-center">
-          <h2 className="text-4xl md:text-5xl font-serif text-slate-300 dark:text-slate-800 mb-8 italic">
+          <Heading level={2} className="text-4xl md:text-5xl text-slate-300 dark:text-slate-800 mb-8 italic">
             "The missing layer between enquiry and revenue."
-          </h2>
+          </Heading>
         </div>
 
       </div>

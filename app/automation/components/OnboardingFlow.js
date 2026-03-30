@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Globe, 
-  Zap, 
+  Sparkles, 
   Users, 
   CheckCircle2, 
   ArrowRight, 
@@ -146,7 +146,7 @@ export default function OnboardingFlow({ onComplete }) {
             <div>
               <div className="text-center mb-10">
                 <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Zap className="w-8 h-8 text-amber-600" />
+                  <Sparkles className="w-8 h-8 text-amber-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-2">Automation Quick Setup</h2>
                 <p className="text-slate-600">Enable recommended rules for instant results</p>

@@ -16,11 +16,33 @@ export const GET = withPlanAccess('revenue-config', async (req) => {
     }
 
     // Return existing revenue config or defaults
-    const revenueConfig = business.revenueConfig || getDefaultConfig();
+    const configData = business.revenueConfig ? JSON.parse(JSON.stringify(business.revenueConfig)) : getDefaultConfig();
+    
+    // Fallback name logic: Prioritize businessName, then agencyName, then user's first name
+    let displayName = business.businessName;
+    
+    if (!displayName || displayName === 'Default Business' || displayName === 'Partner') {
+      // 1. Try Agency fallback
+      if (user.agencyId) {
+        const { default: Agency } = await import('@/models/Agency');
+        const agency = await Agency.findById(user.agencyId);
+        if (agency?.agencyName) displayName = agency.agencyName;
+      }
+      
+      // 2. Try User fallback
+      if (!displayName || displayName === 'Partner') {
+        const { default: User } = await import('@/models/User');
+        const userData = await User.findById(user.userId);
+        if (userData?.firstName) displayName = userData.firstName;
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      data: revenueConfig
+      data: {
+        ...configData,
+        businessName: displayName || business.businessName || 'User'
+      }
     });
   } catch (error) {
     console.error('Error fetching revenue config:', error);

@@ -14,9 +14,12 @@ import {
   AlertCircle,
   TrendingUp,
   X,
-  Globe
+  Globe,
+  ClipboardList,
+  Layout
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function FormsPage() {
   const router = useRouter();
@@ -113,12 +116,17 @@ export default function FormsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-10">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Lead Capture Forms</h1>
-          <p className="text-lg text-slate-600">Create and manage forms to capture leads from anywhere</p>
+      <div className="mb-10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
+            <Layout className="w-5 h-5 text-violet-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Lead Capture Forms</h1>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Build and deploy custom forms to capture high-intent leads</p>
+          </div>
         </div>
         <button
           onClick={() => {
@@ -164,8 +172,8 @@ export default function FormsPage() {
               <Code className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-slate-900 mb-1">{forms.length}</h3>
-          <p className="text-sm text-slate-600 font-medium">Active Forms</p>
+          <p className="text-2xl font-bold text-slate-900 tracking-tight">{forms.length}</p>
+          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Active Forms</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-200">
@@ -174,10 +182,10 @@ export default function FormsPage() {
               <TrendingUp className="w-6 h-6 text-emerald-600" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-slate-900 mb-1">
+          <p className="text-2xl font-bold text-slate-900 tracking-tight">
             {forms.reduce((sum, f) => sum + f.submissionCount, 0)}
-          </h3>
-          <p className="text-sm text-slate-600 font-medium">Total Submissions</p>
+          </p>
+          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Total Submissions</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-200">
@@ -186,20 +194,20 @@ export default function FormsPage() {
               <CheckCircle2 className="w-6 h-6 text-purple-600" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-slate-900 mb-1">
+          <p className="text-2xl font-bold text-slate-900 tracking-tight">
             {forms.filter(f => f.submissionCount > 0).length}
-          </h3>
-          <p className="text-sm text-slate-600 font-medium">Forms with Leads</p>
+          </p>
+          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Forms with Leads</p>
         </div>
       </div>
 
       {/* Forms List */}
       {forms.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200">
-          <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white rounded-3xl p-12 text-left border border-slate-200">
+          <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6">
             <Code className="w-8 h-8 text-indigo-600" />
           </div>
-          <h3 className="text-2xl font-bold text-slate-900 mb-2">No forms yet</h3>
+          <Heading level={3} className="text-xl mb-2">No forms yet</Heading>
           <p className="text-slate-600 mb-6">Create your first form to start capturing leads</p>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -216,13 +224,13 @@ export default function FormsPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-2xl font-bold text-slate-900">{form.name}</h3>
+                    <Heading level={3} className="text-xl">{form.name}</Heading>
                     {form.active ? (
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-medium uppercase tracking-widest">
                         ACTIVE
                       </span>
                     ) : (
-                      <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-bold">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-medium uppercase tracking-widest">
                         INACTIVE
                       </span>
                     )}
@@ -271,7 +279,7 @@ export default function FormsPage() {
 
               {/* Form Fields Preview */}
               <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Form Fields</p>
+                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-3">Form Fields</p>
                 <div className="flex flex-wrap gap-2">
                   {form.fields.map((field, idx) => (
                     <div key={idx} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm">

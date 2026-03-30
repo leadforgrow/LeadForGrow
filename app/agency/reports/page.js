@@ -10,13 +10,16 @@ import {
   Calendar,
   Users,
   Target,
-  Zap,
+  Sparkles, 
+  ShieldCheck, 
+  ChevronRight, 
+  ArrowRight, 
+  PieChart,
   Activity,
   Loader2,
   Clock, 
   X, 
   Globe, 
-  ArrowRight, 
   Shield 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -145,7 +148,7 @@ export default function AgencyReportsPage() {
              {[
                { label: 'Network Reach', val: stats.activeClients, trend: stats.activeClientsTrend, icon: Users },
                { label: 'Capture Velocity', val: stats.leadsThisMonth, trend: stats.leadsTrend, icon: Target },
-               { label: 'Capture Efficiency', val: stats.conversionRate, trend: stats.conversionTrend, icon: Zap },
+               { label: 'Capture Efficiency', val: stats.conversionRate, trend: stats.conversionTrend, icon: Sparkles },
                { label: 'Avg. Response', val: stats.avgResponseTime, trend: stats.responseTrend, icon: Clock }
              ].map((s, i) => (
                <div key={i} className="bg-white border border-slate-200 p-5 rounded-xl space-y-3 shadow-sm hover:border-slate-300 transition-colors">

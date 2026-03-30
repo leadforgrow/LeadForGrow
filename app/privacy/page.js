@@ -2,6 +2,7 @@
 
 import React from 'react';
 import MarketingLayout from '@/app/components/MarketingLayout';
+import Heading from '@/app/components/ui/Heading';
 
 export default function PrivacyPolicy() {
  const sections = [
@@ -84,7 +85,7 @@ export default function PrivacyPolicy() {
           
           {sections.map((section, idx) => (
             <div key={idx} className="mb-12 last:mb-0">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{section.title}</h2>
+              <Heading level={2} className="text-2xl mb-4">{section.title}</Heading>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
                 {section.content}
               </p>

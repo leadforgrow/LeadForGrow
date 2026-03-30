@@ -429,7 +429,7 @@ export const localServicesTemplate = {
       content: {
         title: 'Expert Solutions',
         items: [
-          { name: 'Emergency Repairs', description: 'Fast response for urgent issues that need immediate attention.', icon: 'Zap' },
+          { name: 'Emergency Repairs', description: 'Fast response for urgent issues that need immediate attention.', icon: 'Activity' },
           { name: 'Scheduled Maintenance', description: 'Regular check-ups to keep your systems running efficiently.', icon: 'Clock' },
           { name: 'Installations', description: 'Professional setup of new equipment with quality guarantee.', icon: 'Wrench' }
         ]
@@ -457,7 +457,7 @@ export const localServicesTemplate = {
         title: 'Why Neighbors Trust Us',
         items: [
           { title: 'Licensed & Insured', description: 'Fully certified professionals you can rely on.', icon: 'ShieldCheck' },
-          { title: 'Fast Response', description: 'Were always nearby and ready to help.', icon: 'Zap' },
+          { title: 'Fast Response', description: 'Were always nearby and ready to help.', icon: 'Sparkles' },
           { title: 'Fair Pricing', description: 'Transparent quotes with no hidden costs.', icon: 'Tag' }
         ]
       }

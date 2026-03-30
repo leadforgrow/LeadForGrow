@@ -1,4 +1,5 @@
 import { Check, X, Shield, Rocket, Building2, Users } from 'lucide-react';
+import Heading from '@/app/components/ui/Heading';
 
 export default function AgencyOSLanding() {
   return (
@@ -8,8 +9,12 @@ export default function AgencyOSLanding() {
         {/* SECTION 4: WHY NOT A CRM? */}
         <div className="mb-32">
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-serif text-slate-900 dark:text-white mb-6">The missing layer between<br /> enquiry and revenue.</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">CRMs are databases. LeadForGrow is a discipline engine. Here is the difference.</p>
+            <Heading level={2} className="font-serif mb-6">
+              The missing layer between<br /> enquiry and revenue.
+            </Heading>
+            <p className="font-medium max-w-2xl mx-auto">
+              CRMs are databases. LeadForGrow is a discipline engine. Here is the difference.
+            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -49,7 +54,9 @@ export default function AgencyOSLanding() {
         {/* SECTION 6: FOR WHO IS THIS? */}
         <div className="mb-32">
            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white">Built for those who care about ROI.</h2>
+              <Heading level={2} className="font-serif">
+                Built for those who care about ROI.
+              </Heading>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -79,9 +86,13 @@ export default function AgencyOSLanding() {
                    <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-indigo-600 mb-6 shadow-sm">
                       <item.icon className="w-6 h-6" />
                    </div>
-                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.title}</h3>
+                   <Heading level={3} className="mb-4">
+                     {item.title}
+                   </Heading>
                    <p className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-2">The Pain: {item.pain}</p>
-                   <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8 flex-grow">{item.solution}</p>
+                   <p className="font-medium mb-8 flex-grow">
+                     {item.solution}
+                   </p>
                    <button className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:bg-indigo-600 dark:hover:bg-indigo-500 dark:hover:text-white transition-all uppercase tracking-widest">
                       {item.cta}
                    </button>
@@ -95,7 +106,9 @@ export default function AgencyOSLanding() {
         {/* SECTION 8: TESTIMONIALS */}
         <div className="pt-24 border-t dark:border-slate-800">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 dark:text-white mb-6">What Early Users Are Saying.</h2>
+            <Heading level={2} className="font-serif mb-6">
+              What Early Users Are Saying.
+            </Heading>
             <p className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">Real outcomes from teams who stopped treating follow-up as an option.</p>
           </div>
 

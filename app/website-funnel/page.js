@@ -15,9 +15,10 @@ import {
   ChevronRight,
   TrendingUp,
   LayoutDashboard,
-  Zap
+  Sparkles
 } from 'lucide-react';
 import UserNavbar from '../user/Header';
+import Heading from '@/app/components/ui/Heading';
 
 export default function WebsiteFunnelPage() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export default function WebsiteFunnelPage() {
                     <LayoutDashboard className="w-4 h-4 text-indigo-600" />
                     <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em]">Website Management</span>
                   </div>
-                  <h2 className="text-2xl font-medium text-slate-800 dark:text-white tracking-tight">Active Funnels</h2>
+                  <Heading level={2} className="text-slate-800 dark:text-white">Active Funnels</Heading>
                   <p className="text-slate-500 dark:text-slate-400 mt-1 font-normal text-sm">Monitor your live sites and lead generation performance.</p>
                 </div>
                 <button 
@@ -83,7 +84,7 @@ export default function WebsiteFunnelPage() {
                       </div>
                     </div>
 
-                    <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-1 truncate">{site.websiteName}</h3>
+                    <Heading level={3} className="text-slate-800 dark:text-white mb-1 truncate">{site.websiteName}</Heading>
                     <p className="text-slate-400 dark:text-slate-500 text-[10px] font-normal uppercase tracking-[0.1em] mb-8">/s/{site.slug}</p>
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
@@ -123,13 +124,13 @@ export default function WebsiteFunnelPage() {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-16 mb-32 pt-16">
               <div className="flex-1 text-left">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 rounded-full text-indigo-600 dark:text-indigo-400 text-[10px] font-semibold mb-8 border border-indigo-100 dark:border-indigo-800 shadow-sm">
-                  <Zap className="w-3 h-3 fill-current" />
+                  <Sparkles className="w-3 h-3 fill-current text-indigo-500" />
                   Website Funnel Engine v1.0
                 </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-slate-900 dark:text-white leading-[1.1] mb-8 tracking-tight">
+                <Heading level={1} className="text-slate-900 dark:text-white mb-8">
                   Build a website that <br />
                   <span className="text-indigo-600 dark:text-indigo-500">gets you leads.</span>
-                </h1>
+                </Heading>
                 <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg font-normal max-w-lg mb-12 leading-relaxed">
                   Launch a high-converting, professional website funnel in minutes. 
                   Integrated lead capture, automated follow-ups, and instant publishing. 
@@ -189,7 +190,7 @@ export default function WebsiteFunnelPage() {
                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                  <Layout className="w-6 h-6 text-indigo-700 dark:text-indigo-400" />
                </div>
-               <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-3">Professional Infrastructure</h3>
+               <Heading level={3} className="text-slate-800 dark:text-white mb-3">Professional Infrastructure</Heading>
                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-normal text-sm">
                  Enterprise-ready system built for high-performance lead capture and business growth.
                </p>
@@ -198,7 +199,7 @@ export default function WebsiteFunnelPage() {
                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                  <MousePointer2 className="w-6 h-6 text-indigo-700 dark:text-indigo-400" />
                </div>
-               <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-3">Live Dynamic Editor</h3>
+               <Heading level={3} className="text-slate-800 dark:text-white mb-3">Live Dynamic Editor</Heading>
                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-normal text-sm">
                  Update your brand and services instantly. A fully database-driven editing experience.
                </p>
@@ -207,7 +208,7 @@ export default function WebsiteFunnelPage() {
                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                  <Lock className="w-6 h-6 text-indigo-700 dark:text-indigo-400" />
                </div>
-               <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-3">Lead Automation</h3>
+               <Heading level={3} className="text-slate-800 dark:text-white mb-3">Lead Automation</Heading>
                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-normal text-sm">
                  Your funnel connects automatically to our world-class lead management and automation engine.
                </p>

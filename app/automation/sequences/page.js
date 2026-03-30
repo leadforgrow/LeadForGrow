@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import {
-    Zap,
+    Sparkles,
     Plus,
     Trash2,
     Clock,
@@ -11,7 +11,9 @@ import {
     ArrowLeft,
     Loader2,
     ChevronRight,
-    Play
+    Play,
+    RefreshCw,
+    X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
@@ -123,15 +125,17 @@ export default function SequencesPage() {
     }
 
     return (
-        <div className="p-8 max-w-6xl mx-auto">
+        <div className="px-8 py-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-                        <Zap className="w-8 h-8 text-indigo-600" />
-                        Automation Sequences
-                    </h1>
-                    <p className="text-slate-500 mt-2">Design multi-step follow-up workflows for your event leads.</p>
+            <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                        <RefreshCw className="w-5 h-5 text-rose-600" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Automation Sequences</h1>
+                        <p className="text-xs text-slate-500 font-medium">Multi-step communication flows and drip campaigns</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => {
@@ -147,19 +151,19 @@ export default function SequencesPage() {
 
             {/* Empty State */}
             {sequences.length === 0 ? (
-                <div className="bg-white rounded-[32px] border-2 border-dashed border-slate-200 p-16 text-center">
-                    <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Play className="w-10 h-10 text-indigo-600" />
+                <div className="bg-white rounded-[32px] border border-slate-200 p-12 text-left">
+                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
+                        <Play className="w-8 h-8 text-indigo-600" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 mb-2">No Sequences Found</h2>
-                    <p className="text-slate-500 max-w-md mx-auto mb-8">
+                    <p className="text-slate-500 max-w-md mb-8">
                         Sequences allow you to send a series of messages over several days to keep your lead's interest alive.
                     </p>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="text-indigo-600 font-bold hover:underline"
+                        className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-all shadow-lg"
                     >
-                        Create your first sequence →
+                        Create your first sequence
                     </button>
                 </div>
             ) : (
@@ -168,7 +172,7 @@ export default function SequencesPage() {
                         <div key={seq._id} className="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm hover:shadow-md transition-all group">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 transition-colors">
-                                    <Zap className="w-6 h-6 text-indigo-600 group-hover:text-white" />
+                                    <Sparkles className="w-6 h-6 text-indigo-600 group-hover:text-white" />
                                 </div>
                                 <button
                                     onClick={() => openEdit(seq)}
@@ -353,8 +357,3 @@ export default function SequencesPage() {
     );
 }
 
-function X({ className }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-    )
-}

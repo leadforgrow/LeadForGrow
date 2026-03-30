@@ -15,7 +15,7 @@ import {
   Rocket,
   Plus,
   ShieldCheck,
-  Zap
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import UserNavbar from '../../user/Header';
@@ -372,7 +372,7 @@ export default function CreateWebsiteFunnel() {
                         <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 leading-none mb-1.5">Action Integration</p>
                         <p className="text-sm font-bold">100% Autolink Enabled</p>
                       </div>
-                      <Zap className="w-5 h-5 fill-amber-300 text-amber-300" />
+                      <Sparkles className="w-5 h-5 fill-amber-300 text-amber-300" />
                    </div>
                 </div>
               </div>

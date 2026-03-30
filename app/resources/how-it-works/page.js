@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
-  Zap,
+  Sparkles,
   Network,
   RotateCw,
   BarChart3,
@@ -127,7 +127,7 @@ export default function HowItWorks() {
                 <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-100 via-indigo-200 to-indigo-100 -translate-y-1/2 z-0" />
 
                 {[
-                  { icon: <Zap />, title: "Capture", desc: "Leads automatically synced from forms & ads", color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
+                  { icon: <Sparkles />, title: "Capture", desc: "Leads automatically synced from forms & ads", color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
                   { icon: <Network />, title: "Automate", desc: "Rules-based intelligent routing to reps", color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
                   { icon: <RotateCw />, title: "Follow-Up", desc: "Instant multi-channel engagement", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-100" },
                   { icon: <BarChart3 />, title: "Revenue", desc: "Deals won & visibility across pipeline", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" }
@@ -163,7 +163,7 @@ export default function HowItWorks() {
 
               <FadeInView delay={0.1} className="group relative bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:border-indigo-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300">
                 <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                  <Zap className="w-6 h-6" />
+                  <Sparkles className="w-6 h-6" />
                 </div>
                 <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">1. Capture Instantly</h4>
                 <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed text-sm">

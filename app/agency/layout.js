@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Users, FileText, TrendingUp, AlertCircle, Lock, BarChart3, Fingerprint, Zap, ShieldCheck, Settings } from 'lucide-react';
+import { Building2, Users, FileText, TrendingUp, AlertCircle, Lock, BarChart3, Fingerprint, Sparkles, ShieldCheck, Settings } from 'lucide-react';
+import Heading from '@/app/components/ui/Heading';
 
 export default function AgencyLayout({ children }) {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function AgencyLayout({ children }) {
         { name: 'Financials', href: '/agency/invoices', icon: FileText },
         { name: 'Intelligence', href: '/agency/reports', icon: BarChart3 },
         { name: 'Ingestion', href: '/agency/forms', icon: Fingerprint },
-        // { name: 'Automation', href: '/agency/automation', icon: Zap },
+        // { name: 'Automation', href: '/agency/automation', icon: Sparkles },
         { name: 'Telemetry', href: '/agency/usage', icon: ShieldCheck }
       ];
 
@@ -72,7 +73,7 @@ export default function AgencyLayout({ children }) {
           <div className="h-16 w-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="h-8 w-8 text-amber-600" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-3 tracking-tight">Enterprise Clearance Required</h1>
+          <Heading level={1} className="mb-3">Enterprise Clearance Required</Heading>
           <p className="text-slate-500 font-medium mb-6">You need an active Agency Plan to access the centralized command console.</p>
           <div className="space-y-3">
             <button onClick={() => router.push('/pricing')} className="w-full bg-slate-900 text-white px-6 py-3 rounded-xl font-bold active:scale-95 transition-all">View Agency Plans</button>

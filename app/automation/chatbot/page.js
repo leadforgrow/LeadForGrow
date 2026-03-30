@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bot, Copy, Check, MessageSquare, Sparkles, Code, Globe, Zap } from 'lucide-react';
+import { Bot, Copy, Check, MessageSquare, Sparkles, Code, Globe } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Chatbot from '@/app/components/Chatbot';
+import Heading from '@/app/components/ui/Heading';
 
 export default function ChatbotPage() {
   const [businessId, setBusinessId] = useState('');
@@ -38,17 +39,16 @@ export default function ChatbotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-slate-50 px-8 py-10">
+      <div className="w-full">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-            <Bot className="w-7 h-7 text-white" />
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
+            <Bot className="w-5 h-5 text-cyan-600" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Conversational AI Chatbot</h1>
-            <p className="text-slate-500">Capture leads automatically while you sleep.</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Conversational AI</h1>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Lead capture and qualification powered by LFG Chatbot</p>
           </div>
         </div>
 
@@ -58,10 +58,10 @@ export default function ChatbotPage() {
             {/* Setup Card */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
               <div className="p-6 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Heading level={3} className="text-lg flex items-center gap-2">
                   <Code className="w-5 h-5 text-indigo-600" />
                   Installation Code
-                </h3>
+                </Heading>
                 <p className="text-sm text-slate-500 mt-1">
                   Copy and paste this code into your website's <code>&lt;head&gt;</code> or before the <code>&lt;/body&gt;</code> tag.
                 </p>
@@ -94,7 +94,7 @@ export default function ChatbotPage() {
 
             {/* Features Card */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-6">How it works</h3>
+              <Heading level={3} className="text-lg mb-6">How it works</Heading>
               <div className="space-y-6">
                 <div className="flex gap-4">
                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -131,7 +131,7 @@ export default function ChatbotPage() {
           <div className="space-y-6">
             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
               <Sparkles className="w-8 h-8 mb-4 text-indigo-200" />
-              <h3 className="text-lg font-bold mb-2">Lead Intelligence</h3>
+              <Heading level={3} className="text-lg mb-2 !text-white">Lead Intelligence</Heading>
               <p className="text-xs text-indigo-100 leading-relaxed">
                 Bot-captured leads include the full transcript and metadata. You can view all user responses directly in the lead detail page under "Chatbot Interaction".
               </p>
@@ -144,10 +144,10 @@ export default function ChatbotPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col h-full">
-              <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-500" />
+              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
                 Live Preview
-              </h3>
+              </p>
               <div className="flex-1 bg-slate-50 rounded-xl border border-slate-100 overflow-hidden relative min-h-[500px]">
                 <Chatbot isPreview={true} businessId={businessId} />
               </div>

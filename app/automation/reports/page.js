@@ -11,11 +11,13 @@ import {
   Mail,
   MessageCircle,
   ShieldCheck,
-  Send
+  Send,
+  BarChart3
 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -326,12 +328,17 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-10">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Reports</h1>
-          <p className="text-slate-600">Business insights at a glance</p>
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-blue-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Reports</h1>
+            <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Comprehensive business insights and performance analytics</p>
+          </div>
         </div>
 
         {/* Period Selector */}
@@ -366,10 +373,10 @@ export default function ReportsPage() {
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100/50 shadow-inner">
               <Users className="w-6 h-6 text-indigo-600" />
             </div>
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Total Leads</h3>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Total Leads</p>
           </div>
           <div className="flex items-baseline gap-1">
-            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.totalLeads}</p>
+            <p className="text-2xl font-bold text-slate-900 tracking-tight">{stats.totalLeads}</p>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <span className="flex h-1.5 w-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
@@ -386,10 +393,10 @@ export default function ReportsPage() {
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100/50 shadow-inner">
               <Clock className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Avg Response</h3>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Avg Response</p>
           </div>
           <div className="flex items-baseline gap-1">
-            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.avgResponseTimeHours}h</p>
+            <p className="text-2xl font-bold text-slate-900 tracking-tight">{stats.avgResponseTimeHours}h</p>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
@@ -406,11 +413,11 @@ export default function ReportsPage() {
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-100/50 shadow-inner">
               <TrendingUp className="w-6 h-6 text-emerald-600" />
             </div>
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Converted</h3>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Converted</p>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-4xl font-black text-emerald-600 tracking-tight">{stats.converted}</p>
-            <span className="text-xs font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-lg">{stats.conversionRate}%</span>
+            <p className="text-2xl font-bold text-emerald-600 tracking-tight">{stats.converted}</p>
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-lg">{stats.conversionRate}%</span>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
@@ -427,10 +434,10 @@ export default function ReportsPage() {
             <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center border border-red-100/50 shadow-inner">
               <TrendingDown className="w-6 h-6 text-red-600" />
             </div>
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Lost / Open</h3>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Lost / Open</p>
           </div>
           <div className="flex items-baseline gap-1">
-            <p className="text-4xl font-black text-red-600 tracking-tight">{stats.lost + stats.notContactedCount}</p>
+            <p className="text-2xl font-bold text-red-600 tracking-tight">{stats.lost + stats.notContactedCount}</p>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <span className="flex h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
@@ -443,8 +450,8 @@ export default function ReportsPage() {
       <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 mb-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Growth Trends</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Lead Volume Over Time</p>
+            <Heading level={2}>Growth Trends</Heading>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Lead Volume Over Time</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
@@ -460,12 +467,12 @@ export default function ReportsPage() {
         {/* Conversion Funnel */}
         <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Conversion Funnel</h2>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-black uppercase tracking-wider">
+            <Heading level={2}>Conversion Funnel</Heading>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-wider">
               {stats.conversionRate}% Efficiency
             </div>
           </div>
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md">
             <FunnelStep
               label="Pending Leads"
               value={stats.totalLeads}
@@ -492,7 +499,7 @@ export default function ReportsPage() {
 
         {/* Lead Sources */}
         <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-          <h2 className="text-xl font-black text-slate-900 mb-10 tracking-tight">Top Lead Sources</h2>
+          <Heading level={2} className="mb-10">Top Lead Sources</Heading>
           <div className="space-y-6">
             {stats.leadsBySource.map((item, index) => {
               const Icon = getSourceIcon(item.source);
@@ -531,8 +538,8 @@ export default function ReportsPage() {
         {/* Team Performance */}
         <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Team Performance</h2>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conversion Leaderboard</span>
+            <Heading level={2}>Team Performance</Heading>
+            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Conversion Leaderboard</span>
           </div>
           <TeamLeaderboard data={stats.teamPerformance} />
         </div>
@@ -540,8 +547,8 @@ export default function ReportsPage() {
         {/* Staffing Heatmap */}
         <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Staffing Heatmap</h2>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lead Arrival Patterns</span>
+            <Heading level={2}>Staffing Heatmap</Heading>
+            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Lead Arrival Patterns</span>
           </div>
           <p className="text-xs font-medium text-slate-500 mb-6 leading-relaxed">
             Identifies peak demand hours to optimize agent availability and minimize response lag.
@@ -553,8 +560,8 @@ export default function ReportsPage() {
       {/* Recent Performance */}
       <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white p-8 mb-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] print:border-none">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Performance</h2>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Last 5 Activities</span>
+          <Heading level={2}>Recent Performance</Heading>
+          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Last 5 Activities</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -601,11 +608,16 @@ export default function ReportsPage() {
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan="4" className="py-12 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <Users className="w-8 h-8 text-slate-200" />
-                      <span className="text-sm font-bold text-slate-400 italic">No recent activity found to display</span>
+                <tr className="group/row">
+                  <td colSpan="4" className="py-20 text-left">
+                    <div className="flex flex-col items-start gap-4">
+                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm">
+                        <Users className="w-6 h-6 text-slate-300" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">No recent activity</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Lead activity and conversion performance will appear here as your team interacts with leads.</p>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -622,7 +634,7 @@ export default function ReportsPage() {
             <ShieldCheck className="w-10 h-10 text-indigo-300" />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">Email Reputation Warmer</h2>
+            <Heading level={2} className="mb-2 !text-white text-2xl">Email Reputation Warmer</Heading>
             <p className="text-indigo-200 mb-6 max-w-lg">
               Is your mail going to spam? Send a test email to your personal Gmail/Outlook, and mark it as
               <strong> "Not Spam"</strong> to help build your domain reputation.

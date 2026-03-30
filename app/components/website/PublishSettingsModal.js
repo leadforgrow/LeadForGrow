@@ -6,7 +6,7 @@ import {
   X, 
   ArrowRight,
   ShieldCheck,
-  Zap,
+  Sparkles,
   Check,
   AlertCircle,
   Loader2
@@ -115,7 +115,7 @@ export default function PublishSettingsModal({ isOpen, onClose, onConfirm, initi
 
                 <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex items-start gap-4">
                   <div className="p-2 bg-white rounded-xl shadow-sm">
-                    <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" />
+                    <Sparkles className="w-4 h-4 text-indigo-600 fill-indigo-600" />
                   </div>
                   <div>
                     <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight mb-0.5">Custom Domain</h4>

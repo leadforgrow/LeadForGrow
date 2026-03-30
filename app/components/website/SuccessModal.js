@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react';
 import { 
-  CheckCircle2, 
-  ExternalLink, 
-  Globe, 
-  X, 
+  CheckCircle2,  Layout,
+  ExternalLink,
+  Sparkles,
   ArrowRight,
+  TrendingUp,
+  LayoutDashboard,
   ShieldCheck,
-  Zap,
-  Sparkles
+  Link,
+  Globe,
+  X
 } from 'lucide-react';
 
 export default function SuccessModal({ isOpen, onClose, websiteUrl, websiteName }) {
@@ -87,7 +89,7 @@ export default function SuccessModal({ isOpen, onClose, websiteUrl, websiteName 
                 onClick={() => setShowDomainUI(true)}
                 className="flex items-center justify-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all"
               >
-                <Zap className="w-4 h-4 text-amber-400" /> Connect Domain
+                <Link className="w-4 h-4 text-indigo-400" /> Connect Domain
               </button>
             </div>
           </div>

@@ -12,15 +12,13 @@ import {
   MessageCircle,
   Users,
   Plus,
-  X,
-  Send,
-  ChevronRight,
-  TrendingUp,
-  LayoutDashboard,
-  Zap,
-  Type
+  CheckSquare,
+  CalendarCheck2,
+  BarChart3,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Heading from '@/app/components/ui/Heading';
 
 export default function TasksPage() {
   const router = useRouter();
@@ -220,12 +218,17 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-10 min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Tasks & Follow-ups</h1>
-          <p className="text-slate-600">Never miss a follow-up opportunity</p>
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <CheckSquare className="w-5 h-5 text-amber-600" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Tasks & Follow-ups</h1>
+            <p className="text-xs text-slate-500 font-medium">Manage your daily actions and customer touchpoints</p>
+          </div>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -266,8 +269,8 @@ export default function TasksPage() {
         {tasks.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 mb-2">All caught up!</h3>
-            <p className="text-slate-500">
+            <Heading level={3} className="mb-2">All caught up!</Heading>
+            <p className="text-slate-500 text-sm">
               {filter === 'overdue' ? 'No overdue tasks' : 'No tasks for this filter'}
             </p>
           </div>
@@ -292,9 +295,9 @@ export default function TasksPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{task.title}</h3>
+                        <Heading level={3} className="text-lg mb-1">{task.title}</Heading>
                         {task.description && (
-                          <p className="text-sm text-slate-600 mb-3">{task.description}</p>
+                          <p className="text-[13px] text-slate-600 mb-3">{task.description}</p>
                         )}
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ml-4 ${overdue ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
@@ -322,7 +325,7 @@ export default function TasksPage() {
                       ) : (
                         <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-lg border border-amber-100">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                          <span className="text-[11px] font-black text-amber-700 uppercase tracking-wider">Lead Record Deleted</span>
+                          <span className="text-[10px] font-medium text-amber-700 uppercase tracking-widest">Lead Record Deleted</span>
                         </div>
                       )}
                     </div>
@@ -424,7 +427,7 @@ export default function TasksPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md p-8 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900">Reschedule Task</h3>
+              <Heading level={3} className="text-xl">Reschedule Task</Heading>
               <button onClick={() => setShowRescheduleModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-6 h-6" />
               </button>
@@ -460,7 +463,7 @@ export default function TasksPage() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900">Create New Task</h3>
+              <Heading level={3} className="text-xl">Create New Task</Heading>
               <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-6 h-6" />
               </button>
@@ -531,7 +534,7 @@ export default function TasksPage() {
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-amber-500" />
+                      <Sparkles className="w-4 h-4 text-amber-500" />
                       <span className="text-xs font-black uppercase text-slate-400">Automated Follow-up</span>
                     </div>
                     <button
