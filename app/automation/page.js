@@ -13,7 +13,18 @@ import {
   Activity,
   ArrowUpRight,
   ArrowDownRight,
-  Info
+  Info,
+  PlayCircle,
+  Phone,
+  Mail,
+  MessageSquare,
+  Plus,
+  CheckCircle,
+  Circle,
+  BarChart2,
+  Bot,
+  FileText,
+  Send
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -289,6 +300,15 @@ function DashboardContent({ config, metrics, userPlan, formatCurrency, activitie
         </div>
         <div className="lg:col-span-1">
           <SentimentPulseCard metrics={metrics} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <AiCopilotCard metrics={metrics} />
+        </div>
+        <div className="lg:col-span-1">
+          <FullReportCard metrics={metrics} />
         </div>
       </div>
 
@@ -911,3 +931,182 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
     </div>
   );
 }
+
+function AiCopilotCard({ metrics }) {
+  const [query, setQuery] = useState('');
+  const [chatHistory, setChatHistory] = useState([
+    { role: 'ai', text: 'Hello! I am your Revenue Intelligence of LEADFORGROW. How can we optimize your pipeline today?' }
+  ]);
+  const [loading, setLoading] = useState(false);
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+
+    const userMessage = { role: 'user', text: query };
+    setChatHistory(prev => [...prev, userMessage]);
+    setQuery('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metrics, question: userMessage.text })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setChatHistory(prev => [...prev, { role: 'ai', text: data.answer }]);
+      } else {
+        setChatHistory(prev => [...prev, { role: 'ai', text: 'Error: Could not reach the AI Engine.' }]);
+      }
+    } catch (err) {
+      setChatHistory(prev => [...prev, { role: 'ai', text: 'Error connecting to bridge.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 p-7 h-full flex flex-col shadow-sm">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+          <Bot className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 leading-tight">LFG AI</h3>
+          <p className="text-xs text-slate-500 font-medium">Chat with your Revenue Intelligence Engine</p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto mb-4 bg-slate-50/50 rounded-xl p-4 border border-slate-100 min-h-[250px] max-h-[250px] flex flex-col gap-4">
+        {chatHistory.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+              msg.role === 'user' 
+                ? 'bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-600/20' 
+                : 'bg-white text-slate-700 border border-slate-200 rounded-bl-none shadow-sm'
+            }`}>
+              {msg.text.split('\\n').map((line, idx) => (
+                <span key={idx} className="block">{line}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={sendMessage} className="relative mt-auto">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Ask me anything about your revenue..."
+          disabled={loading}
+          className="w-full bg-white border border-slate-200 text-slate-900 text-sm rounded-xl px-4 py-3.5 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium disabled:opacity-60 placeholder-slate-400"
+        />
+        <button
+          type="submit"
+          disabled={loading || !query.trim()}
+          className="absolute right-2 top-2 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:bg-slate-200 disabled:text-slate-400 shadow-sm shadow-blue-600/20 disabled:shadow-none"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function FullReportCard({ metrics }) {
+  const [loading, setLoading] = useState(false);
+  const [report, setReport] = useState(null);
+
+  const generateReport = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/ai/full-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(metrics || {})
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReport(data.report);
+      } else {
+        alert("Failed to generate report.");
+      }
+    } catch (err) {
+      alert("Error reaching AI Engine.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-slate-900 rounded-2xl border border-slate-800 p-7 h-full flex flex-col relative overflow-hidden shadow-xl shadow-slate-900/20">
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="flex items-center gap-3 mb-5 relative z-10">
+        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 border border-white/5">
+          <FileText className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-white leading-tight">Executive Report</h3>
+          <p className="text-xs text-slate-400 font-medium tracking-wide">(Beta) AI Generated</p>
+        </div>
+      </div>
+
+      <div className="flex-1 relative z-10 flex flex-col">
+        {!report ? (
+          <div className="flex flex-col items-center justify-center flex-1 py-8 text-center group">
+            <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-slate-800 transition-all duration-300">
+              <BarChart2 className="w-8 h-8 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+            </div>
+            <h4 className="text-sm font-semibold text-white mb-2">Automated Board Report</h4>
+            <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed mb-6">Instantly compile a deep-dive analysis of current pipelines and 6-month growth strategies.</p>
+            <button
+              onClick={generateReport}
+              disabled={loading}
+              className="w-full max-w-[220px] py-3 rounded-xl text-sm font-bold transition-all bg-emerald-500 text-slate-900 hover:bg-emerald-400 hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:hover:translate-y-0 disabled:shadow-none"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate Report'
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4 flex-1 flex flex-col animate-in fade-in duration-500">
+            <div className="flex-1 bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 overflow-y-auto max-h-[220px] text-xs leading-relaxed text-slate-300 custom-scrollbar">
+              {report.split('\\n').map((line, idx) => {
+                if(line.startsWith('##') || line.startsWith('#')) return <h4 key={idx} className="text-white font-bold mt-3 mb-1 text-sm">{line.replace(/#/g, '').trim()}</h4>;
+                if(line.startsWith('-')) return <li key={idx} className="ml-3 mt-1 text-slate-300">{line.substring(1)}</li>;
+                return <p key={idx} className="mt-1">{line}</p>;
+              })}
+            </div>
+            <button 
+              onClick={() => setReport(null)}
+              className="w-full py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700/50"
+            >
+              Close Report
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+

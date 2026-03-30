@@ -5,7 +5,7 @@ export async function POST(request) {
     const body = await request.json();
 
     // Call Production Python Backend
-    const response = await fetch('https://lfg-v2.onrender.com/ai/revenue-leak-audit', {
+    const response = await fetch('https://lfg-v2.onrender.com/ai/copilot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
