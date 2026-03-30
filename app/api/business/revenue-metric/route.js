@@ -4,6 +4,8 @@ import Business from '@/models/Business';
 import Lead from '@/models/automation/Lead';
 import { withAuth } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Revenue Intelligence Metrics API
  * Accessible to ALL plans.
@@ -20,13 +22,15 @@ export const GET = withAuth()(async (req) => {
       return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
     }
 
-    // Fetch last 30 days of leads
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const leads = await Lead.find({
-      businessId: business._id,
-      createdAt: { $gte: thirtyDaysAgo }
-    }).sort({ createdAt: -1 });
+    const query = { businessId: business._id, archived: { $ne: true } };
+    const isRestrictedRole = ['member', 'TEAM_MEMBER', 'VIEW_ONLY'].includes(user.role);
+
+    if (isRestrictedRole) {
+      query.assignedTo = user._id;
+    }
+
+    // Fetch all true active leads for accurate total Pipeline and Revenue calculations
+    const leads = await Lead.find(query).sort({ createdAt: -1 });
 
     console.log(`[RevenueMetric] Business: "${business.name}" | Total Leads (30d): ${leads.length}`);
 
@@ -57,42 +61,31 @@ function buildMetrics(business, leads) {
   const contactedLeads = leads.filter(l => l.status === 'contacted');
   const interestedLeads = leads.filter(l => l.status === 'interested');
   const followupLeads  = leads.filter(l => l.status === 'follow-up');
-  const wonLeads       = leads.filter(l => l.status === 'converted');
+  
+  // Include possible custom or uppercase statuses for 'Won'
+  const wonLeads       = leads.filter(l => 
+    l.status === 'converted' || 
+    String(l.status).toLowerCase() === 'finalized' ||
+    String(l.status).toLowerCase() === 'won'
+  );
+  
   const lostLeads      = leads.filter(l => l.status === 'lost');
-  const activeLeads    = [...newLeads, ...contactedLeads, ...interestedLeads, ...followupLeads];
+  
+  // Active leads should ONLY include leads that are strictly in pipeline stages (not won or lost)
+  // Ensure we don't accidentally count custom statuses as "active" if they aren't explicit pipeline states
+  const activeLeads    = leads.filter(l => 
+    !['converted', 'lost', 'finalized', 'won'].includes(String(l.status).toLowerCase())
+  );
+  
+  // As per user requirement:
+  // Pipeline Value = total active deals * avg deal value
+  const totalPipelineValue = activeLeads.length * dealValue;
 
-  // --- Pipeline Value: value of all active (non-lost, non-won) leads ---
-  const conversionRate = (config?.conversionRate?.avg || 10) / 100;
-  const totalPipelineValue = activeLeads.reduce((sum, lead) => {
-    const val = business.calculateLeadValue ? business.calculateLeadValue(lead.source) : dealValue;
-    const prob = business.getEstimatedConversionRate ? business.getEstimatedConversionRate(lead.source) / 100 : conversionRate;
-    return sum + (val * prob);
-  }, 0);
+  // Won Revenue = won deals * avg deal value
+  const recoveredRevenue = wonLeads.length * dealValue;
 
-  // --- Recovery Success (Won Revenue): full deal value for converted leads ---
-  // "Won from follow-ups" = converted leads that had lastContactedAt set (i.e., were worked)
-  const recoveredRevenue = wonLeads.reduce((sum, lead) => {
-    // Use actual deal value for won leads (full value, not probability-weighted)
-    const val = business.calculateLeadValue ? business.calculateLeadValue(lead.source) : dealValue;
-    return sum + val;
-  }, 0);
-
-  // --- Revenue at Risk: active leads that have missed SLA ---
-  const revenueAtRisk = activeLeads.reduce((sum, lead) => {
-    const val = business.calculateLeadValue ? business.calculateLeadValue(lead.source) : dealValue;
-    const prob = business.getEstimatedConversionRate ? business.getEstimatedConversionRate(lead.source) / 100 : conversionRate;
-    const expectedValue = val * prob;
-
-    const createdAt = new Date(lead.createdAt);
-    const minutesSinceCreated = (now - createdAt) / (1000 * 60);
-    const alreadyContacted = !!lead.lastContactedAt;
-
-    // At risk: new/uncontacted leads that are past SLA time
-    if (!alreadyContacted && minutesSinceCreated > slaMinutes) {
-      return sum + expectedValue;
-    }
-    return sum;
-  }, 0);
+  // Revenue at Risk = not recovered (active leads that need follow-up) * avg deal value
+  const revenueAtRisk = activeLeads.length * dealValue;
 
   // --- SLA Compliance: % of contacted leads that were reached within SLA ---
   const contactedWithTime = leads.filter(l => l.lastContactedAt);

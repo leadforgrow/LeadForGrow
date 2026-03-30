@@ -66,10 +66,10 @@ export default function RevenueIntelligenceDashboard() {
 
       // Fetch revenue config + metrics in parallel for speed
       const [configRes, metricsRes, activitiesRes, tasksRes] = await Promise.all([
-        fetch(`/api/business/revenue-config?userId=${userId}`),
-        fetch(`/api/business/revenue-metric?userId=${userId}`),
-        fetch(`/api/automation/activities?userId=${userId}&limit=10`),
-        fetch(`/api/automation/tasks?userId=${userId}&filter=today`)
+        fetch(`/api/business/revenue-config?userId=${userId}`, { cache: 'no-store' }),
+        fetch(`/api/business/revenue-metric?userId=${userId}`, { cache: 'no-store' }),
+        fetch(`/api/automation/activities?userId=${userId}&limit=10`, { cache: 'no-store' }),
+        fetch(`/api/automation/tasks?userId=${userId}&filter=today`, { cache: 'no-store' })
       ]);
 
       const [configData, metricsData, activitiesData, tasksData] = await Promise.all([
@@ -221,23 +221,23 @@ function DashboardContent({ config, metrics, userPlan, formatCurrency, activitie
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-8 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-               <Badge variant="indigo" className="font-black">PRO</Badge>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  {config?.businessName || 'Revenue'} Command Center
-                </span>
-             </div>
+              <Badge variant="indigo" className="font-black">PRO</Badge>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                {config?.businessName || 'Revenue'} Command Center
+              </span>
+            </div>
             <Heading level={1} className="flex items-center gap-3">
               {greeting}, {config?.businessName?.split(' ')[0] || 'Partner'} <span className="animate-bounce-slow">👋</span>
             </Heading>
             <p className="text-slate-500 mt-1 max-w-none">Here's your revenue performance and automated recovery overview for today.</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-emerald-100 bg-emerald-50/50">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
               <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-tight">AI Active</span>
             </div>
-            <Button variant="outline" size="sm" onClick={() => window.location.href='/automation/settings/details'}>
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '/automation/settings/details'}>
               System Config
             </Button>
           </div>
@@ -306,6 +306,15 @@ function DashboardContent({ config, metrics, userPlan, formatCurrency, activitie
         </div>
         <div className="lg:col-span-1">
           <SentimentPulseCard metrics={metrics} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <AiCopilotCard metrics={metrics} />
+        </div>
+        <div className="lg:col-span-1">
+          <FullReportCard metrics={metrics} />
         </div>
       </div>
 
@@ -613,20 +622,20 @@ function ActivityPulse({ activities }) {
               const Icon = getActivityIcon(activity.description || activity.type);
               return (
                 <div key={idx} className="relative pl-10 py-2.5 group">
-                <div className="absolute left-0 top-2.5 w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center z-10 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300">
-                  <Icon className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" strokeWidth={2.5} />
-                </div>
-                <p className="text-sm text-slate-700 leading-snug">
-                  {activity.description || activity.type || 'Activity recorded'}
-                </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-slate-400">
-                    {activity.performedAt ? new Date(activity.performedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
-                  </span>
-                  {activity.leadId?.name && (
-                    <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{activity.leadId.name}</span>
-                  )}
-                </div>
+                  <div className="absolute left-0 top-2.5 w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center z-10 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300">
+                    <Icon className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" strokeWidth={2.5} />
+                  </div>
+                  <p className="text-sm text-slate-700 leading-snug">
+                    {activity.description || activity.type || 'Activity recorded'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-slate-400">
+                      {activity.performedAt ? new Date(activity.performedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                    </span>
+                    {activity.leadId?.name && (
+                      <span className="text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">{activity.leadId.name}</span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -886,7 +895,7 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
   const isPositive = inverted ? change < 0 : change > 0;
 
   return (
-    <Card 
+    <Card
       className={`relative group hover:border-slate-300 transition-all duration-200 ${isBlur ? 'blur-[6px] opacity-40 grayscale pointer-events-none' : ''}`}
       padding="p-5"
     >
@@ -894,7 +903,7 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
         <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-colors">
           <Icon className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
         </div>
-        
+
         {change !== undefined && !isTrial && !isBlur && (
           <Badge variant={isPositive ? 'success' : 'error'} className="font-black">
             {isPositive ? '+' : ''}{change}%
@@ -904,7 +913,7 @@ function MetricCard({ title, value, change, icon: Icon, color, subtitle, inverte
 
       <div className="space-y-1">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{title}</p>
-        
+
         {isTrial ? (
           <p className="text-xl font-bold text-slate-200 select-none">••••••</p>
         ) : (
