@@ -23,23 +23,10 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-else:
-    logger.warning("GEMINI_API_KEY is not set. API calls will fail.")
-
-# Dynamically select the best available 'flash' model to prevent 404 errors
-best_model_name = "gemini-pro"  # Fallback
-if GEMINI_API_KEY:
-    try:
-        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        flash_models = [m for m in available_models if 'flash' in m]
-        if flash_models:
-            # Pick the newest/first available flash model 
-            best_model_name = flash_models[-1] # or flash_models[0]
-            logger.info(f"Auto-selected Gemini Model: {best_model_name}")
-    except Exception as e:
-        logger.warning(f"Could not fetch model list: {e}")
-
-flash_model = genai.GenerativeModel(best_model_name)
+# We initialize the model without doing network requests at boot time to ensure
+# Uvicorn starts instantly within Render's timeout window.
+# gemini-1.5-flash-latest ensures we always get a valid alias.
+flash_model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
 app = FastAPI(title="LFG Revenue Intelligence AI Core", version="10.0.0-Enterprise (Gemini)")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
