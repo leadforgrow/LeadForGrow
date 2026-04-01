@@ -17,7 +17,10 @@ app = FastAPI(title="LFG Revenue Intelligence AI Core", version="10.0.0-Enterpri
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.get("/")
-def health_check():
+@app.get("/health")
+@app.get("/healthz")
+@app.get("/ping")
+async def health_check():
     return {"status": "Enterprise AI Core Active (Local Engine)", "version": "10.0.0-Enterprise", "timestamp": datetime.now().isoformat()}
 
 def extract_business_context(data: dict) -> dict:
