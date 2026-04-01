@@ -26,8 +26,20 @@ if GEMINI_API_KEY:
 else:
     logger.warning("GEMINI_API_KEY is not set. API calls will fail.")
 
-# Use the latest Flash model which is very fast and completely free to start
-flash_model = genai.GenerativeModel("gemini-1.5-flash")
+# Dynamically select the best available 'flash' model to prevent 404 errors
+best_model_name = "gemini-pro"  # Fallback
+if GEMINI_API_KEY:
+    try:
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        flash_models = [m for m in available_models if 'flash' in m]
+        if flash_models:
+            # Pick the newest/first available flash model 
+            best_model_name = flash_models[-1] # or flash_models[0]
+            logger.info(f"Auto-selected Gemini Model: {best_model_name}")
+    except Exception as e:
+        logger.warning(f"Could not fetch model list: {e}")
+
+flash_model = genai.GenerativeModel(best_model_name)
 
 app = FastAPI(title="LFG Revenue Intelligence AI Core", version="10.0.0-Enterprise (Gemini)")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
