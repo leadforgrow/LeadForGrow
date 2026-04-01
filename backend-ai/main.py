@@ -1,14 +1,14 @@
 import os
 import json
 import logging
+import asyncio
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pydantic import BaseModel, Field
-from openai import AsyncOpenAI
-import openai
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,16 +19,22 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] [AI-ENGINE] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
-# Use environment variable for security
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+# Use Gemini API Key
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    logger.warning("GEMINI_API_KEY is not set. API calls will fail.")
 
-app = FastAPI(title="LFG Revenue Intelligence AI Core", version="10.0.0-Enterprise")
+# Use the latest Flash model which is very fast and completely free to start
+flash_model = genai.GenerativeModel("gemini-1.5-flash")
+
+app = FastAPI(title="LFG Revenue Intelligence AI Core", version="10.0.0-Enterprise (Gemini)")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.get("/")
 def health_check():
-    return {"status": "Enterprise AI Core Active", "version": "10.0.0-Enterprise", "timestamp": datetime.now().isoformat()}
+    return {"status": "Enterprise AI Core Active (Gemini)", "version": "10.0.0-Enterprise", "timestamp": datetime.now().isoformat()}
 
 def extract_business_context(data: dict) -> dict:
     deal_value = float(data.get('totalPipelineValue', 0) or data.get('avgDealValue', 0) or 15000)
@@ -51,18 +57,46 @@ MASTER_SYSTEM_PROMPT = """You are an elite, highly-paid Chief Revenue Officer (C
 2. Quantify everything. Speak in hard numbers, percentages, and ROI multipliers.
 3. Tone: Confident, authoritative, visionary, and exact."""
 
-async def handle_openai_error(e: Exception):
-    error_msg = str(e)
-    logger.error(f"OpenAI API Error: {error_msg}")
+# =========================================================
+# AUTO-RETRY SYSTEM FOR "TOO MANY REQUESTS" (429)
+# =========================================================
+async def generate_with_retry(prompt: str, schema=None, max_retries=5):
+    """Generates content via Gemini with exponential backoff for 429 API Rate Limit errors."""
+    full_prompt = f"{MASTER_SYSTEM_PROMPT}\n\n{prompt}"
     
-    # If it's a quota error, raise it clearly as requested by user ("dont give me mock i need correct")
-    if "insufficient_quota" in error_msg or "429" in error_msg:
-        raise HTTPException(
-            status_code=429, 
-            detail="OpenAI API Quota Exceeded. Please check your billing/plan to get 'correct' real-time insights."
-        )
-    
-    raise HTTPException(status_code=500, detail=f"AI Engine Error: {error_msg}")
+    for attempt in range(max_retries):
+        try:
+            if schema:
+                # Use strict structured outputs for Models
+                response = await flash_model.generate_content_async(
+                    full_prompt,
+                    generation_config=genai.GenerationConfig(
+                        response_mime_type="application/json",
+                        response_schema=schema
+                    )
+                )
+                return json.loads(response.text)
+            else:
+                # Use standard string generation for chat / markdown
+                response = await flash_model.generate_content_async(full_prompt)
+                return response.text
+                
+        except Exception as e:
+            error_msg = str(e)
+            # Catch 429 Quota or Rate Limits
+            if "429" in error_msg or "Too Many Requests" in error_msg or "ResourceExhausted" in error_msg or "quota" in error_msg.lower():
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 2  # Waits 2s, 4s, 8s, 16s across attempts
+                    logger.warning(f"Rate limit hit. Retrying in {wait_time}s... (Attempt {attempt+1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    logger.error("Max retries reached for API due to persistent Rate Limits.")
+                    raise HTTPException(status_code=429, detail="AI Service is currently experiencing exceptionally high load. Please try again.")
+            else:
+                logger.error(f"AI API Error: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"AI Engine Error: {error_msg}")
+
 
 # =========================================================
 # A. REVENUE LEAK AUDITOR
@@ -78,15 +112,11 @@ async def audit_revenue_leaks(request: Request):
     ctx = extract_business_context(await request.json())
     prompt = f"[FORENSIC AUDIT] Pipeline: ₹{ctx['deal_value']:,.0f} | Risk: ₹{ctx['revenue_at_risk']:,.0f} | SLA: {ctx['sla']:.0f}%"
     try:
-        response = await client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": MASTER_SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
-            response_format=AuditResponse
-        )
-        return {"success": True, **response.choices[0].message.parsed.model_dump()}
+        data = await generate_with_retry(prompt, schema=AuditResponse)
+        return {"success": True, **data}
     except Exception as e:
-        await handle_openai_error(e)
-
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================================================
 # B. GROWTH STRATEGIST 
@@ -96,7 +126,7 @@ class StrategyStep(BaseModel):
     description: str
 
 class StrategyResponse(BaseModel):
-    strategySteps: List[StrategyStep]
+    strategySteps: list[StrategyStep]
     projectedGrowth: str
 
 @app.post("/ai/growth-strategy")
@@ -104,14 +134,11 @@ async def generate_strategy(request: Request):
     ctx = extract_business_context(await request.json())
     prompt = f"[GROWTH] Leads: {ctx['leads']} | Pipeline: ₹{ctx['deal_value']:,.0f} | SLA: {ctx['sla']:.0f}%"
     try:
-        response = await client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": MASTER_SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
-            response_format=StrategyResponse
-        )
-        return {"success": True, **response.choices[0].message.parsed.model_dump()}
+        data = await generate_with_retry(prompt, schema=StrategyResponse)
+        return {"success": True, **data}
     except Exception as e:
-        await handle_openai_error(e)
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =========================================================
@@ -122,7 +149,7 @@ class ForecastMonth(BaseModel):
     value: int
 
 class ForecastResponse(BaseModel):
-    forecast: List[ForecastMonth]
+    forecast: list[ForecastMonth]
     summary: str
     confidenceScore: float
 
@@ -131,14 +158,11 @@ async def get_forecast(request: Request):
     ctx = extract_business_context(await request.json())
     prompt = f"[FORECAST] Pipeline: ₹{ctx['deal_value']:,.0f} | Won: ₹{ctx['won_revenue']:,.0f}"
     try:
-        response = await client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": MASTER_SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
-            response_format=ForecastResponse
-        )
-        return {"success": True, **response.choices[0].message.parsed.model_dump()}
+        data = await generate_with_retry(prompt, schema=ForecastResponse)
+        return {"success": True, **data}
     except Exception as e:
-        await handle_openai_error(e)
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =========================================================
@@ -151,14 +175,11 @@ async def ai_copilot(request: Request):
     ctx = extract_business_context(metrics)
     question = data.get("question", "")
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "system", "content": MASTER_SYSTEM_PROMPT}, {"role": "user", "content": question}]
-        )
-        return {"success": True, "answer": response.choices[0].message.content}
+        answer = await generate_with_retry(question)
+        return {"success": True, "answer": answer}
     except Exception as e:
-        await handle_openai_error(e)
-
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================================================
 # E. FULL BOARD REPORT
@@ -167,40 +188,52 @@ async def ai_copilot(request: Request):
 async def full_report(request: Request):
     ctx = extract_business_context(await request.json())
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "system", "content": MASTER_SYSTEM_PROMPT}, {"role": "user", "content": "Generate a beautiful Markdown executive summary from this data: " + ctx['full_context_json']}]
-        )
-        return {"success": True, "report": response.choices[0].message.content}
+        prompt = "Generate a beautiful Markdown executive summary from this data: " + ctx['full_context_json']
+        report = await generate_with_retry(prompt)
+        return {"success": True, "report": report}
     except Exception as e:
-        await handle_openai_error(e)
-
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================================================
 # F. MARKET SENTIMENT PULSE
 # =========================================================
+class SentimentDistribution(BaseModel):
+    highIntent: str
+    priceComparing: str
+    researching: str
+    cold: str
+
+class SentimentResponse(BaseModel):
+    overallVibe: str
+    distribution: SentimentDistribution
+    advice: str
+
 @app.post("/ai/sentiment-pulse")
 async def get_sentiment_pulse(request: Request):
     ctx = extract_business_context(await request.json())
     logger.info("Running Market Sentiment Engine.")
     
-    # Sentiment usually requires high-level synthesis
-    prompt = f"Analyze market sentiment for a business with ₹{ctx['deal_value']} pipeline from {ctx['top_source']}. Return JSON with: overallVibe, distribution (object with High Intent, Price Comparing, Researching, Cold as percentages), and advice."
+    prompt = f"Analyze market sentiment for a business with ₹{ctx['deal_value']} pipeline from {ctx['top_source']}. Return structure with: overallVibe, distribution, and advice."
     
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": "You are a market analyst. Output raw JSON."}, {"role": "user", "content": prompt}]
-        )
-        # Parse the JSON string from response
-        res_text = response.choices[0].message.content
-        # Ensure we only have the JSON part
-        if "```json" in res_text:
-            res_text = res_text.split("```json")[1].split("```")[0].strip()
+        data = await generate_with_retry(prompt, schema=SentimentResponse)
         
-        return {"success": True, **json.loads(res_text)}
+        # Format names purely for exactly what the frontend anticipates
+        return {
+            "success": True,
+            "overallVibe": data['overallVibe'],
+            "distribution": {
+                "High Intent": data['distribution']['highIntent'],
+                "Price Comparing": data['distribution']['priceComparing'],
+                "Researching": data['distribution']['researching'],
+                "Cold": data['distribution']['cold']
+            },
+            "advice": data['advice']
+        }
     except Exception as e:
-        await handle_openai_error(e)
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5055, log_level="info")
