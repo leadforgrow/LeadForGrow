@@ -382,14 +382,14 @@ export default function RevenueAudit() {
 
       <div className="relative z-[5] mx-auto w-full max-w-7xl">
         <div className="flex flex-col items-center text-center">
-          {/* Heading */}
+
           <motion.div
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             custom={0.1}
           >
-            <Heading level={1} className="text-balance">
+            <Heading level={1} className="text-6xl">
               Built for Teams That Want
               <br />
               <span
@@ -397,6 +397,7 @@ export default function RevenueAudit() {
                 style={{
                   backgroundImage:
                     "linear-gradient(135deg, oklch(0.55 0.22 255), oklch(0.62 0.2 240))",
+                  fontSize: "50px",
                 }}
               >
                 Faster Conversions
@@ -409,14 +410,12 @@ export default function RevenueAudit() {
             initial="hidden"
             animate="visible"
             custom={0.3}
-            className="mt-6"
+            className="mt-4 text-gray-400 max-w-xl"
           >
-            LeadForGrow transforms how businesses capture, manage and convert
-            leads using automation and smart workflows.
+            Improve your team’s performance with smarter workflows and faster results.
           </motion.p>
+
         </div>
-
-
       </div>
 
 
