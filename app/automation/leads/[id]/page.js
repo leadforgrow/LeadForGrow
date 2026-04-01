@@ -26,7 +26,6 @@ import {
   Activity,
   Target,
   CheckCircle,
-  Sparkles,
   Shield,
   BarChart3,
   FileCheck,

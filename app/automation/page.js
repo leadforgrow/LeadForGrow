@@ -30,7 +30,6 @@ import {
   Bot,
   FileText,
   Send,
-  Zap,
   BarChart2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
