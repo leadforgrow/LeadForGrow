@@ -20,7 +20,19 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+
+## 🤖 RAG Intelligence System
+
+LeadForGrow features a powerful **Retrieval-Augmented Generation (RAG)** system that allows users to scrape any website and instantly turn it into an AI-powered assistant.
+
+- **Automated Web Scraping**: Powered by Puppeteer.
+- **AI Backend**: FastAPI + LangChain + FAISS.
+- **Lightning Fast Inference**: Powered by Llama 3.1 on Groq.
+
+For detailed information on the team distribution, file-wise architecture, and data flow, see the **[RAG Implementation Guide](./RAG_IMPLEMENTATION.md)**.
+
 ## Learn More
+
 
 To learn more about Next.js, take a look at the following resources:
 

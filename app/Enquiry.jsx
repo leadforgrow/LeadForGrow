@@ -12,7 +12,7 @@ const LeadForGrowWidget = () => {
 
   const config = {
     token: "lfg_form_d6be46626ebeb4a70b50c169d54e5898acc28cc3e57c61eb07945623ff8a6750",
-    baseUrl: "http://localhost:3000"
+    baseUrl: "https://www.leadforgrow.com"
   };
 
   const startTimer = (delay) => {

@@ -264,7 +264,7 @@ export default function LeadForGrowHero() {
             Ready to See It in Action?
           </span>
 
-          <button className="group flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200">
+          <button suppressHydrationWarning className="group flex items-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200">
             Book a Demo Today
             <ArrowRight
               size={16}

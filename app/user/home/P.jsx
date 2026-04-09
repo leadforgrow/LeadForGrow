@@ -305,12 +305,14 @@ export default function PricingSection() {
             {/* Plan Type Toggle */}
             <div className="inline-flex p-1 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
               <button
+                suppressHydrationWarning
                 onClick={() => setPlanType('business')}
                 className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-medium transition-all ${planType === 'business' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg' : 'text-slate-500'}`}
               >
                 <Briefcase className="w-4 h-4" /> Businesses
               </button>
               <button
+                suppressHydrationWarning
                 onClick={() => setPlanType('agency')}
                 className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-medium transition-all ${planType === 'agency' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg' : 'text-slate-500'}`}
               >
@@ -323,18 +325,21 @@ export default function PricingSection() {
           {/* Billing Cycle Toggle */}
           <div className="inline-flex p-1 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
             <button
+              suppressHydrationWarning
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 rounded-xl text-xs font-medium transition-all uppercase tracking-widest ${billingCycle === 'monthly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg' : 'text-slate-500'}`}
             >
               Monthly
             </button>
             <button
+              suppressHydrationWarning
               onClick={() => setBillingCycle('quarterly')}
               className={`px-6 py-2.5 rounded-xl text-xs font-medium transition-all uppercase tracking-widest ${billingCycle === 'quarterly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg' : 'text-slate-500'}`}
             >
               Quarterly
             </button>
             <button
+              suppressHydrationWarning
               onClick={() => setBillingCycle('yearly')}
               className={`px-6 py-2.5 rounded-xl text-xs font-medium transition-all uppercase tracking-widest relative ${billingCycle === 'yearly' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-lg' : 'text-slate-500'}`}
             >
@@ -428,6 +433,7 @@ export default function PricingSection() {
               </div>
 
               <button
+                suppressHydrationWarning
                 onClick={() => handleSelectPlan(plan)}
                 className={`w-full py-4 rounded-xl font-semibold text-[12px] uppercase tracking-widest transition-all ${plan.featured
                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:shadow-2xl shadow-indigo-600/20'
@@ -497,6 +503,7 @@ export default function PricingSection() {
             Need custom workflows, specialized limits, or enterprise support?
           </p>
           <button
+            suppressHydrationWarning
             onClick={() => {
               setSelectedPlan({ name: 'Custom Enterprise' });
               setIsModalOpen(true);
@@ -513,7 +520,7 @@ export default function PricingSection() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
-            <button onClick={() => setIsModalOpen(false)} className="absolute top-10 right-10 p-3 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <button suppressHydrationWarning onClick={() => setIsModalOpen(false)} className="absolute top-10 right-10 p-3 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               <X className="w-6 h-6" />
             </button>
             <div className="p-12 sm:p-16 text-center">
@@ -542,6 +549,7 @@ export default function PricingSection() {
                     Send Email Now <ArrowRight className="w-4 h-4" />
                   </a>
                   <button
+                    suppressHydrationWarning
                     onClick={() => setIsModalOpen(false)}
                     className="w-full py-4 text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-widest hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >

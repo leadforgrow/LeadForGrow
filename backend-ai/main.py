@@ -6,6 +6,13 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pydantic import BaseModel
+try:
+    from rag_utils import get_rag_chain
+    rag_chain = get_rag_chain()
+except Exception as e:
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Could not load RAG chain: {e}")
+    rag_chain = None
 
 # ---------------------------------------------------------
 # ENTERPRISE LOGGING SETUP & APP INIT
@@ -174,6 +181,27 @@ async def get_sentiment_pulse(request: Request):
         },
         "advice": f"Your leads from {ctx['top_source']} are heavily comparing prices right now. Offer a time-sensitive incentive to convert the 40% in the evaluation funnel."
     }
+
+# =========================================================
+# G. RAG CHATBOT (Doc Search)
+# =========================================================
+class RAGRequest(BaseModel):
+    question: str
+
+@app.post("/ai/rag-chat")
+async def rag_chat_endpoint(req: RAGRequest):
+    if not rag_chain:
+        raise HTTPException(status_code=500, detail="RAG system is not initialized. Build the index first and ensure GROQ_API_KEY is present.")
+    
+    try:
+        response = rag_chain.invoke({"input": req.question})
+        return {
+            "success": True,
+            "answer": response["answer"],
+            "sources": [doc.metadata.get("source", "scraped_data") for doc in response.get("context", [])]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5055, log_level="info")

@@ -77,7 +77,7 @@ export default function SafetyNet() {
 
         {/* CTA with Glow Effect */}
         <div className="mt-20 text-center">
-          <button className="group px-10 py-5 bg-white text-indigo-600 rounded-2xl font-bold text-xl hover:bg-slate-50 transition-all duration-300 shadow-2xl hover:shadow-white/20 active:scale-95 relative overflow-hidden">
+          <button suppressHydrationWarning className="group px-10 py-5 bg-white text-indigo-600 rounded-2xl font-bold text-xl hover:bg-slate-50 transition-all duration-300 shadow-2xl hover:shadow-white/20 active:scale-95 relative overflow-hidden">
             <span className="relative z-10">Secure My Lead Flow Today</span>
             <div className="absolute inset-0 bg-gradient-to-r from-white to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>

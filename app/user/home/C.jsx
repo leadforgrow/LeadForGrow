@@ -90,6 +90,7 @@ export default function ContactFormSection() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 transition-colors">Your Name</label>
                   <input
+                    suppressHydrationWarning
                     type="text"
                     name="name"
                     value={formData.name}
@@ -101,6 +102,7 @@ export default function ContactFormSection() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 transition-colors">Email Address</label>
                   <input
+                    suppressHydrationWarning
                     type="email"
                     name="email"
                     value={formData.email}
@@ -114,6 +116,7 @@ export default function ContactFormSection() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 transition-colors">Subject</label>
                 <select
+                  suppressHydrationWarning
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
@@ -140,6 +143,7 @@ export default function ContactFormSection() {
               </div>
 
               <button
+                suppressHydrationWarning
                 type="submit"
                 className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-bold uppercase tracking-widest text-sm hover:bg-indigo-700 shadow-xl shadow-indigo-200 dark:shadow-none transition-all active:scale-95 flex items-center justify-center gap-3 group"
               >

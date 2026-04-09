@@ -159,14 +159,14 @@ export default function LeadForGrowHeroPage() {
       {/* <LeaderboardSection /> */}
       <SafetyNet />
       <AgencyOSLanding />
-      <PricingSection onGetStarted={(planName) => {
+      {/* <PricingSection onGetStarted={(planName) => {
         const userId = localStorage.getItem('userid');
         if (!userId) {
           window.location.href = '/user/register';
         } else {
           fetchUserDataAndShowPopup(userId);
         }
-      }} />
+      }} /> */}
       <ContactFormSection />
       {/* <Footer /> */}
 

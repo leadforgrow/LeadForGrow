@@ -93,7 +93,7 @@ export default function AgencyOSLanding() {
                    <p className="font-medium mb-8 flex-grow">
                      {item.solution}
                    </p>
-                   <button className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:bg-indigo-600 dark:hover:bg-indigo-500 dark:hover:text-white transition-all uppercase tracking-widest">
+                   <button suppressHydrationWarning className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:bg-indigo-600 dark:hover:bg-indigo-500 dark:hover:text-white transition-all uppercase tracking-widest">
                       {item.cta}
                    </button>
                 </div>

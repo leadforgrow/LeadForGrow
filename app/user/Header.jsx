@@ -246,14 +246,14 @@ const UserNavbar = () => {
               // PUBLIC/FREE NAVIGATION
               <div className="flex items-center space-x-6 xl:space-x-8">
                 <div className="relative" onMouseEnter={() => setOpenDropdown('services')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
+                  <button suppressHydrationWarning className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
                     Services <ChevronDown className="w-4 h-4" />
                   </button>
                   <IndustryDropdownMenu items={servicesDropdown} isOpen={openDropdown === 'services'} />
                 </div>
 
                 <div className="relative" onMouseEnter={() => setOpenDropdown('industry')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
+                  <button suppressHydrationWarning className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
                     Industry <ChevronDown className="w-4 h-4" />
                   </button>
                   <IndustryDropdownMenu items={industryDropdown} isOpen={openDropdown === 'industry'} />
@@ -281,15 +281,15 @@ const UserNavbar = () => {
               ) : (
                 <>
                   <div className="relative" onMouseEnter={() => setOpenDropdown('create')} onMouseLeave={() => setOpenDropdown(null)}>
-                    <button className="flex items-center gap-2 px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
+                    <button suppressHydrationWarning className="flex items-center gap-2 px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
                       <Plus className="w-4 h-4" /> Create <ChevronDown className="w-4 h-4" />
                     </button>
                     <DropdownMenu items={activeCreateItems} isOpen={openDropdown === 'create'} />
                   </div>
-                  <button onClick={handleProfileClick} className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
+                  <button suppressHydrationWarning onClick={handleProfileClick} className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
                     Profile
                   </button>
-                  <button onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
+                  <button suppressHydrationWarning onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
                     Logout
                   </button>
                 </>
@@ -299,7 +299,7 @@ const UserNavbar = () => {
 
           {/* Mobile menu button */}
           <div className="xl:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600  hover:text-slate-900 hover:bg-slate-100 transition-all duration-200">
+            <button suppressHydrationWarning onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600  hover:text-slate-900 hover:bg-slate-100 transition-all duration-200">
               {isMenuOpen ? (
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -367,10 +367,10 @@ const UserNavbar = () => {
 
           {isLoggedIn && (
             <div className="space-y-2 pt-4 border-t border-slate-100 ">
-              <button onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors">
+              <button suppressHydrationWarning onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors">
                 Profile
               </button>
-              <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600  hover:bg-red-50 rounded-lg transition-colors">
+              <button suppressHydrationWarning onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600  hover:bg-red-50 rounded-lg transition-colors">
                 Logout
               </button>
             </div>
