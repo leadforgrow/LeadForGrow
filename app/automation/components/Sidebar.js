@@ -306,12 +306,6 @@ export default function Sidebar() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      onClick={(e) => {
-                        if (item.name === 'Reports' && userData.plan === 'TRIAL') {
-                          e.preventDefault();
-                          alert('Can not be accessed in free trial');
-                          return;
-                        }
                         if (isMobile) setIsOpen(false);
                       }}
                       className={`
@@ -334,9 +328,6 @@ export default function Sidebar() {
                         <span className="truncate">
                           {item.name}
                         </span>
-                        {(item.name === 'Reports' || item.name === 'Integrations') && userData.plan === 'TRIAL' && (
-                          <span className="text-[10px] bg-slate-100 px-1 rounded text-slate-500 font-bold ml-1">LOCKED</span>
-                        )}
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                         {renderIndicator(item)}

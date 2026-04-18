@@ -14,13 +14,12 @@ export default function AccessControl({ children }) {
     const plan = localStorage.getItem('userPlan');
     setUserPlan(plan || '');
     
-    // Check if user has Growth plan or higher, trial, or any Agency plan
-    const allowedPlans = ['trial', 'growth', 'pro', 'dfy — done for you'];
+    // Check if user has Growth plan or higher, enterprise, trial, or any Agency plan
+    // We only block users on the 'free' plan
     const lowerPlan = (plan || '').toLowerCase();
-    const hasStandardAccess = allowedPlans.some(p => lowerPlan.includes(p));
-    const isAgency = lowerPlan.includes('agency');
+    const isFree = lowerPlan === 'free' || !lowerPlan;
     
-    setHasAccess(hasStandardAccess || isAgency);
+    setHasAccess(!isFree);
     setChecking(false);
   }, []);
 
