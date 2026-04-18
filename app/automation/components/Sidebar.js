@@ -306,6 +306,7 @@ export default function Sidebar() {
                     <Link
                       key={item.name}
                       href={item.href}
+                      onClick={() => {
                         if (isMobile) setIsOpen(false);
                       }}
                       className={`
@@ -314,7 +315,6 @@ export default function Sidebar() {
                           ? 'bg-slate-100 text-slate-900 font-medium'
                           : `${group.highImpact ? 'text-slate-600' : 'text-slate-700'} hover:bg-slate-50 hover:text-slate-900 font-normal`
                         }
-                        ${item.name === 'Reports' && userData.plan === 'TRIAL' ? 'opacity-50 grayscale' : ''}
                       `}
                       title={item.count !== undefined && item.count > 0 && item.status === 'active' ? `${item.count} active rules` : undefined}
                     >
