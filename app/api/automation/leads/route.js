@@ -139,7 +139,10 @@ export async function POST(request) {
 
     // Process lead through centralized processor
     console.log(`[API Leads] Creating lead for business ${business._id}:`, leadData.name);
-    const processResult = await processNewLead(leadData, business._id);
+    
+    // For manual entries, assign directly to the user who added it (team member/owner)
+    const assignedToId = leadData.source === 'manual' ? user._id : null;
+    const processResult = await processNewLead(leadData, business._id, null, assignedToId);
 
     if (!processResult.success) {
       console.error(`[API Leads] Processor failed for ${leadData.name}:`, processResult.message);
