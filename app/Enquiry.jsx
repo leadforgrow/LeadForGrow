@@ -11,7 +11,7 @@ const LeadForGrowWidget = () => {
   const timerRef = useRef(null);
 
   const config = {
-    token: "lfg_form_d6be46626ebeb4a70b50c169d54e5898acc28cc3e57c61eb07945623ff8a6750",
+    token: "lfg_form_443192ec2433faa2fc5e914a2e2c6e98475577d3184d87f58004817285c58317",
     baseUrl: "https://www.leadforgrow.com"
   };
 
