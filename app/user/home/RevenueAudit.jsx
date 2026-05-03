@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, MessageCircle, Globe, GitBranch, BarChart3, ChevronRight, Check } from "lucide-react"
+import { ArrowRight, MessageCircle, Globe, GitBranch, BarChart3, ChevronRight, ChevronLeft, Check, Command, Layers } from "lucide-react"
 import Heading from "@/app/components/ui/Heading"
 
 const fadeUp = {
@@ -533,18 +533,53 @@ export default function RevenueAudit() {
             </AnimatePresence>
           </div>
         </div>
-        {/* CTA Bottom */}
+        {/* Client Logos Section */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
           custom={1.1}
-          className="mt-20 text-center"
+          className="mt-20 text-center w-full"
         >
-          <div className="p-[1px] rounded-full bg-gradient-to-r from-transparent via-primary/50 to-transparent">
-            <div className="bg-background px-8 py-2 text-sm text-muted-foreground font-medium">
-              Join 500+ teams growing faster with LeadForGrow
+          <div className="bg-white py-3 px-8 rounded shadow-sm inline-block mb-12 border border-gray-100">
+            <p className="text-gray-700 text-sm font-medium tracking-wide">
+              Join innovative teams growing faster with LeadForGrow
+            </p>
+          </div>
+          
+          <div className="flex items-center justify-center space-x-6 md:space-x-16">
+            <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-100 transition-colors">
+              <ChevronLeft className="w-5 h-5 text-gray-400" />
+            </button>
+            
+            <div className="flex items-center justify-center space-x-8 md:space-x-16 w-[85%] md:w-auto overflow-hidden">
+              <img 
+                src="/scaledesk_technology_logo.jpg" 
+                alt="Scaledesk Technology" 
+                className="h-8 md:h-10 object-contain mix-blend-multiply opacity-80 hover:opacity-100 transition-opacity duration-300" 
+              />
+              <img 
+                src="/homie4u.png" 
+                alt="Homie4U" 
+                className="h-8 md:h-10 object-contain mix-blend-multiply opacity-80 hover:opacity-100 transition-opacity duration-300" 
+              />
+              {/* Pure Typography logo for CXO */}
+              <div className="flex items-center justify-center h-8 md:h-10 opacity-80 hover:opacity-100 transition-opacity duration-300 cursor-default select-none">
+                <span className="text-2xl md:text-3xl font-black tracking-tighter text-slate-800">
+                  CX<span className="text-blue-600">O</span>
+                </span>
+              </div>
+              {/* Pure Typography logo for PMKR */}
+              <div className="flex items-center justify-center h-8 md:h-10 opacity-80 hover:opacity-100 transition-opacity duration-300 cursor-default select-none">
+                <span className="text-xl md:text-2xl font-extrabold tracking-[0.15em] text-slate-800">
+                  PMKR
+                </span>
+              </div>
             </div>
+            
+            <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-100 transition-colors">
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
         </motion.div>
       </div>
