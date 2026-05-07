@@ -512,8 +512,8 @@ function GrowthStrategistCard({ metrics }) {
   );
 }
 
-function ActionCenter({ tasks }) {
-  const urgentCount = tasks?.filter(t => t.priority === 'urgent' || (t.dueDate && new Date(t.dueDate) <= new Date())).length || 0;
+function ActionCenter({ tasks = [] }) {
+  const urgentCount = (tasks || []).filter(t => t.priority === 'urgent' || (t.dueDate && new Date(t.dueDate) <= new Date())).length || 0;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-amber-400 p-7" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
@@ -588,7 +588,7 @@ function ActionCenter({ tasks }) {
 }
 
 
-function ActivityPulse({ activities }) {
+function ActivityPulse({ activities = [] }) {
   const getActivityIcon = (type) => {
     if (!type) return MessageSquare;
     if (type.includes('convert')) return Award;
@@ -598,6 +598,8 @@ function ActivityPulse({ activities }) {
     if (type.includes('schedule')) return Calendar;
     return Sparkles;
   };
+
+  const activityCount = activities?.length || 0;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 border-t-2 border-t-indigo-400 p-7 h-full flex flex-col" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)' }}>
@@ -611,15 +613,15 @@ function ActivityPulse({ activities }) {
             <p className="text-xs text-slate-500 font-medium">Real-time automation events</p>
           </div>
         </div>
-        {activities.length > 0 && (
+        {activityCount > 0 && (
           <span className="text-[10px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
-            {activities.length} events
+            {activityCount} events
           </span>
         )}
       </div>
 
       <div className="flex-1 relative">
-        {activities.length > 0 ? (
+        {activityCount > 0 ? (
           <>
             <div className="absolute left-4 top-0 bottom-0 w-px bg-slate-100" />
             {activities.slice(0, 8).map((activity, idx) => {
