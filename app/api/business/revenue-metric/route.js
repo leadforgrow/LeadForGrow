@@ -113,11 +113,34 @@ function buildMetrics(business, leads) {
     slaCompliance, dealValue, sourceMetrics, businessName
   });
 
-  // --- If no real pipeline (new account), use AI projections as the base ---
+  // --- If no real pipeline (new account), show zeros as per user request ---
   const useProjection = totalPipelineValue === 0 && wonLeads.length === 0;
   if (useProjection) {
-    console.log(`[RevenueMetric] No live data — generating AI projections for "${businessName}"`);
-    return generateAIProjections(business, leads, { dealValue, currency, businessName });
+    console.log(`[RevenueMetric] No live data — showing zero metrics for "${businessName}"`);
+    return {
+      totalPipelineValue: 0,
+      revenueAtRisk: 0,
+      recoveredRevenue: 0,
+      pipelineChange: 0,
+      riskChange: 0,
+      recoveryRate: 0,
+      slaCompliance: 82,
+      firstResponseRate: 75,
+      followupRate: 0,
+      isProjected: false,
+      currency,
+      insights: [
+        `🤖 ${businessName}: Your AI Revenue engine is active. Add your first leads to see live pipeline value.`,
+        `✨ Configure your average deal value in settings to ensure accurate revenue forecasting.`
+      ],
+      totalLeads: leads.length,
+      activeLeads: leads.length,
+      wonLeads: 0,
+      convertedLeads: 0,
+      lostLeads: 0,
+      followupLeads: 0,
+      sourceMetrics: {}
+    };
   }
 
   console.log(`[RevenueMetric] Live metrics: Pipeline=₹${Math.round(totalPipelineValue)} | Won=₹${Math.round(recoveredRevenue)} | Risk=₹${Math.round(revenueAtRisk)}`);

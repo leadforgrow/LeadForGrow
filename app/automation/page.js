@@ -103,16 +103,16 @@ export default function RevenueIntelligenceDashboard() {
         console.warn('[RevDash] Metrics API failed, using local fallback. Reason:', metricsData?.error);
         const dealValue = configData?.data?.avgDealValue?.typical || 14999;
         const fallback = {
-          totalPipelineValue: dealValue * 8,
-          revenueAtRisk: dealValue * 1.5,
-          recoveredRevenue: dealValue * 0.7,
-          pipelineChange: 11.2,
-          riskChange: -3.8,
-          recoveryRate: 19.5,
-          slaCompliance: 80,
-          firstResponseRate: 74,
-          followupRate: 62,
-          isProjected: true,
+          totalPipelineValue: 0,
+          revenueAtRisk: 0,
+          recoveredRevenue: 0,
+          pipelineChange: 0,
+          riskChange: 0,
+          recoveryRate: 0,
+          slaCompliance: 0,
+          firstResponseRate: 0,
+          followupRate: 0,
+          isProjected: false,
           insights: [],
           totalLeads: 0, activeLeads: 0, convertedLeads: 0, lostLeads: 0
         };
@@ -124,9 +124,9 @@ export default function RevenueIntelligenceDashboard() {
       console.error('[RevDash] Fatal fetch error:', error);
       // Even on complete failure — show sensible defaults so the page isn't broken
       setMetrics({
-        totalPipelineValue: 127491, revenueAtRisk: 26958, recoveredRevenue: 11474,
-        pipelineChange: 10, riskChange: -5, recoveryRate: 18, slaCompliance: 75,
-        firstResponseRate: 72, followupRate: 60, isProjected: true, insights: []
+        totalPipelineValue: 0, revenueAtRisk: 0, recoveredRevenue: 0,
+        pipelineChange: 0, riskChange: 0, recoveryRate: 0, slaCompliance: 0,
+        firstResponseRate: 0, followupRate: 0, isProjected: false, insights: []
       });
       setLoading(false);
     }
