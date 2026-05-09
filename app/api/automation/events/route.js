@@ -43,14 +43,18 @@ export async function POST(req) {
             return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
         }
 
+        // Clean up empty strings to avoid Mongoose CastErrors
+        const cleanedFormId = formId === "" ? null : formId;
+        const cleanedSequenceId = sequenceId === "" ? null : sequenceId;
+
         const newEvent = await Event.create({
             businessId,
             name,
             description,
             date: date || new Date(),
             location,
-            formId,
-            sequenceId
+            formId: cleanedFormId,
+            sequenceId: cleanedSequenceId
         });
 
         return NextResponse.json({ success: true, data: newEvent });

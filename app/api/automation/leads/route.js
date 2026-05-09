@@ -48,6 +48,8 @@ export async function GET(request) {
     const assignedTo = searchParams.get('assignedTo');
     const search = searchParams.get('search');
     const eventId = searchParams.get('eventId');
+    const campaignName = searchParams.get('campaignName');
+    const adId = searchParams.get('adId');
 
     const query = { businessId: business._id, archived: false };
 
@@ -62,9 +64,9 @@ export async function GET(request) {
 
     if (status) query.status = status;
     if (source) query.source = source;
-    if (eventId) {
-      query.eventId = eventId;
-    }
+    if (eventId) query.eventId = eventId;
+    if (campaignName) query.campaignName = campaignName;
+    if (adId) query.adId = adId;
 
     if (search) {
       query.$or = [

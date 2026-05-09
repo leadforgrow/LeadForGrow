@@ -15,7 +15,11 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
     const user = req.user;
     const businessId = user.businessId;
 
-    const lead = await Lead.findOne({ _id: id, businessId })
+    const lead = await Lead.findOneAndUpdate(
+      { _id: id, businessId },
+      { isRead: true },
+      { new: true }
+    )
       .populate('assignedTo', 'email')
       .lean();
 

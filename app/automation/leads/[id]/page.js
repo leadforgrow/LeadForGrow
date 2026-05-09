@@ -31,7 +31,8 @@ import {
   FileCheck,
   AlertCircle,
   Bot,
-  MessageSquare
+  MessageSquare,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
@@ -61,6 +62,7 @@ export default function LeadDetailPage({ params }) {
   const [teamMembers, setTeamMembers] = useState([]);
   const [showAssignDropdown, setShowAssignDropdown] = useState(false);
   const [userRole, setUserRole] = useState('TEAM_MEMBER');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const fetchTeam = async () => {
     try {
@@ -132,10 +134,13 @@ export default function LeadDetailPage({ params }) {
       if (showAssignDropdown && !e.target.closest('.assign-trigger') && !e.target.closest('.assign-dropdown')) {
         setShowAssignDropdown(false);
       }
+      if (showMoreMenu && !e.target.closest('.more-trigger') && !e.target.closest('.more-dropdown')) {
+        setShowMoreMenu(false);
+      }
     };
     document.addEventListener('mousedown', handleClickAway);
     return () => document.removeEventListener('mousedown', handleClickAway);
-  }, [id, showAssignDropdown]);
+  }, [id, showAssignDropdown, showMoreMenu]);
 
   const handleUpdateStatus = async (newStatus) => {
     try {
@@ -312,6 +317,29 @@ export default function LeadDetailPage({ params }) {
     }
   };
 
+  const deleteLead = async () => {
+    if (!window.confirm('PERMANENT DELETE? This cannot be undone.')) return;
+
+    try {
+      setUpdating(true);
+      const userId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/leads/${id}?userId=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Lead deleted');
+        router.push('/automation/leads');
+      } else {
+        toast.error(data.error || 'Failed to delete');
+        setUpdating(false);
+      }
+    } catch (error) {
+      setUpdating(false);
+      toast.error('Connection error');
+    }
+  };
+
   const renderMessageFromTemplate = (template) => {
     if (!template) return '';
     return template.replace(/\{\{(.*?)\}\}/g, (match, field) => {
@@ -418,9 +446,25 @@ export default function LeadDetailPage({ params }) {
           <ChevronLeft className="w-4 h-4" />
           Back to Leads
         </button>
-        <button className="p-2 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors">
-          <MoreVertical className="w-5 h-5" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className="more-trigger p-2 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+          {showMoreMenu && (
+            <div className="more-dropdown absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 z-[100] overflow-hidden py-1">
+              <button
+                onClick={deleteLead}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Lead
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">

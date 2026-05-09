@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, MessageCircle, ChevronLeft, Save, CheckCircle2, AlertCircle, RefreshCw, Globe } from 'lucide-react';
+import { Mail, MessageCircle, ChevronLeft, Save, CheckCircle2, AlertCircle, RefreshCw, Globe, Copy, Check, ExternalLink } from 'lucide-react';
+
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Heading from '@/app/components/ui/Heading';
@@ -33,10 +34,31 @@ export default function IntegrationsPage() {
     }
   });
   const [userPlan, setUserPlan] = useState('free');
+  const [currentBusiness, setCurrentBusiness] = useState({ businessId: '', businessName: '' });
+  const [copied, setCopied] = useState(false);
+
+
 
   useEffect(() => {
     fetchIntegrations();
+    fetchCurrentBusiness();
   }, []);
+
+  const fetchCurrentBusiness = async () => {
+    try {
+      const res = await fetch('/api/business/current');
+      const data = await res.json();
+      if (data.success) {
+        setCurrentBusiness({
+          businessId: data.businessId,
+          businessName: data.businessName
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching business context:', error);
+    }
+  };
+
 
   const fetchIntegrations = async () => {
     try {
@@ -273,7 +295,18 @@ export default function IntegrationsPage() {
               <MessageCircle className="w-8 h-8 text-emerald-600" />
             </div>
             <div>
-              <Heading level={3} className="text-xl italic">WhatsApp Business Integration</Heading>
+              <div className="flex items-center gap-2">
+                <Heading level={3} className="text-xl italic">WhatsApp Business Integration</Heading>
+                {integrations.whatsapp.enabled && integrations.whatsapp.apiKey ? (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                    <CheckCircle2 className="w-2.5 h-2.5" /> Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                    <AlertCircle className="w-2.5 h-2.5" /> Setup Required
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-slate-500 font-medium">Connect your Meta WhatsApp API or Interakt for full automation.</p>
             </div>
             <div className="ml-auto">
@@ -304,8 +337,59 @@ export default function IntegrationsPage() {
                 </button>
               </div>
 
-              {integrations.whatsapp.provider === 'meta' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {integrations.whatsapp.provider === 'meta' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                  {/* Meta Setup Guide - NEW */}
+                  <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                    <div className="flex items-center gap-2 mb-4 text-slate-900">
+                      <RefreshCw className="w-5 h-5 text-emerald-500" />
+                      <Heading level={4} className="text-base font-bold">Meta Developer Portal Setup</Heading>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Step 1: Webhook</p>
+                        <p className="text-[11px] text-slate-600 leading-relaxed font-bold">
+                          In Meta Dashboard, go to <span className="text-indigo-600">WhatsApp &gt; Configuration</span>. Click Edit on Callback URL.
+                        </p>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Step 2: Token</p>
+                        <p className="text-[11px] text-slate-600 leading-relaxed font-bold">
+                          Enter the <span className="text-indigo-600">Verify Token</span> you set below and our Callback URL.
+                        </p>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Step 3: Fields</p>
+                        <p className="text-[11px] text-slate-600 leading-relaxed font-bold">
+                          Under Webhook Fields, click **Manage** and subscribe to <span className="text-emerald-600">messages</span>.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border-2 border-emerald-100 rounded-2xl p-5 shadow-lg shadow-emerald-50 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-1 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase tracking-widest px-3 rounded-bl-xl">Your Unique Endpoint</div>
+                      <label className="block text-[10px] font-black text-emerald-600 uppercase mb-3 tracking-widest">Meta Callback URL</label>
+                      <div className="flex items-center gap-3">
+                        <code className="flex-1 bg-slate-50 p-4 rounded-xl text-xs font-mono text-slate-800 break-all border border-slate-100">
+                          https://leadforgrow.com/api/webhooks/meta/{currentBusiness.businessId || 'loading...'}
+                        </code>
+                        <button
+                          onClick={() => {
+                            const url = `https://leadforgrow.com/api/webhooks/meta/${currentBusiness.businessId}`;
+                            navigator.clipboard.writeText(url);
+                            setCopied(true);
+                            toast.success('Webhook URL copied!');
+                            setTimeout(() => setCopied(false), 2000);
+                          }}
+                          className="p-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 shadow-xl shadow-emerald-200"
+                        >
+                          {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest">Meta API Key (Permanent Access Token)</label>
@@ -354,23 +438,29 @@ export default function IntegrationsPage() {
                         placeholder="lfg_secure_token"
                         value={integrations.whatsapp.verifyToken}
                         onChange={(e) => setIntegrations({ ...integrations, whatsapp: { ...integrations.whatsapp, verifyToken: e.target.value } })}
-                        className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black"
+                        className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 text-black shadow-inner"
                       />
-                      <p className="text-[10px] text-slate-400 mt-1 uppercase font-medium tracking-widest">Set this same token in Meta Developer Portal Webhook settings.</p>
+                      <p className="text-[10px] text-slate-400 mt-1 uppercase font-medium tracking-widest">Create a secure string here and paste it in Meta Dashboard Step 2.</p>
                     </div>
                   </div>
-                  <div className="bg-emerald-50/50 rounded-2xl p-6 flex flex-col justify-center">
-                    <p className="text-xs text-emerald-800 leading-relaxed mb-4 font-medium uppercase tracking-widest">
-                      Using the <strong>Official Meta Cloud API</strong> provides direct connectivity.
-                    </p>
-                    <ul className="text-xs text-emerald-700 space-y-2 list-disc pl-4 font-medium uppercase tracking-widest">
-                      <li>Permanent Access Token required</li>
-                      <li>Webhook URL: https://leadforgrow.com/api/webhooks/meta/{typeof window !== 'undefined' ? localStorage.getItem('userid') : ''}</li>
-                    </ul>
+                  <div className="space-y-6">
+                    <div className="bg-indigo-50/30 p-5 rounded-2xl border border-indigo-100">
+                      <p className="text-xs text-indigo-900 font-bold mb-2">💡 Quick Links</p>
+                      <a 
+                        href="https://developers.facebook.com/apps" 
+                        target="_blank" 
+                        className="text-[10px] text-indigo-600 font-black uppercase tracking-widest hover:underline flex items-center gap-1"
+                      >
+                        Meta Developer Dashboard <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              </div>
+            )}
+
+              {integrations.whatsapp.provider === 'interakt' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-4 duration-300">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest">Interakt API Key</label>
@@ -429,6 +519,60 @@ export default function IntegrationsPage() {
                   <RefreshCw className="w-4 h-4" />
                   Test {integrations.whatsapp.provider === 'interakt' ? 'Interakt' : 'Meta'} Connection
                 </button>
+              </div>
+
+              {/* NEW: Real Message Test Tool */}
+              <div className="pt-6 border-t border-slate-100">
+                <div className="bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 p-2 opacity-10"><MessageCircle className="w-24 h-24" /></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm font-bold uppercase tracking-wider">Delivery Test Tool</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mb-4 uppercase font-bold tracking-widest">Send a real WhatsApp to verify end-to-end delivery</p>
+                    
+                    <div className="flex flex-col md:flex-row gap-3">
+                      <input
+                        type="text"
+                        placeholder="Mobile with country code (e.g. 919876543210)"
+                        id="test-phone-input"
+                        className="flex-1 bg-white/10 border-0 rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-500 text-white"
+                      />
+                      <button
+                        onClick={async () => {
+                          const phone = document.getElementById('test-phone-input').value;
+                          if (!phone) return toast.error('Enter a phone number first');
+                          
+                          const tid = toast.loading('Sending real test message...');
+                          try {
+                            const userId = localStorage.getItem('userid');
+                            const res = await fetch(`/api/business/settings/test-whatsapp?userId=${userId}`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                whatsappSettings: integrations.whatsapp,
+                                testPhone: phone
+                              })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              toast.success(data.message, { id: tid });
+                            } else {
+                              toast.error(data.error || 'Test failed', { id: tid });
+                              if (data.details) console.error('Test Error Details:', data.details);
+                            }
+                          } catch (e) {
+                            toast.error('Could not reach server', { id: tid });
+                          }
+                        }}
+                        className="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+                      >
+                        Send Test WhatsApp
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

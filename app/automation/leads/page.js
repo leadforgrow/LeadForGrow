@@ -32,7 +32,10 @@ import {
   AlertTriangle,
   Info,
   Trash2,
-  MessageSquare
+  MessageSquare,
+  Instagram,
+  Facebook,
+  XCircle
 } from 'lucide-react';
 import IntelligenceIcon from '@/app/components/ui/IntelligenceIcon';
 import { toast } from 'react-hot-toast';
@@ -56,6 +59,7 @@ export default function EnterpriseLeadsPage() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [userRole, setUserRole] = useState('TEAM_MEMBER');
   const [activeAssignDropdown, setActiveAssignDropdown] = useState(null);
+  const [sourceFilter, setSourceFilter] = useState('all'); // 'all', 'ads', 'organic'
   const [templates, setTemplates] = useState([]);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [showBulkTemplateMenu, setShowBulkTemplateMenu] = useState(false);
@@ -225,6 +229,29 @@ export default function EnterpriseLeadsPage() {
     setShowBulkTemplateMenu(false);
   };
 
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedLeads.length} leads?`)) return;
+
+    const tid = toast.loading(`Deleting ${selectedLeads.length} leads...`);
+    try {
+      const userId = localStorage.getItem('userid');
+      let successCount = 0;
+
+      for (const leadId of selectedLeads) {
+        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) successCount++;
+      }
+
+      toast.success(`Deleted ${successCount} leads`, { id: tid });
+      setSelectedLeads([]);
+      fetchLeads();
+    } catch (error) {
+      toast.error('Bulk delete failed', { id: tid });
+    }
+  };
+
   const initiateCall = async (lead, e) => {
     if (e) e.stopPropagation();
 
@@ -329,12 +356,20 @@ export default function EnterpriseLeadsPage() {
       <ChevronDown className="w-3.5 h-3.5 text-indigo-600" />;
   };
 
-  const filteredLeads = intelligentLeads.filter(lead =>
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.phone.includes(searchTerm) ||
-    lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.serviceInterest?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLeads = intelligentLeads.filter(lead => {
+    const matchesSearch = 
+      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.phone.includes(searchTerm) ||
+      lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.serviceInterest?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesSource = 
+      sourceFilter === 'all' || 
+      (sourceFilter === 'ads' && (lead.source === 'instagram_ad' || lead.source === 'facebook_ad')) ||
+      (sourceFilter === 'organic' && (lead.source !== 'instagram_ad' && lead.source !== 'facebook_ad'));
+
+    return matchesSearch && matchesSource;
+  });
 
   const sortedLeads = [...filteredLeads].sort((a, b) => {
     if (sortField === 'intelligence') {
@@ -555,36 +590,63 @@ export default function EnterpriseLeadsPage() {
           {/* Search & Filters */}
           <div className="bg-white border border-slate-200 rounded-lg p-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex-1 min-w-[300px] relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search leads..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                {[
-                  { value: 'all', label: 'All' },
-                  { value: 'new', label: 'Pending' },
-                  { value: 'contacted', label: 'Connected' },
-                  { value: 'follow-up', label: 'In Progress' },
-                  { value: 'converted', label: 'Finalized' }
-                ].map((filter) => (
+              <div className="flex flex-col gap-4 w-full">
+                {/* Source Tabs - NEW */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start">
                   <button
-                    key={filter.value}
-                    onClick={() => setStatusFilter(filter.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${statusFilter === filter.value
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
+                    onClick={() => setSourceFilter('all')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${sourceFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   >
-                    {filter.label}
+                    All Leads
                   </button>
-                ))}
+                  <button
+                    onClick={() => setSourceFilter('ads')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${sourceFilter === 'ads' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    <Target className="w-3.5 h-3.5" />
+                    Meta Ads
+                  </button>
+                  <button
+                    onClick={() => setSourceFilter('organic')}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${sourceFilter === 'organic' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Website & Organic
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex-1 min-w-[300px] relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search leads..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    {[
+                      { value: 'all', label: 'All' },
+                      { value: 'new', label: 'Pending' },
+                      { value: 'contacted', label: 'Connected' },
+                      { value: 'follow-up', label: 'In Progress' },
+                      { value: 'converted', label: 'Finalized' }
+                    ].map((filter) => (
+                      <button
+                        key={filter.value}
+                        onClick={() => setStatusFilter(filter.value)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${statusFilter === filter.value
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <button
@@ -829,16 +891,31 @@ export default function EnterpriseLeadsPage() {
                               </div>
                             </td>
 
-                            {/* Source - Simple Text */}
+                            {/* Source - Enhanced for Ads */}
                             <td className="px-4 py-3">
-                              <span className="text-xs text-slate-600 whitespace-nowrap">
-                                {lead.source || 'Direct'}
-                                {intel.sourceQuality.conversionRate && (
-                                  <span className="text-slate-400 ml-1">
-                                    ({intel.sourceQuality.conversionRate}%)
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  {lead.source === 'instagram_ad' && <Instagram className="w-3.5 h-3.5 text-pink-600" />}
+                                  {lead.source === 'facebook_ad' && <Facebook className="w-3.5 h-3.5 text-blue-600" />}
+                                  {lead.source === 'whatsapp' && <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />}
+                                  
+                                  <span className="text-[11px] font-bold text-slate-700 capitalize whitespace-nowrap">
+                                    {(lead.source || 'Direct').replace('_ad', ' Ad')}
+                                  </span>
+                                </div>
+                                
+                                {lead.campaignName && (
+                                  <span className="text-[9px] font-medium text-slate-400 truncate max-w-[120px]" title={lead.campaignName}>
+                                    {lead.campaignName}
                                   </span>
                                 )}
-                              </span>
+                                
+                                {intel.sourceQuality.conversionRate && !lead.campaignName && (
+                                  <span className="text-[10px] text-slate-400">
+                                    {intel.sourceQuality.conversionRate}% conversion
+                                  </span>
+                                )}
+                              </div>
                             </td>
 
                             <td className="px-4 py-3 relative" onClick={(e) => e.stopPropagation()}>
@@ -913,7 +990,7 @@ export default function EnterpriseLeadsPage() {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center justify-end">
-                            <div className="flex items-center gap-1.5 transition-[max-width] duration-500 ease-in-out max-w-[42px] group-hover/action-cell:max-w-[200px] overflow-hidden">
+                            <div className="flex items-center gap-1.5">
                               {/* Primary Call Action - Dialer Integrated */}
                               <button
                                 onClick={(e) => initiateCall(lead, e)}
@@ -924,7 +1001,7 @@ export default function EnterpriseLeadsPage() {
                               </button>
 
                               {/* Secondary Actions - Revealed on CELL hover */}
-                              <div className="flex items-center gap-1.5 opacity-0 group-hover/action-cell:opacity-100 transition-opacity duration-300 delay-100">
+                              <div className="flex items-center gap-1.5">
                                 <a
                                   href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
                                   target="_blank"
@@ -1103,6 +1180,14 @@ export default function EnterpriseLeadsPage() {
                   </div>
                 )}
               </div>
+              
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-600/20 rounded-xl transition-all font-bold text-xs uppercase tracking-widest active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Selected
+              </button>
 
               <button
                 onClick={() => setSelectedLeads([])}

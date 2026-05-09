@@ -48,13 +48,8 @@ const ActivitySchema = new mongoose.Schema({
 
   // Additional Data
   metadata: {
-    oldValue: mongoose.Schema.Types.Mixed,
-    newValue: mongoose.Schema.Types.Mixed,
-    noteText: String,
-    taskId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Task'
-    }
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
 
   // Performed By

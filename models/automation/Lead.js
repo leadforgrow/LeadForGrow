@@ -46,13 +46,21 @@ const LeadSchema = new mongoose.Schema({
   // Lead Information
   source: {
     type: String,
-    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'manual', 'bulk', 'bot', 'other'],
+    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'manual', 'bulk', 'bot', 'instagram_ad', 'facebook_ad', 'other'],
     default: 'website'
   },
   sourceDetails: {
     type: String,
     trim: true
   },
+  
+  // WhatsApp Ad Attribution
+  adId: { type: String },
+  campaignName: { type: String },
+  adHeadline: { type: String },
+  adSourceType: { type: String }, // 'ad' or 'post'
+  referralData: { type: mongoose.Schema.Types.Mixed },
+  
   formId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Form'
@@ -144,6 +152,10 @@ const LeadSchema = new mongoose.Schema({
   sequenceStepIndex: {
     type: Number,
     default: 0
+  },
+  isRead: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

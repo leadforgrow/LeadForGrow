@@ -36,8 +36,10 @@ export default function Sidebar() {
   const [contextualData, setContextualData] = useState({
     unreadLeads: 0,
     overdueTasks: 0,
-    activeAutomations: 0
+    activeAutomations: 0,
+    activeEvents: 0
   });
+
 
   useEffect(() => {
     // Check if mobile
@@ -97,15 +99,18 @@ export default function Sidebar() {
     async function fetchContextualData() {
       try {
         // Replace with actual API calls
-        // const response = await fetch('/api/sidebar/context');
-        // const data = await response.json();
+        const response = await fetch('/api/automation/sidebar-stats');
+        const data = await response.json();
 
-        // Mock data for demonstration
-        setContextualData({
-          unreadLeads: 3,
-          overdueTasks: 2,
-          activeAutomations: 5
-        });
+        if (data.success) {
+          setContextualData({
+            unreadLeads: data.data.unreadLeads,
+            overdueTasks: data.data.overdueTasks,
+            activeAutomations: data.data.activeAutomations,
+            activeEvents: data.data.activeEvents
+          });
+        }
+
       } catch (error) {
         console.error('Failed to fetch contextual data:', error);
       }
@@ -165,8 +170,11 @@ export default function Sidebar() {
         {
           name: 'Events & Sessions',
           href: '/automation/events',
-          icon: Calendar
+          icon: Calendar,
+          count: contextualData.activeEvents,
+          status: 'active'
         }
+
       ]
     },
     {
