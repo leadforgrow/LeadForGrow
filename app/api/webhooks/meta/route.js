@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/mongodb';
+import { dbConnect } from '../../../../lib/mongodb';
 import Business from '../../../../models/Business';
 import { validateMetaSignature } from '../../../../lib/whatsapp/security';
 import { parseMetaWebhook } from '../../../../lib/whatsapp/parser';
