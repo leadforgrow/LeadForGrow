@@ -321,6 +321,7 @@ const BusinessSchema = new mongoose.Schema({
 BusinessSchema.index({ ownerId: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
+BusinessSchema.index({ 'integrationCredentials.whatsapp.phoneNumberId': 1 }, { sparse: true });
 
 // Methods
 BusinessSchema.methods.generateApiKey = function () {

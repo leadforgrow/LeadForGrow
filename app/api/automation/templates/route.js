@@ -63,7 +63,10 @@ export async function GET(request) {
         subject: t.config.emailSubject || '',
         body: t.config.messageTemplate || '',
         channel: t.config.channel || 'whatsapp',
-        enabled: t.enabled
+        enabled: t.enabled,
+        isMetaTemplate: t.config.isMetaTemplate || false,
+        metaCategory: t.config.metaCategory || '',
+        metaStatus: t.config.metaStatus || ''
       }))
     });
 

@@ -20,7 +20,8 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
       { isRead: true },
       { new: true }
     )
-      .populate('assignedTo', 'email')
+      .populate('assignedTo', 'email firstName lastName')
+      .populate('notes.addedBy', 'firstName lastName email')
       .lean();
 
     if (!lead) {
@@ -121,7 +122,9 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       });
     }
 
-    const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true }).populate('assignedTo', 'email firstName lastName');
+    const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true })
+      .populate('assignedTo', 'email firstName lastName')
+      .populate('notes.addedBy', 'firstName lastName email');
     if (activities.length > 0) await Activity.insertMany(activities);
 
     // Human Assignment Notification

@@ -1082,11 +1082,13 @@ export default function LeadDetailPage({ params }) {
                     <div className="flex flex-col gap-3">
                       {lead.messages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${msg.direction === 'outgoing'
-                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                            : 'bg-slate-100 text-slate-900 rounded-tl-none border border-slate-200'
-                            }`}>
-                            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                          <div 
+                            className={`max-w-[85%] p-3.5 rounded-2xl shadow-sm ${msg.direction === 'outgoing'
+                              ? 'bg-indigo-600 rounded-tr-none shadow-indigo-100'
+                              : 'bg-slate-100 text-slate-900 rounded-tl-none border border-slate-200 shadow-slate-100'
+                            }`}
+                          >
+                            <p className={`text-sm whitespace-pre-wrap ${msg.direction === 'outgoing' ? '!text-white font-medium' : 'text-slate-900'}`}>{msg.content?.body || msg.text}</p>
                             <div className={`flex items-center gap-1 mt-1 text-[10px] ${msg.direction === 'outgoing' ? 'text-indigo-100 opacity-80' : 'text-slate-400'}`}>
                               <Clock className="w-2.5 h-2.5" />
                               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1203,13 +1205,17 @@ export default function LeadDetailPage({ params }) {
 
             <div className="space-y-3">
               {lead.notes?.map((note, idx) => (
-                <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-4">
-                  <p className="text-sm text-slate-900">{note.text}</p>
-                  <div className="flex items-center gap-2 mt-3 text-xs text-slate-500">
-                    <User className="w-3 h-3" />
-                    <span>{note.addedBy?.email || 'Team'}</span>
-                    <span>•</span>
-                    <span>{new Date(note.addedAt).toLocaleString()}</span>
+                <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <p className="text-sm text-slate-900 font-medium">{note.text}</p>
+                  <div className="flex items-center gap-2 mt-3 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                    <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                      <User className="w-3 h-3" />
+                    </div>
+                    <span className="text-indigo-600">
+                      Updated by {note.addedBy ? (note.addedBy.firstName ? `${note.addedBy.firstName} ${note.addedBy.lastName || ''}` : note.addedBy.email.split('@')[0]) : 'Team member'}
+                    </span>
+                    <span className="opacity-30">|</span>
+                    <span className="text-slate-400">{new Date(note.addedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   </div>
                 </div>
               ))}

@@ -352,29 +352,58 @@ export default function AutomationRulesPage() {
                       rows={4}
                       value={editForm.whatsappTemplate}
                       onChange={(e) => setEditForm({ ...editForm, whatsappTemplate: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none"
-                      placeholder="Enter WhatsApp message..."
+                      disabled={!!editForm.whatsappTemplateName}
+                      className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none ${
+                        editForm.whatsappTemplateName 
+                          ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                          : 'bg-slate-50 border-transparent focus:border-emerald-500'
+                      }`}
+                      placeholder="Enter custom WhatsApp message..."
                     />
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {['name', 'serviceInterest', 'phone'].map(tag => (
-                        <button 
-                          key={tag}
-                          onClick={() => setEditForm({ ...editForm, whatsappTemplate: (editForm.whatsappTemplate || '') + ` {{${tag}}}` })}
-                          className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
-                        >
-                          + {tag}
-                        </button>
-                      ))}
+                    {editForm.whatsappTemplateName && (
+                      <p className="text-[10px] text-emerald-600 font-bold mt-1">🔒 Locked: Verified Meta templates cannot be edited directly.</p>
+                    )}
+                    
+                    {!editForm.whatsappTemplateName && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {['name', 'serviceInterest', 'phone'].map(tag => (
+                          <button 
+                            key={tag}
+                            onClick={() => setEditForm({ ...editForm, whatsappTemplate: (editForm.whatsappTemplate || '') + ` {{${tag}}}` })}
+                            className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
+                          >
+                            + {tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Verified Meta Template</label>
+                    <div className="relative">
+                      <select
+                        value={editForm.whatsappTemplateName}
+                        onChange={(e) => {
+                          const selectedName = e.target.value;
+                          const selectedRule = rules.find(r => r.name === selectedName && r.type === 'manual_template');
+                          
+                          setEditForm({ 
+                            ...editForm, 
+                            whatsappTemplateName: selectedName,
+                            whatsappTemplate: selectedRule?.config?.whatsappTemplate || ''
+                          });
+                        }}
+                        className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-bold text-slate-900 text-sm appearance-none cursor-pointer"
+                      >
+                        <option value="">-- Send custom text message --</option>
+                        {rules.filter(r => r.type === 'manual_template').map(t => (
+                          <option key={t._id} value={t.name}>{t.name}</option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <ChevronRight className="w-4 h-4 rotate-90" />
+                      </div>
                     </div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Template Name (Optional)</label>
-                    <input
-                      type="text"
-                      value={editForm.whatsappTemplateName}
-                      onChange={(e) => setEditForm({ ...editForm, whatsappTemplateName: e.target.value })}
-                      className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-xl outline-none transition-all font-medium text-slate-900 text-sm"
-                      placeholder="e.g. welcome_message"
-                    />
-                    <p className="text-[10px] text-slate-400 mt-2">Required for first contact with new leads on Interakt.</p>
+                    <p className="text-[10px] text-emerald-600 font-bold mt-2 bg-emerald-50 px-2 py-1 inline-block rounded-md">Required: You must select a template to message new leads.</p>
 
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Header Media (Video/Image)</label>
                     <div className="flex gap-2">

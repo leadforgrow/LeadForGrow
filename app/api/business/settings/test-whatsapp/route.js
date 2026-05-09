@@ -11,13 +11,42 @@ export const POST = withPlanAccess('settings', async (req) => {
   try {
     await dbConnect();
     const user = req.user;
-    const { whatsappSettings, testPhone } = await req.json();
+    const { whatsappSettings, testPhone, testTemplate } = await req.json();
     const provider = whatsappSettings.provider || 'meta';
 
     if (testPhone) {
       // 0. Send a real test message
       console.log(`[TestWhatsApp] Sending real test message to ${testPhone} via ${provider}`);
+      
       const { sendAutoWhatsApp } = await import('@/lib/integrations/whatsapp');
+      
+      // Priority: 1. User selected template, 2. Synced Meta template, 3. hello_world fallback
+      let templateName = testTemplate;
+      let templateLanguage = 'en'; // default fallback
+      let metaComponents = null;
+      const AutomationRule = (await import('@/models/automation/AutomationRule')).default;
+
+      if (!templateName) {
+        const officialTemplate = await AutomationRule.findOne({
+          businessId: user.businessId,
+          type: 'manual_template',
+          'config.isMetaTemplate': true
+        });
+        templateName = officialTemplate?.name || 'hello_world';
+        templateLanguage = officialTemplate?.config?.language || 'en';
+        metaComponents = officialTemplate?.config?.metaComponents || null;
+      } else {
+        // If user selected a specific template, let's fetch its real language
+        const selectedRule = await AutomationRule.findOne({
+          businessId: user.businessId,
+          type: 'manual_template',
+          name: templateName
+        });
+        if (selectedRule && selectedRule.config) {
+          templateLanguage = selectedRule.config.language || 'en';
+          metaComponents = selectedRule.config.metaComponents || null;
+        }
+      }
       
       // Mock lead for test
       const testLead = { name: 'Test User', phone: testPhone, whatsapp: testPhone };
@@ -27,12 +56,20 @@ export const POST = withPlanAccess('settings', async (req) => {
         integrationCredentials: { whatsapp: { ...whatsappSettings, enabled: true } } 
       };
 
-      const testResult = await sendAutoWhatsApp(testLead, mockBusiness, 'This is a test message from LeadForGrow! If you see this, your integration is working correctly. ✅');
+      const testResult = await sendAutoWhatsApp(
+        testLead, 
+        mockBusiness, 
+        'This is a test message from LeadForGrow! If you see this, your integration is working correctly. ✅',
+        templateName, // Use template if possible
+        null, // No header media for simple test
+        templateLanguage, // Pass the correct language code dynamically!
+        metaComponents // Pass the structure so we know if variables are needed
+      );
       
       if (testResult.success) {
         return NextResponse.json({ 
           success: true, 
-          message: `Test message sent to ${testPhone}. Please check your WhatsApp!`,
+          message: `Test message (${templateName}) sent to ${testPhone}. Please check your WhatsApp! (Note: If it's a new number, ensure it's added to your Meta Sandbox list).`,
           data: testResult
         });
       } else {

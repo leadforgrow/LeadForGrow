@@ -8,6 +8,7 @@ export default function TemplatesPage() {
   const [activeTab, setActiveTab] = useState('library');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   // Automated Template States (Existing)
@@ -91,13 +92,39 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleMetaSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/automation/templates/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: localStorage.getItem('userid') })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || 'Meta templates synced!');
+        fetchData();
+      } else {
+        toast.error(data.error || 'Sync failed');
+      }
+    } catch (error) {
+      toast.error('Connection error during sync');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const addManualTemplate = () => {
     const newTemp = {
       name: 'New Custom Template',
       subject: 'Subject Line',
       body: 'Hi {{lead.name}}, ...',
       channel: 'whatsapp',
-      enabled: true
+      enabled: true,
+      isMetaTemplate: false,
+      metaCategory: '',
+      metaStatus: ''
     };
     setManualTemplates([newTemp, ...manualTemplates]);
     setEditingTemplate(newTemp);
@@ -145,6 +172,14 @@ export default function TemplatesPage() {
           </div>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={handleMetaSync}
+            disabled={syncing}
+            className="px-5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold hover:bg-emerald-100 transition-all flex items-center gap-2"
+          >
+            <MessageCircle className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing Meta...' : 'Sync from Meta'}
+          </button>
           <button
             onClick={addManualTemplate}
             className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:shadow-md transition-all flex items-center gap-2"
@@ -251,18 +286,53 @@ export default function TemplatesPage() {
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${template.channel === 'whatsapp' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
                           {template.channel === 'whatsapp' ? <MessageCircle className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
                         </div>
-                        <Heading level={3} className="text-base truncate max-w-[180px]">{template.name}</Heading>
+                        <div className="flex flex-col">
+                          <Heading level={3} className="text-base truncate max-w-[180px]">{template.name}</Heading>
+                          {template.isMetaTemplate && (
+                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-1 uppercase tracking-tighter">
+                              Meta Official • {template.metaCategory || 'Marketing'}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2">
+                        {!template.isMetaTemplate && (
+                          <button
+                            onClick={() => { setEditingTemplate(template); setActiveTab('library'); }}
+                            className="p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl text-slate-400 hover:text-indigo-600 transition-all active:scale-90"
+                            title="Edit Template"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
-                          onClick={() => { setEditingTemplate(template); setActiveTab('library'); }}
-                          className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteManualTemplate(manualTemplates.indexOf(template))}
-                          className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors"
+                          onClick={async () => {
+                            if (!window.confirm('Are you sure you want to delete this template?')) return;
+                            
+                            const tid = toast.loading('Deleting template...');
+                            try {
+                              if (template.id) {
+                                const res = await fetch(`/api/automation/templates/delete`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ 
+                                    templateId: template.id,
+                                    userId: localStorage.getItem('userid') 
+                                  })
+                                });
+                                if (!(await res.json()).success) throw new Error('Failed');
+                              }
+                              
+                              // Remove from local state
+                              const updated = manualTemplates.filter((_, i) => manualTemplates.indexOf(template) !== i);
+                              setManualTemplates(updated);
+                              toast.success('Template deleted', { id: tid });
+                            } catch (e) {
+                              toast.error('Failed to delete', { id: tid });
+                            }
+                          }}
+                          className="p-3 bg-red-50 hover:bg-red-100 rounded-xl text-red-400 hover:text-red-600 transition-all active:scale-90"
+                          title="Delete Template"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

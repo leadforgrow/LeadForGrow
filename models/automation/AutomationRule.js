@@ -88,7 +88,29 @@ const AutomationRuleSchema = new mongoose.Schema({
     notifyUsers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    }]
+    }],
+
+    // Meta Template Specifics
+    isMetaTemplate: {
+      type: Boolean,
+      default: false
+    },
+    metaStatus: {
+      type: String
+    },
+    metaCategory: {
+      type: String
+    },
+    language: {
+      type: String
+    },
+    metaTemplateId: {
+      type: String,
+      index: true
+    },
+    metaComponents: {
+      type: Array
+    }
   },
 
   // Trigger Conditions

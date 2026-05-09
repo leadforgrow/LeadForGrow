@@ -42,6 +42,11 @@ const LeadSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  whatsappId: {
+    type: String, // The sender's Meta WA ID (phone number based)
+    trim: true,
+    index: true
+  },
 
   // Lead Information
   source: {
@@ -162,13 +167,14 @@ const LeadSchema = new mongoose.Schema({
 });
 
 // Indexes for performance and deduplication
-// Note: Deduplication is handled in leadProcessor.js, not via unique constraint
-LeadSchema.index({ businessId: 1, phone: 1 }); // Non-unique for query performance
+LeadSchema.index({ businessId: 1, phone: 1 }); 
+LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true }); // HARDENED: Unique index to prevent duplicates
 LeadSchema.index({ businessId: 1, status: 1 });
 LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
+LeadSchema.index({ adId: 1 });
 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });

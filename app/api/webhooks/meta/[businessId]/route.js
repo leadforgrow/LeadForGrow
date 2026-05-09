@@ -106,84 +106,29 @@ export async function POST(request, { params }) {
         const payload = JSON.parse(rawBody);
         
         // 2. Extract Data using Attribution Utility
-        const { extractWhatsAppPayload, parseWhatsAppReferral } = await import('@/lib/whatsapp/attribution');
+        // 2. Extract Data using Attribution Utility
+        const { extractWhatsAppPayload } = await import('@/lib/whatsapp/attribution');
         const data = extractWhatsAppPayload(payload);
         
         if (!data) {
             return NextResponse.json({ success: true, message: 'No message data' });
         }
 
-        const { fromPhone, fromName, text, timestamp, messageId, referral } = data;
-
-        // 3. Match or Create Lead
-        const normalizedPhone = fromPhone.replace(/\D/g, '').slice(-10);
-        let lead = await Lead.findOne({
-            businessId,
-            $or: [
-                { phone: new RegExp(normalizedPhone + '$') },
-                { whatsapp: new RegExp(normalizedPhone + '$') }
-            ],
-            archived: false
+        // 3. Process via Centralized Lead Manager
+        const { leadManager } = await import('@/lib/automation/leadManager');
+        
+        const result = await leadManager.processIncomingMessage(businessId, {
+            messageId: data.messageId,
+            senderId: data.fromPhone,
+            senderName: data.fromName,
+            body: data.text,
+            type: 'text', 
+            timestamp: data.timestamp,
+            referral: data.referral,
+            raw: data.rawMessage
         });
 
-        const attribution = parseWhatsAppReferral(data.rawMessage);
-
-        if (!lead) {
-            console.log(`[Meta Webhook] Creating NEW lead for ${fromPhone} (Source: ${attribution.source})`);
-            lead = await Lead.create({
-                businessId,
-                name: fromName,
-                phone: fromPhone,
-                whatsapp: fromPhone,
-                source: attribution.source,
-                sourceDetails: attribution.sourceDetails,
-                status: 'new',
-                ...(attribution.isAd ? attribution.adMetadata : {})
-            });
-        } else {
-            // Update attribution if it's a new ad click for an existing lead
-            if (attribution.isAd) {
-                await Lead.findByIdAndUpdate(lead._id, {
-                    source: attribution.source,
-                    sourceDetails: attribution.sourceDetails,
-                    ...attribution.adMetadata
-                });
-            }
-        }
-
-        // 4. Persistence & Conversation Threading
-        const existing = await Message.findOne({ externalMessageId: messageId });
-        if (existing) return NextResponse.json({ success: true, message: 'Duplicate' });
-
-        await Message.create({
-            leadId: lead._id, businessId, direction: 'incoming',
-            text: text, externalMessageId: messageId, timestamp
-        });
-
-        await Activity.create({
-            leadId: lead._id, businessId, type: 'whatsapp_received',
-            description: `WhatsApp (${attribution.isAd ? 'Ad' : 'Organic'}): "${text.substring(0, 30)}..."`,
-            performedBy: lead.assignedTo || business._id,
-            performedAt: new Date(),
-            metadata: { 
-                externalId: messageId, 
-                provider: 'meta',
-                isAd: attribution.isAd,
-                adId: attribution.adMetadata?.adId 
-            }
-        });
-
-        await Lead.findByIdAndUpdate(lead._id, {
-            lastActivityAt: new Date(),
-            status: lead.status === 'new' ? 'contacted' : lead.status,
-            isRead: false // Mark as unread for the sidebar
-        });
-
-        // 5. Trigger Automation (Acknowledgment/Rules)
-        const { queueAutomation } = await import('@/lib/queue');
-        queueAutomation(lead, 'onLeadReceived').catch(err => console.error('[Webhook:Automation] Error:', err));
-
-        console.log(`[Meta Webhook] Processed ${attribution.isAd ? 'AD' : 'Organic'} message from ${lead.name}`);
+        console.log(`[Meta Webhook] Processed message from ${data.fromName}. Result: ${result.status}`);
         return NextResponse.json({ success: true });
 
     } catch (error) {
