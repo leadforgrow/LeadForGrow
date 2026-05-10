@@ -33,7 +33,15 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
       .sort({ performedAt: -1 })
       .lean();
 
-    const messages = await Message.find({ leadId: id, businessId })
+    const messageQuery = { leadId: id, businessId };
+    
+    // Role-based history filtering
+    const isRestrictedRole = ['member', 'TEAM_MEMBER'].includes(user.role);
+    if (isRestrictedRole && lead.historyVisibleFrom) {
+      messageQuery.timestamp = { $gte: lead.historyVisibleFrom };
+    }
+
+    const messages = await Message.find(messageQuery)
       .sort({ timestamp: 1 })
       .lean();
 
@@ -90,6 +98,18 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
 
     if (assignedTo !== undefined && assignedTo !== lead.assignedTo?.toString()) {
       updates.assignedTo = assignedTo;
+      
+      // Handle History Visibility for new assignee
+      if (assignedTo) {
+        // If showHistory is false, hide previous history from the new assignee
+        if (body.showHistory === false) {
+          updates.historyVisibleFrom = new Date();
+        } else {
+          // If explicitly requested or owner, show everything
+          updates.historyVisibleFrom = null;
+        }
+      }
+
       activities.push({
         leadId: id, businessId,
         type: 'assigned',

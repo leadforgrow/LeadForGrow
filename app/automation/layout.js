@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Footer from '../components/Footer';
 import GlobalDialer from './components/GlobalDialer';
 import ReminderMonitor from './components/ReminderMonitor';
+import NotificationCenter from './components/NotificationCenter';
 
 export const metadata = {
   title: 'Automation - LeadForGrow',

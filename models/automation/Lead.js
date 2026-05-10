@@ -161,6 +161,10 @@ const LeadSchema = new mongoose.Schema({
   isRead: {
     type: Boolean,
     default: false
+  },
+  historyVisibleFrom: {
+    type: Date, // If set, messages before this date are hidden from the current assignee
+    default: null
   }
 }, {
   timestamps: true

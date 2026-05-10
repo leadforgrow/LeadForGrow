@@ -23,6 +23,7 @@ import {
   LogOut,
   Calendar
 } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -285,13 +286,16 @@ export default function Sidebar() {
                 </h2>
               </div>
             </Link>
-            <button
-              onClick={toggleSidebar}
-              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors text-slate-600 flex-shrink-0"
-              title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
+            <div className="flex items-center gap-1">
+              <NotificationCenter />
+              <button
+                onClick={toggleSidebar}
+                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors text-slate-600 flex-shrink-0"
+                title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
         </div>

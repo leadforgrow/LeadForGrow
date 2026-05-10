@@ -41,6 +41,9 @@ import IntelligenceIcon from '@/app/components/ui/IntelligenceIcon';
 export default function LeadDetailPage({ params }) {
   const router = useRouter();
   const { id } = use(params);
+  const [chatMessage, setChatMessage] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [lead, setLead] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +114,7 @@ export default function LeadDetailPage({ params }) {
     }
   };
 
+
   const fetchTemplates = async () => {
     try {
       const res = await fetch(`/api/automation/templates?userId=${localStorage.getItem('userid')}`);
@@ -123,6 +127,15 @@ export default function LeadDetailPage({ params }) {
       console.error('Error fetching templates:', error);
     }
   };
+
+  useEffect(() => {
+    if (showTaskModal) {
+      fetchTeam();
+      if (!newTask.assignedTo) {
+        setNewTask(prev => ({ ...prev, assignedTo: localStorage.getItem('userid') }));
+      }
+    }
+  }, [showTaskModal]);
 
   useEffect(() => {
     fetchLeadDetails();
@@ -141,6 +154,43 @@ export default function LeadDetailPage({ params }) {
     document.addEventListener('mousedown', handleClickAway);
     return () => document.removeEventListener('mousedown', handleClickAway);
   }, [id, showAssignDropdown, showMoreMenu]);
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      const chatBottom = document.getElementById('chat-bottom');
+      if (chatBottom) {
+        chatBottom.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [activeTab, lead?.messages]);
+
+  const handleSendReply = async (e) => {
+    e.preventDefault();
+    if (!chatMessage.trim() || sendingChat) return;
+
+    try {
+      setSendingChat(true);
+      const userId = localStorage.getItem('userid');
+      const res = await fetch('/api/automation/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, leadId: id, message: chatMessage })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setChatMessage('');
+        fetchLeadDetails(); // Refresh to show new message
+        toast.success('Message sent');
+      } else {
+        toast.error(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      toast.error('Connection error');
+    } finally {
+      setSendingChat(false);
+    }
+  };
 
   const handleUpdateStatus = async (newStatus) => {
     try {
@@ -179,7 +229,8 @@ export default function LeadDetailPage({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assignedTo: newAssigneeId,
-          performedBy: userId
+          performedBy: userId,
+          showHistory: showHistory // Pass the visibility preference
         })
       });
       const data = await res.json();
@@ -228,7 +279,7 @@ export default function LeadDetailPage({ params }) {
       const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newTask, leadId: id, assignedTo: userId })
+        body: JSON.stringify({ ...newTask, leadId: id })
       });
       const data = await res.json();
       if (data.success) {
@@ -869,38 +920,49 @@ export default function LeadDetailPage({ params }) {
 
               {/* Assignment Dropdown */}
               {showAssignDropdown && (
-                <div className="assign-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
-                  <div className="p-2 border-b border-slate-50 bg-slate-50/50">
+                <div className="assign-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                  <div className="p-3 border-b border-slate-50 bg-slate-50/50 flex flex-col gap-2">
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Reassign To</p>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        checked={showHistory}
+                        onChange={(e) => setShowHistory(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-indigo-600 transition-colors uppercase">Show earlier chats</span>
+                    </label>
                   </div>
-                  {teamMembers.length > 0 ? (
-                    teamMembers.map((member) => (
-                      <button
-                        key={member._id}
-                        onClick={() => handleAssignLead(member.userId._id)}
-                        className={`w-full text-left p-3 hover:bg-indigo-50 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-0 ${lead.assignedTo?._id === member.userId._id ? 'bg-indigo-50/50' : ''}`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-black text-indigo-600 border border-indigo-100 uppercase shadow-sm shrink-0">
-                          {member.userId?.firstName?.charAt(0) || member.userId?.email?.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-xs font-bold truncate ${lead.assignedTo?._id === member.userId._id ? 'text-indigo-600' : 'text-slate-900'}`}>
-                            {member.userId?.firstName ? `${member.userId.firstName} ${member.userId.lastName || ''}` : member.userId?.email.split('@')[0]}
-                          </p>
-                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-                            {member.role === 'owner' ? 'Account Owner' : 'Team Member'}
-                          </p>
-                        </div>
-                        {lead.assignedTo?._id === member.userId._id && (
-                          <CheckCircle className="w-4 h-4 text-indigo-600" />
-                        )}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center">
-                      <p className="text-[10px] text-slate-400">No team members found</p>
-                    </div>
-                  )}
+                  <div className="max-h-52 overflow-y-auto">
+                    {teamMembers.length > 0 ? (
+                      teamMembers.map((member) => (
+                        <button
+                          key={member._id}
+                          onClick={() => handleAssignLead(member.userId._id)}
+                          className={`w-full text-left p-3 hover:bg-indigo-50 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-0 ${lead.assignedTo?._id === member.userId._id ? 'bg-indigo-50/50' : ''}`}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-black text-indigo-600 border border-indigo-100 uppercase shadow-sm shrink-0">
+                            {member.userId?.firstName?.charAt(0) || member.userId?.email?.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs font-bold truncate ${lead.assignedTo?._id === member.userId._id ? 'text-indigo-600' : 'text-slate-900'}`}>
+                              {member.userId?.firstName ? `${member.userId.firstName} ${member.userId.lastName || ''}` : member.userId?.email.split('@')[0]}
+                            </p>
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                              {member.role === 'owner' ? 'Account Owner' : 'Team Member'}
+                            </p>
+                          </div>
+                          {lead.assignedTo?._id === member.userId._id && (
+                            <CheckCircle className="w-4 h-4 text-indigo-600" />
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center">
+                        <p className="text-[10px] text-slate-400">No team members found</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1079,7 +1141,7 @@ export default function LeadDetailPage({ params }) {
               ) : activeTab === 'chat' ? (
                 <div className="space-y-4 min-h-[400px]">
                   {lead.messages?.length > 0 ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-2 mb-4 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 450px)' }}>
                       {lead.messages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}>
                           <div 
@@ -1097,6 +1159,7 @@ export default function LeadDetailPage({ params }) {
                           </div>
                         </div>
                       ))}
+                      <div id="chat-bottom"></div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-start justify-center py-20 text-left">
@@ -1104,11 +1167,53 @@ export default function LeadDetailPage({ params }) {
                         <MessageSquare className="w-8 h-8 text-slate-300" />
                       </div>
                       <h3 className="text-slate-900 font-bold">No messages yet</h3>
-                        <p className="text-slate-500 text-sm max-w-md mt-1">
+                      <p className="text-slate-500 text-sm max-w-md mt-1">
                         When you send a WhatsApp or receive a reply, the conversation history will appear here.
                       </p>
                     </div>
                   )}
+
+                  {/* Chat Input Box */}
+                  <div className="mt-auto pt-4 border-t border-slate-100">
+                    <form onSubmit={handleSendReply} className="relative flex items-center gap-3">
+                      <div className="relative flex-1 group">
+                        <textarea
+                          rows="1"
+                          placeholder="Type your reply..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-[20px] px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none pr-12 group-hover:border-slate-300"
+                          value={chatMessage}
+                          onChange={(e) => setChatMessage(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendReply(e);
+                            }
+                          }}
+                        />
+                        <div className="absolute right-3 bottom-2.5">
+                          <button
+                            type="submit"
+                            disabled={!chatMessage.trim() || sendingChat}
+                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                              !chatMessage.trim() || sendingChat 
+                                ? 'bg-slate-200 text-slate-400' 
+                                : 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95'
+                            }`}
+                          >
+                            {sendingChat ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                              <Send className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                    <div className="flex items-center gap-1.5 mt-2 ml-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">WhatsApp Window Open</span>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-6 min-h-[400px]">
@@ -1249,14 +1354,30 @@ export default function LeadDetailPage({ params }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Due Date</label>
-                  <input
-                    type="date"
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Assign To</label>
+                  <select
+                    required
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
-                    value={newTask.dueDate}
-                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  />
+                    value={newTask.assignedTo}
+                    onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+                  >
+                    <option value="">Select teammate...</option>
+                    {teamMembers.map(member => (
+                      <option key={member.userId._id} value={member.userId._id}>
+                        {member.userId.firstName} {member.userId.lastName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Due Date</label>
+                <input
+                  type="date"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Title</label>

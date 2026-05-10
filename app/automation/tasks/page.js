@@ -15,7 +15,9 @@ import {
   CheckSquare,
   CalendarCheck2,
   BarChart3,
-  Sparkles
+  Sparkles,
+  X,
+  Send
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Heading from '@/app/components/ui/Heading';
@@ -45,6 +47,7 @@ export default function TasksPage() {
     messageContent: ''
   });
   const [leads, setLeads] = useState([]); // For the create task dropdown
+  const [team, setTeam] = useState([]); // For the assign to dropdown
 
   useEffect(() => {
     fetchTasks();
@@ -74,8 +77,26 @@ export default function TasksPage() {
     }
   };
 
+  const fetchTeam = async () => {
+    try {
+      const userId = localStorage.getItem('userid');
+      const res = await fetch(`/api/automation/team?userId=${userId}`);
+      const data = await res.json();
+      if (data.success) setTeam(data.data);
+    } catch (error) {
+      console.error('Error fetching team:', error);
+    }
+  };
+
   useEffect(() => {
-    if (showCreateModal) fetchLeads();
+    if (showCreateModal) {
+      fetchLeads();
+      fetchTeam();
+      // Default to current user if not set
+      if (!newTask.assignedTo) {
+        setNewTask(prev => ({ ...prev, assignedTo: localStorage.getItem('userid') }));
+      }
+    }
   }, [showCreateModal]);
 
   const handleMarkDone = async (taskId, silent = false) => {
@@ -128,7 +149,7 @@ export default function TasksPage() {
       const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newTask, assignedTo: userId })
+        body: JSON.stringify(newTask)
       });
 
       const data = await res.json();
@@ -315,6 +336,10 @@ export default function TasksPage() {
                           <span className="text-slate-500">
                             Lead: <span className="font-bold text-slate-900">{task.leadId.name}</span>
                           </span>
+                          <span className="text-slate-300">|</span>
+                          <span className="text-slate-500">
+                            Assigned to: <span className="font-bold text-slate-900">{task.assignedTo?.firstName || 'Me'}</span>
+                          </span>
                           {task.leadId.phone && (
                             <span className="text-slate-500">{task.leadId.phone}</span>
                           )}
@@ -469,19 +494,37 @@ export default function TasksPage() {
               </button>
             </div>
             <form onSubmit={handleCreateTask} className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Lead</label>
-                <select
-                  required
-                  className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
-                  value={newTask.leadId}
-                  onChange={(e) => setNewTask({ ...newTask, leadId: e.target.value })}
-                >
-                  <option value="">Select a lead...</option>
-                  {leads.map(l => (
-                    <option key={l._id} value={l._id}>{l.name} - {l.phone}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Lead</label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                    value={newTask.leadId}
+                    onChange={(e) => setNewTask({ ...newTask, leadId: e.target.value })}
+                  >
+                    <option value="">Select a lead...</option>
+                    {leads.map(l => (
+                      <option key={l._id} value={l._id}>{l.name} - {l.phone}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Assign To</label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                    value={newTask.assignedTo}
+                    onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+                  >
+                    <option value="">Select teammate...</option>
+                    {team.map(member => (
+                      <option key={member.userId._id} value={member.userId._id}>
+                        {member.userId.firstName} {member.userId.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
