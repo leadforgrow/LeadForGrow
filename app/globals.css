@@ -3,131 +3,114 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.99 0.002 240);
-  --foreground: oklch(0.13 0.02 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.02 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.02 260);
-  --primary: oklch(0.55 0.22 260); /* Clean Indigo */
-  --primary-foreground: oklch(0.99 0.002 240);
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.2 0.02 260);
-  --muted: oklch(0.96 0.005 240);
-  --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.96 0.01 240);
-  --accent-foreground: oklch(0.13 0.02 260);
-  --destructive: oklch(0.6 0.18 25);
-  --destructive-foreground: oklch(0.99 0.002 240);
-  --border: oklch(0.92 0.005 240); /* slate-200 equivalent */
-  --input: oklch(0.92 0.005 240);
-  --ring: oklch(0.55 0.22 260);
-  --radius: 0.5rem; /* 8px Standard */
+  --background: #fcfcfd;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f8fafc;
+  --secondary-foreground: #475569;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #6366f1;
+  --radius: 0.6rem;
 }
 
 .dark {
-  --background: oklch(0.14 0.01 260);
-  --foreground: oklch(0.98 0.005 260);
-  --card: oklch(0.16 0.01 260);
-  --card-foreground: oklch(0.98 0.005 260);
-  --border: oklch(0.25 0.02 260);
-  --primary: oklch(0.98 0.005 260);
-  --primary-foreground: oklch(0.14 0.01 260);
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --border: #1e293b;
+  --primary: #818cf8;
+  --primary-foreground: #020617;
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
   
-  /* Standardized Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-default: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-premium: 0 1px 2px rgba(0,0,0,0.05), 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02);
+  --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground font-sans antialiased text-[14px]; }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans antialiased text-[13px]; }
 
-  /* Premium Typography Hierarchy */
-  h1 { @apply text-2xl font-semibold tracking-tight text-slate-900 leading-tight; }
-  h2 { @apply text-xl font-semibold tracking-tight text-slate-800 leading-tight; }
-  h3 { @apply text-lg font-semibold text-slate-800 leading-snug; }
-  h4 { @apply text-base font-semibold text-slate-800; }
+  h1 { @apply text-2xl font-bold tracking-tight text-slate-900; }
+  h2 { @apply text-xl font-semibold tracking-tight text-slate-900; }
+  h3 { @apply text-base font-semibold text-slate-900; }
   
-  /* Refined Body & Labels */
-  p { @apply text-sm text-slate-500 leading-relaxed font-normal; }
-  label { @apply text-xs font-medium text-slate-500 uppercase tracking-wider; }
+  p { @apply text-sm text-slate-500 leading-relaxed; }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
   
-  /* Remove AI-style extreme rounding globals */
-  .rounded-3xl, [class~="rounded-[32px]"], [class~="rounded-[40px]"] { border-radius: var(--radius); }
-  /* Utility for stylized serif look used in marketing */
-  .font-serif {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  .ai-gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
+  }
+
+  .ai-card-border {
+    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-[inherit] before:bg-gradient-to-br before:from-indigo-500/20 before:to-purple-500/20;
   }
 }
 
-.bg-grid {
-  position: relative;
-  /* Layer 1 — very light off-white base visible at the very top */
-  background-color: #f7f9fc;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
 
-/* Layer 3 — Grid overlay: sits ON TOP of everything (z-3) */
-.bg-grid::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
 }
 
-/* Layer 2 — Blue gradient: scrolls with content (z-1)                    */
-.bg-grid::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image:
-    /* V-shape radial convergence anchored at bottom-centre of the FIRST page area */
-    radial-gradient(ellipse 70% 30% at 50% 100vh,
-      rgba(255, 255, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.07) 35%,
-      transparent 60%),
-    /* Main vertical gradient: flows across the whole page height */
-    linear-gradient(to bottom,
-      #f7f9fc 0%,
-      #f0f6ff 600px,
-      #e0efff 900px,
-      #b0d7ff 1100px,
-      #7eb6ff 1300px,
-      #ffffff 1800px);
-  background-size: 100% 100%, 100% 100%;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
+
+.bg-grid-slate {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.3) 1px, transparent 1px);
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
