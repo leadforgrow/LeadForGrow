@@ -51,7 +51,7 @@ const LeadSchema = new mongoose.Schema({
   // Lead Information
   source: {
     type: String,
-    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'manual', 'bulk', 'bot', 'instagram_ad', 'facebook_ad', 'other'],
+    enum: ['website', 'form', 'whatsapp', 'webhook', 'referral', 'ad', 'call', 'manual', 'bulk', 'bot', 'instagram_ad', 'facebook_ad', 'meta_ads', 'other'],
     default: 'website'
   },
   sourceDetails: {

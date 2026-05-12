@@ -56,6 +56,13 @@ export const PUT = withPlanAccess('revenue-config', async (req) => {
         if (w.verifyToken && !isEncrypted(w.verifyToken)) w.verifyToken = encrypt(w.verifyToken);
       }
 
+      // Secure Meta Ads credentials
+      if (incoming.facebookAds) {
+        const f = incoming.facebookAds;
+        if (f.accessToken && !isEncrypted(f.accessToken)) f.accessToken = encrypt(f.accessToken);
+        if (f.verifyToken && !isEncrypted(f.verifyToken)) f.verifyToken = encrypt(f.verifyToken);
+      }
+
       // Secure Email credentials
       if (incoming.email && incoming.email.password && !isEncrypted(incoming.email.password)) {
         incoming.email.password = encrypt(incoming.email.password);
@@ -70,6 +77,10 @@ export const PUT = withPlanAccess('revenue-config', async (req) => {
         whatsapp: {
           ...(existing.whatsapp || {}),
           ...(incoming.whatsapp || {})
+        },
+        facebookAds: {
+          ...(existing.facebookAds || {}),
+          ...(incoming.facebookAds || {})
         },
         email: {
           ...(existing.email || {}),

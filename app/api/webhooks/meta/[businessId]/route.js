@@ -88,19 +88,17 @@ export async function POST(request, { params }) {
         await dbConnect();
         const business = await Business.findById(businessId);
 
-        if (!business || !business.integrationCredentials?.whatsapp?.apiKey) {
-            return NextResponse.json({ success: false, error: 'Business not found or WhatsApp not configured' }, { status: 404 });
+        if (!business) {
+            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const { decrypt } = await import('@/lib/encryption');
-        let appSecret = business.integrationCredentials.whatsapp.appSecret;
+        
+        // Resolve App Secret (Prefer WhatsApp secret, then Ads, then Fallback)
+        let appSecret = business.integrationCredentials?.whatsapp?.appSecret || business.integrationCredentials?.facebookAds?.appSecret;
         
         if (appSecret && appSecret.includes(':')) {
-            try {
-                appSecret = decrypt(appSecret);
-            } catch (e) {
-                console.error('[Meta Webhook] Decryption failed for appSecret');
-            }
+            try { appSecret = decrypt(appSecret); } catch (e) { console.error('[Meta Webhook] Decryption failed for appSecret'); }
         }
 
         const signature = request.headers.get('x-hub-signature-256');
