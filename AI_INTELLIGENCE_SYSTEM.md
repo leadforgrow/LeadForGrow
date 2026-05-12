@@ -2,7 +2,7 @@
 
 This document outlines the architecture, flow, and capabilities of the multi-agent AI engine powering the **Revenue Intelligence Dashboard**.
 
-## 🏗️ 1. Architecture Overview (The "Brain" and "Face" Model)
+## 🏗️ 1. Architecture Overview (The "Brain" and "Face" Model)]]
 
 To achieve enterprise-grade scale and separation of concerns, the AI system is split into two distinct tiers:
 
