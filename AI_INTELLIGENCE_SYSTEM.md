@@ -11,7 +11,7 @@ To achieve enterprise-grade scale and separation of concerns, the AI system is s
 - **Location:** `app/automation/page.js` and `app/api/ai/*`
 - **Behavior:** The frontend does **not** talk to OpenAI directly. It sends highly specific payload telemetrics (Total Pipeline $, Risk $, SLA Compliance %, Lead Count) via internal proxy routes to the Python backend to ensure secure, rapid data transfer.
 
-### **The "Brain" (FastAPI / Python)**
+### **The "Brain" (FastAPI / Python)
 - **Role:** Data processing, AI System Prompting, LLM Structured Output parsing, and algorithmic fallbacks.
 - **Location:** `backend-ai/main.py`
 - **Behavior:** Acts as a centralized AI router. It dynamically binds the frontend telemetry into hyper-specific persona prompts before passing them to the OpenAI engine.
