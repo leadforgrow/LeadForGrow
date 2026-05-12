@@ -82,7 +82,6 @@ export async function GET(request) {
 
     const leads = await Lead.find(query)
       .populate('assignedTo', 'email firstName lastName')
-      .populate('formId', 'name')
       .populate('eventId', 'name')
       .sort({ receivedAt: -1 })
       .lean();
