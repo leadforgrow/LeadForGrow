@@ -59,16 +59,18 @@ const LeadSchema = new mongoose.Schema({
     trim: true
   },
   
-  // WhatsApp Ad Attribution
+  // WhatsApp & Lead Ads Attribution
   adId: { type: String },
+  metaLeadId: { type: String, index: true }, // The unique ID from Meta Lead Ads
   campaignName: { type: String },
+  adSetName: { type: String },
+  adName: { type: String },
   adHeadline: { type: String },
-  adSourceType: { type: String }, // 'ad' or 'post'
+  adSourceType: { type: String }, // 'ad', 'post', or 'lead_gen'
   referralData: { type: mongoose.Schema.Types.Mixed },
   
   formId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Form'
+    type: String // Can be Form model ID or Meta Form ID
   },
   sourcePage: {
     type: String,
@@ -172,13 +174,14 @@ const LeadSchema = new mongoose.Schema({
 
 // Indexes for performance and deduplication
 LeadSchema.index({ businessId: 1, phone: 1 }); 
-LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true }); // HARDENED: Unique index to prevent duplicates
+LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true, sparse: true }); // HARDENED: Unique index to prevent duplicates
 LeadSchema.index({ businessId: 1, status: 1 });
 LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
 LeadSchema.index({ adId: 1 });
+LeadSchema.index({ businessId: 1, metaLeadId: 1 }, { unique: true, sparse: true }); // Prevent duplicate Meta Leads
 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });

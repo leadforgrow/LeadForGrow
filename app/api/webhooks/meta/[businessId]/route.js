@@ -5,6 +5,8 @@ import Lead from '@/models/automation/Lead';
 import Message from '@/models/automation/Message';
 import Activity from '@/models/automation/Activity';
 import { verifyMetaSignature } from '@/lib/webhookSecurity';
+import { getMetaLeadDetails } from '@/lib/meta/ads';
+import { leadManager } from '@/lib/automation/leadManager';
 
 /**
  * GET - Meta Webhook Verification (The Challenge)
@@ -29,27 +31,34 @@ export async function GET(request, { params }) {
             return new Response('Business not found', { status: 404 });
         }
 
-        const { decrypt } = await import('@/lib/encryption');
         let storedToken = business.integrationCredentials?.whatsapp?.verifyToken;
+        let adsToken = business.integrationCredentials?.facebookAds?.verifyToken;
 
-        // Decrypt if it's an encrypted string
-        if (storedToken && storedToken.includes(':')) {
-            try {
-                storedToken = decrypt(storedToken);
-            } catch (e) {
-                console.error('[Meta Webhook] Decryption failed for verifyToken');
+        const { decrypt } = await import('@/lib/encryption');
+
+        // Helper to decrypt tokens if needed
+        const resolveToken = (t) => {
+            if (t && t.includes(':')) {
+                try { return decrypt(t); } catch (e) { return t; }
             }
-        }
+            return t;
+        };
 
-        if (storedToken === token) {
+        const resolvedWhatsAppToken = resolveToken(storedToken);
+        const resolvedAdsToken = resolveToken(adsToken);
+
+        if (resolvedWhatsAppToken === token || resolvedAdsToken === token) {
             console.log(`[Meta Webhook] Verification SUCCESS for business: ${businessId}`);
             
-            // AUTO-HEAL: Force enable the integration if verification is successful
-            if (!business.integrationCredentials?.whatsapp?.enabled) {
-                business.set('integrationCredentials.whatsapp.enabled', true);
+            // AUTO-HEAL: Enable corresponding integration
+            const isAds = resolvedAdsToken === token;
+            const path = isAds ? 'integrationCredentials.facebookAds.enabled' : 'integrationCredentials.whatsapp.enabled';
+            
+            if (!business.get(path)) {
+                business.set(path, true);
                 business.markModified('integrationCredentials');
                 await business.save();
-                console.log(`[Meta Webhook] Integration AUTO-ENABLED for business: ${businessId}`);
+                console.log(`[Meta Webhook] ${isAds ? 'Ads' : 'WhatsApp'} AUTO-ENABLED for ${businessId}`);
             }
 
             // Meta expects the challenge value returned as plain text
@@ -105,13 +114,36 @@ export async function POST(request, { params }) {
 
         const payload = JSON.parse(rawBody);
         
-        // 2. Extract Data using Attribution Utility
-        // 2. Extract Data using Attribution Utility
+        // 2. Route by event type
+        const entry = payload.entry?.[0];
+        const change = entry?.changes?.[0];
+
+        // --- HANDLE LEAD ADS ---
+        if (change?.field === 'leadgen') {
+            const leadgenId = change.value?.leadgen_id;
+            console.log(`[Meta Ads Webhook] New lead detected: ${leadgenId} for business ${businessId}`);
+
+            if (!business.integrationCredentials?.facebookAds?.accessToken) {
+                return NextResponse.json({ success: false, error: 'Ads not configured' }, { status: 200 });
+            }
+
+            let accessToken = business.integrationCredentials.facebookAds.accessToken;
+            if (accessToken.includes(':')) {
+                try { accessToken = decrypt(accessToken); } catch (e) {}
+            }
+
+            const leadData = await getMetaLeadDetails(leadgenId, accessToken);
+            const result = await leadManager.processMetaLead(businessId, leadData);
+
+            return NextResponse.json({ success: true, status: result.status });
+        }
+
+        // --- HANDLE WHATSAPP ---
         const { extractWhatsAppPayload } = await import('@/lib/whatsapp/attribution');
         const data = extractWhatsAppPayload(payload);
         
         if (!data) {
-            return NextResponse.json({ success: true, message: 'No message data' });
+            return NextResponse.json({ success: true, message: 'No relevant message data' });
         }
 
         // 3. Process via Centralized Lead Manager

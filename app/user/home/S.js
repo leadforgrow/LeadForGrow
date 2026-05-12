@@ -7,17 +7,71 @@ export default function AgencyOSLanding() {
       <main className="px-8 max-w-7xl mx-auto">
         
         {/* SECTION 4: WHY NOT A CRM? */}
-        <div className="mb-32">
-          <div className="text-center mb-16">
-            <Heading level={2} className="font-serif mb-6">
-              The missing layer between<br /> enquiry and revenue.
-            </Heading>
-            <p className="font-medium max-w-2xl mx-auto">
-              CRMs are databases. LeadForGrow is a discipline engine. Here is the difference.
-            </p>
-          </div>
+         <div className="mb-32">
+           <div className="text-center mb-16">
+             <h2 className="text-6xl font-bold tracking-tight text-[#0f172a] mb-8 leading-[1.1]">
+               The missing layer between<br /> <span className="text-[#0081ff]">enquiry and revenue.</span>
+             </h2>
+             <p className="text-xl font-medium text-slate-500 max-w-3xl mx-auto leading-relaxed">
+               CRMs are databases. LeadForGrow is a discipline engine. Here is the difference.
+             </p>
+           </div>
 
-          <div className="overflow-x-auto">
+           {/* ADDED NEW FEATURE SECTIONS HERE */}
+           <div className="space-y-24 mt-24">
+              <div className="flex flex-col lg:flex-row items-center gap-16">
+                 <div className="flex-1 space-y-6">
+                    <h3 className="text-3xl font-bold">Capture leads from all Portals</h3>
+                    <p className="text-slate-600 font-medium">Why manage leads manually from 15 different platforms when you can manage them from a centralized hub?</p>
+                    <ul className="space-y-4">
+                       {["Effortlessly capture leads from everywhere in one place", "Automatically assign leads to your agents.", "Connect with leads instantly with LeadForGrow's WhatsApp Chatbot."].map((p, i) => (
+                         <li key={i} className="flex items-center gap-3 font-semibold text-slate-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div> {p}
+                         </li>
+                       ))}
+                    </ul>
+                 </div>
+                 <div className="flex-1">
+                    <img src="/portal-integrations.png" alt="Portal Integrations" className="w-full h-auto rounded-3xl" />
+                 </div>
+              </div>
+
+              <div className="flex flex-col lg:flex-row-reverse items-center gap-16">
+                 <div className="flex-1 space-y-6">
+                    <h3 className="text-3xl font-bold">Boost calling efficiency</h3>
+                    <p className="text-slate-600 font-medium">Because quick, efficient calling = more calls = more deals</p>
+                    <ul className="space-y-4">
+                       {["With 1-click dialer, your team spends less time typing numbers and more in closing deals", "Use LeadForGrow's web application to make calls from your mobile in one click.", "Eliminate manual effort and automatically sync call feedback"].map((p, i) => (
+                         <li key={i} className="flex items-center gap-3 font-semibold text-slate-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div> {p}
+                         </li>
+                       ))}
+                    </ul>
+                 </div>
+                 <div className="flex-1">
+                    <img src="/calling-list.png" alt="Calling List" className="w-full h-auto rounded-3xl" />
+                 </div>
+              </div>
+
+              <div className="flex flex-col lg:flex-row items-center gap-16">
+                 <div className="flex-1 space-y-6">
+                    <h3 className="text-3xl font-bold">Intelligent WhatsApp Lead Routing & Automation</h3>
+                    <p className="text-slate-600 font-medium">Optimize engagement with AI-powered paths.</p>
+                    <ul className="space-y-4">
+                       {["Autonomous Lead Qualification: AI engine detects high-intent leads instantly.", "Seamless Routing: Sync leads to Sales or Support teams based on intent.", "Automated Follow-ups: Initiate onboarding sequences without manual work."].map((p, i) => (
+                         <li key={i} className="flex items-center gap-3 font-semibold text-slate-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div> {p}
+                         </li>
+                       ))}
+                    </ul>
+                 </div>
+                 <div className="flex-1">
+                    <img src="/whatsapp-automation.png" alt="WhatsApp Automation" className="w-full h-auto rounded-3xl" />
+                 </div>
+              </div>
+           </div>
+
+           <div className="overflow-x-auto mt-32">
             <table className="w-full text-left border-collapse bg-white dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl">
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800">

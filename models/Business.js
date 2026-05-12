@@ -169,6 +169,14 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     enabled: { type: Boolean, default: false },
     provider: { type: String },
     apiKey: { type: String }
+  },
+
+  facebookAds: {
+    enabled: { type: Boolean, default: false },
+    pageId: { type: String },
+    accessToken: { type: String }, // Page Access Token
+    verifyToken: { type: String },
+    lastVerified: { type: Date }
   }
 }, { _id: false });
 
@@ -322,6 +330,7 @@ BusinessSchema.index({ ownerId: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
 BusinessSchema.index({ 'integrationCredentials.whatsapp.phoneNumberId': 1 }, { sparse: true });
+BusinessSchema.index({ 'integrationCredentials.facebookAds.pageId': 1 }, { sparse: true });
 
 // Methods
 BusinessSchema.methods.generateApiKey = function () {

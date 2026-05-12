@@ -128,10 +128,9 @@ const UserNavbar = () => {
   } else if (isPaid) {
     activePaidItems = [
       { label: "Websites", href: "/websites" },
-      { label: "Forms", href: "/forms" },
-      { label: "Leads", href: "/leads" },
-      { label: "Automation", href: "/automation" },
-      { label: "Analytics", href: "/analytics" }
+      { label: "Leads", href: "/automation/leads" },
+      { label: "Dashboard", href: "/automation" },
+      { label: "Report", href: "/automation/reports" }
     ];
     if (hasAgency) {
       activePaidItems.push({ label: "Clients / Agency", href: "/agency", highlighted: true });

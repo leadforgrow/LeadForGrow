@@ -31,6 +31,12 @@ export default function IntegrationsPage() {
       businessAccountId: '',
       appSecret: '',
       verifyToken: ''
+    },
+    facebookAds: {
+      enabled: false,
+      pageId: '',
+      accessToken: '',
+      verifyToken: ''
     }
   });
   const [userPlan, setUserPlan] = useState('free');
@@ -86,7 +92,8 @@ export default function IntegrationsPage() {
       if (data.success && data.data.integrationCredentials) {
         setIntegrations({
           email: { ...integrations.email, ...data.data.integrationCredentials.email },
-          whatsapp: { ...integrations.whatsapp, ...data.data.integrationCredentials.whatsapp }
+          whatsapp: { ...integrations.whatsapp, ...data.data.integrationCredentials.whatsapp },
+          facebookAds: { ...integrations.facebookAds, ...data.data.integrationCredentials.facebookAds }
         });
       }
       setLoading(false);
@@ -605,6 +612,149 @@ export default function IntegrationsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Meta Lead Ads Integration */}
+        <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
+              <Globe className="w-8 h-8 text-blue-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="text-2xl font-bold text-slate-900">Meta Lead Ads</h3>
+                {integrations.facebookAds?.enabled && integrations.facebookAds?.accessToken ? (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-widest shadow-sm">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-widest shadow-sm">
+                    <AlertCircle className="w-3.5 h-3.5" /> Setup Required
+                  </span>
+                )}
+              </div>
+              <p className="text-base text-slate-500 font-medium">Sync leads directly from your Facebook and Instagram Lead Forms.</p>
+            </div>
+            <div className="ml-auto">
+              <button
+                onClick={() => setIntegrations({ ...integrations, facebookAds: { ...integrations.facebookAds, enabled: !integrations.facebookAds.enabled } })}
+                className={`w-16 h-8 rounded-full transition-all relative ${integrations.facebookAds?.enabled ? 'bg-blue-600' : 'bg-slate-200'}`}
+              >
+                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${integrations.facebookAds?.enabled ? 'translate-x-9' : 'translate-x-1'}`}></div>
+              </button>
+            </div>
+          </div>
+
+          {integrations.facebookAds?.enabled && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                <div className="flex items-center gap-3 mb-6 text-slate-900">
+                  <RefreshCw className="w-6 h-6 text-blue-500" />
+                  <h4 className="text-xl font-bold">Meta Ads Webhook Setup</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-2 tracking-widest">Step 1: App Setup</p>
+                    <p className="text-base text-slate-600 leading-relaxed font-bold">
+                      Create a Meta App and add <span className="text-blue-600">Webhooks</span> product. Select <span className="font-bold">Page</span> as the object.
+                    </p>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-2 tracking-widest">Step 2: Connect</p>
+                    <p className="text-base text-slate-600 leading-relaxed font-bold">
+                      Enter the <span className="text-blue-600 font-bold">Verify Token</span> below and our Callback URL in Meta Dashboard.
+                    </p>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-2 tracking-widest">Step 3: Fields</p>
+                    <p className="text-base text-slate-600 leading-relaxed font-bold">
+                      Subscribe to the <span className="text-blue-600 font-bold">leadgen</span> field in the Page webhook settings.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest">Page Access Token</label>
+                    <input
+                      type="password"
+                      placeholder="EAAG..."
+                      value={integrations.facebookAds.accessToken}
+                      onChange={(e) => setIntegrations({ ...integrations, facebookAds: { ...integrations.facebookAds, accessToken: e.target.value } })}
+                      className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest">Page ID</label>
+                    <input
+                      type="text"
+                      placeholder="1029384..."
+                      value={integrations.facebookAds.pageId}
+                      onChange={(e) => setIntegrations({ ...integrations, facebookAds: { ...integrations.facebookAds, pageId: e.target.value } })}
+                      className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest">Webhook Verify Token</label>
+                    <input
+                      type="text"
+                      placeholder="lfg_ads_secure"
+                      value={integrations.facebookAds.verifyToken}
+                      onChange={(e) => setIntegrations({ ...integrations, facebookAds: { ...integrations.facebookAds, verifyToken: e.target.value } })}
+                      className="w-full bg-slate-50 border-0 rounded-xl p-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 text-black shadow-inner"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white border-2 border-blue-100 rounded-3xl p-8 shadow-xl shadow-blue-50/50 relative overflow-hidden group hover:border-blue-200 transition-all">
+                    <div className="absolute top-0 right-0 p-2 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest px-4 rounded-bl-2xl">Ads Endpoint</div>
+                    <label className="block text-xs font-bold text-blue-600 uppercase mb-4 tracking-widest">Meta Callback URL</label>
+                    <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100 group-hover:border-blue-100 transition-all">
+                      <code className="flex-1 bg-transparent px-4 py-3 text-base font-mono text-slate-800 break-all">
+                        https://leadforgrow.com/api/webhooks/meta/{currentBusiness.businessId}
+                      </code>
+                      <button
+                        onClick={() => {
+                          const url = `https://leadforgrow.com/api/webhooks/meta/${currentBusiness.businessId}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('Webhook URL copied!');
+                        }}
+                        className="p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100 flex items-center gap-2"
+                      >
+                        <Copy className="w-5 h-5" />
+                        <span className="text-xs font-bold uppercase">Copy</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-medium uppercase tracking-widest">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Verify token handshake in Meta Dashboard</span>
+                </div>
+                <button
+                  onClick={async () => {
+                    const tid = toast.loading('Testing Ads integration status...');
+                    // Add a test endpoint if needed, but for now we'll just check if fields are filled
+                    setTimeout(() => {
+                      if (integrations.facebookAds.accessToken && integrations.facebookAds.pageId) {
+                        toast.success('Ads configuration ready for Meta verification!', { id: tid });
+                      } else {
+                        toast.error('Please fill in all Ads credentials', { id: tid });
+                      }
+                    }, 1000);
+                  }}
+                  className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all active:scale-95"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Verify Setup Status
+                </button>
               </div>
             </div>
           )}
