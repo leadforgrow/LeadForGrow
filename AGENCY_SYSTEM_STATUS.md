@@ -13,8 +13,7 @@
 2. ✅ **Client.js** - Separate client documents
    - NOT embedded in Agency
    - Status management (active/paused/churned)
-   - Team assignment support
-
+   - Team assignment suppor
 3. ✅ **AgencyUsage.js** - Usage tracking per billing cycle
    - Atomic increment methods
    - Monthly reset support
