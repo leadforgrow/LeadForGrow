@@ -115,13 +115,32 @@ export async function POST(request, { params }) {
         const payload = JSON.parse(rawBody);
         
         // 2. Route by event type
+        // Support both real events (entry array) and Test Tool samples
         const entry = payload.entry?.[0];
-        const change = entry?.changes?.[0];
+        const change = entry?.changes?.[0] || payload.sample; // Handle Test Tool "sample" key
 
         // --- HANDLE LEAD ADS ---
         if (change?.field === 'leadgen') {
             const leadgenId = change.value?.leadgen_id;
             console.log(`[Meta Ads Webhook] New lead detected: ${leadgenId} for business ${businessId}`);
+
+            // Special Case: Meta Webhook Test Tool dummy ID
+            if (leadgenId === '444444444444') {
+                console.log('[Meta Ads Webhook] Detected TEST TOOL lead. Generating mock data.');
+                const result = await leadManager.processMetaLead(businessId, {
+                    metaLeadId: `test_${Date.now()}`,
+                    name: 'Meta Test Lead',
+                    email: 'test@meta-example.com',
+                    phone: '919999999999',
+                    campaignName: 'Meta Webhook Test',
+                    adSetName: 'Test Ad Set',
+                    adName: 'Test Ad',
+                    formId: change.value?.form_id || 'test_form',
+                    receivedAt: new Date(),
+                    fields: { is_test: true }
+                });
+                return NextResponse.json({ success: true, status: 'mock_test_success' });
+            }
 
             if (!business.integrationCredentials?.facebookAds?.accessToken) {
                 return NextResponse.json({ success: false, error: 'Ads not configured' }, { status: 200 });
@@ -132,10 +151,15 @@ export async function POST(request, { params }) {
                 try { accessToken = decrypt(accessToken); } catch (e) {}
             }
 
-            const leadData = await getMetaLeadDetails(leadgenId, accessToken);
-            const result = await leadManager.processMetaLead(businessId, leadData);
-
-            return NextResponse.json({ success: true, status: result.status });
+            try {
+                const leadData = await getMetaLeadDetails(leadgenId, accessToken);
+                const result = await leadManager.processMetaLead(businessId, leadData);
+                return NextResponse.json({ success: true, status: result.status });
+            } catch (apiError) {
+                console.error('[Meta Ads Webhook] API Error fetching lead:', apiError.message);
+                // Return 200 to Meta but log the error internally
+                return NextResponse.json({ success: false, error: 'Meta API failure' }, { status: 200 });
+            }
         }
 
         // --- HANDLE WHATSAPP ---
