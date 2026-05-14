@@ -26,6 +26,17 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
     }
 
+    const RolePermission = mongoose.models.RolePermission || (await import('@/models/RolePermission')).default;
+    const rolePerm = await RolePermission.findOne({ 
+      role: { $regex: new RegExp(`^${user.role}$`, 'i') } 
+    });
+
+    const permissions = rolePerm ? rolePerm.permissions : [];
+    // Owners/Supers have all permissions implicitly
+    if (['owner', 'super', 'agency_owner'].includes(user.role?.toLowerCase())) {
+       permissions.push('dashboard_access', 'reports_access', 'live_chat_access', 'leads_view', 'leads_edit', 'leads_delete', 'team_manage', 'settings_manage', 'billing_manage');
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -36,7 +47,8 @@ export async function GET(request) {
         companyName: business.businessName,
         plan: business.plan || 'free',
         onboardingComplete: business.onboardingComplete || false,
-        apiKey: business.apiKey
+        apiKey: business.apiKey,
+        permissions: [...new Set(permissions)]
       }
     });
     

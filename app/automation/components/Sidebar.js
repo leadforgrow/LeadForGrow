@@ -21,16 +21,18 @@ import {
   Building2,
   Bot,
   LogOut,
-  Calendar
+  Calendar,
+  MessagesSquare
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [userData, setUserData] = useState({
-    email: 'Business Owner',
+    email: '',
     plan: 'Checking...',
-    workspace: 'Default Workspace'
+    workspace: 'Default Workspace',
+    permissions: []
   });
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -72,7 +74,8 @@ export default function Sidebar() {
           setUserData({
             email: data.data.email,
             plan: data.data.plan.toUpperCase(),
-            workspace: data.data.workspace || 'Default Workspace'
+            workspace: data.data.workspace || 'Default Workspace',
+            permissions: data.data.permissions || []
           });
           localStorage.setItem('userPlan', data.data.plan);
           localStorage.setItem('businessId', data.data.businessId);
@@ -141,7 +144,14 @@ export default function Sidebar() {
       label: 'Overview',
       role: 'owner', // Restricted to owners/admins
       items: [
-        { name: 'Dashboard', href: '/automation', icon: LayoutDashboard }
+        { name: 'Dashboard', href: '/automation', icon: LayoutDashboard },
+        { 
+          name: 'Live Chat', 
+          href: '/automation/chat', 
+          icon: MessagesSquare, 
+          status: 'active',
+          permission: ['dashboard_access', 'reports_access'] 
+        }
       ]
     },
     {
@@ -219,10 +229,17 @@ export default function Sidebar() {
     .map(group => ({
       ...group,
       items: group.items.filter(item => {
-        if (!item.role) return true;
-        if (userRole === 'owner') return true;
-        if (userRole.includes('admin') || userRole.includes('super')) return true;
-        return item.role === userRole;
+        // Role check
+        if (item.role && userRole !== 'owner' && !userRole.includes('admin') && !userRole.includes('super')) {
+          if (item.role !== userRole) return false;
+        }
+        
+        // Permission check
+        if (item.permission) {
+          return item.permission.every(p => userData.permissions.includes(p));
+        }
+
+        return true;
       })
     }))
     .filter(group => group.items.length > 0);
@@ -379,7 +396,7 @@ export default function Sidebar() {
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-indigo-700 font-semibold text-sm">
-                  {userData.email.charAt(0).toUpperCase()}
+                  {userData.email?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">

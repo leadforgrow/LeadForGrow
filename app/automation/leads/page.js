@@ -365,8 +365,8 @@ export default function EnterpriseLeadsPage() {
       
     const matchesSource = 
       sourceFilter === 'all' || 
-      (sourceFilter === 'ads' && (lead.source === 'instagram_ad' || lead.source === 'facebook_ad')) ||
-      (sourceFilter === 'organic' && (lead.source !== 'instagram_ad' && lead.source !== 'facebook_ad'));
+      (sourceFilter === 'ads' && (lead.source === 'instagram_ad' || lead.source === 'facebook_ad' || lead.source === 'meta_ads' || lead.source?.includes('_ad') || lead.source?.includes('instagram') || lead.source?.includes('facebook'))) ||
+      (sourceFilter === 'organic' && (lead.source !== 'instagram_ad' && lead.source !== 'facebook_ad' && lead.source !== 'meta_ads' && !lead.source?.includes('_ad') && !lead.source?.includes('instagram') && !lead.source?.includes('facebook')));
 
     return matchesSearch && matchesSource;
   });
