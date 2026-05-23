@@ -30,11 +30,25 @@
   --color-border: var(--card-border);
 }
 
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-border: #334155;
+  --text-main: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+}
+
 @layer base {
   body {
     @apply bg-background text-foreground antialiased;
     background-image: radial-gradient(rgba(0,0,0,0.015) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .dark body {
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
   }
 
   h1 {
@@ -86,6 +100,13 @@
   background: #cbd5e1;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -104,4 +125,4 @@
 .hover-lift:hover {
   transform: translateY(-4px);
 }
-
+

@@ -13,11 +13,12 @@ import Footer from './Footer';
 import UserNavbar from '../Header';
 import TrustPopup from '@/app/components/TrustPopup';
 import SuccessNotification from '@/app/components/SuccessNotification';
-import { useTheme } from '../../components/ThemeContext';
-import { Moon, Sun, X, Play, ArrowRight, Target } from 'lucide-react';
+import PremiumHero from '@/app/components/landing/PremiumHero';
+import FeatureModules from '@/app/components/landing/FeatureModules';
+import SmoothScroll from '@/app/components/landing/SmoothScroll';
+import { X } from 'lucide-react';
 
 export default function LeadForGrowHeroPage() {
-  const { theme, toggleTheme } = useTheme();
   const [showVideo, setShowVideo] = React.useState(false);
   const [showTrustPopup, setShowTrustPopup] = React.useState(false);
   const [showSuccess, setShowSuccess] = React.useState(false);
@@ -145,10 +146,16 @@ export default function LeadForGrowHeroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500 overflow-hidden">
-      {/* Navigation */}
+    <SmoothScroll>
+    <div className="min-h-screen bg-[#fafbfe] dark:bg-[#050508] transition-colors duration-500 overflow-x-hidden">
       <UserNavbar />
 
+      <PremiumHero
+        onGetStarted={handleGetStarted}
+        onWatchDemo={() => setShowVideo(true)}
+      />
+
+      <FeatureModules />
 
       <RevenueAudit />
 
@@ -207,5 +214,6 @@ export default function LeadForGrowHeroPage() {
         meetLink={meetLink}
       />
     </div>
+    </SmoothScroll>
   );
 }

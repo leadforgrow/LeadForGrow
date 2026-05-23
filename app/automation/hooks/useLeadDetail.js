@@ -1,0 +1,313 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import { computeLeadIntelligence } from '@/lib/leadIntelligence';
+
+function getUserId() {
+  return localStorage.getItem('userid');
+}
+
+export function useLeadDetail(leadId) {
+  const router = useRouter();
+  const [lead, setLead] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const fetchLead = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId || !leadId) return;
+    const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`);
+    const data = await res.json();
+    if (data.success) setLead(data.data);
+    return data;
+  }, [leadId]);
+
+  const fetchTasks = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId || !leadId) return;
+    const res = await fetch(`/api/automation/tasks?userId=${userId}&leadId=${leadId}`);
+    const data = await res.json();
+    if (data.success) setTasks(data.data);
+  }, [leadId]);
+
+  const fetchTeam = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return;
+    const res = await fetch(`/api/automation/team?userId=${userId}`);
+    const data = await res.json();
+    if (data.success) setTeamMembers(data.data);
+  }, []);
+
+  const fetchTemplates = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return;
+    const res = await fetch(`/api/automation/templates?userId=${userId}`);
+    const data = await res.json();
+    if (data.success) setTemplates(data.manual || []);
+  }, []);
+
+  useEffect(() => {
+    async function load() {
+      const userId = getUserId();
+      if (!userId) {
+        router.push('/user/register');
+        return;
+      }
+      setLoading(true);
+      const data = await fetchLead();
+      if (!data?.success) toast.error('Failed to load lead');
+      await Promise.all([fetchTasks(), fetchTeam(), fetchTemplates()]);
+      setLoading(false);
+    }
+    load();
+  }, [leadId, fetchLead, fetchTasks, fetchTeam, fetchTemplates, router]);
+
+  const intelligence = useMemo(
+    () => (lead ? computeLeadIntelligence(lead).intelligence : null),
+    [lead]
+  );
+
+  const refresh = useCallback(async () => {
+    await Promise.all([fetchLead(), fetchTasks()]);
+  }, [fetchLead, fetchTasks]);
+
+  const updateStatus = useCallback(
+    async (status) => {
+      setUpdating(true);
+      try {
+        const userId = getUserId();
+        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, performedBy: userId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success(`Marked as ${status}`);
+          await refresh();
+        } else toast.error(data.error || 'Update failed');
+      } catch {
+        toast.error('Update failed');
+      } finally {
+        setUpdating(false);
+      }
+    },
+    [leadId, refresh]
+  );
+
+  const assignLead = useCallback(
+    async (assigneeId) => {
+      setUpdating(true);
+      try {
+        const userId = getUserId();
+        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assignedTo: assigneeId || null,
+            performedBy: userId,
+            showHistory
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success('Lead assigned');
+          await refresh();
+        } else toast.error('Assign failed');
+      } catch {
+        toast.error('Assign failed');
+      } finally {
+        setUpdating(false);
+      }
+    },
+    [leadId, showHistory, refresh]
+  );
+
+  const addNote = useCallback(
+    async (text) => {
+      if (!text.trim()) return;
+      setUpdating(true);
+      try {
+        const userId = getUserId();
+        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note: text.trim(), performedBy: userId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success('Note added');
+          await fetchLead();
+        }
+      } catch {
+        toast.error('Failed to add note');
+      } finally {
+        setUpdating(false);
+      }
+    },
+    [leadId, fetchLead]
+  );
+
+  const createTask = useCallback(
+    async (task) => {
+      const userId = getUserId();
+      const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...task, leadId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Task created');
+        await refresh();
+        return true;
+      }
+      toast.error('Failed to create task');
+      return false;
+    },
+    [leadId, refresh]
+  );
+
+  const completeTask = useCallback(
+    async (taskId) => {
+      const userId = getUserId();
+      const res = await fetch(`/api/automation/tasks/${taskId}?userId=${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed', performedBy: userId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Task completed');
+        await refresh();
+      }
+    },
+    [refresh]
+  );
+
+  const sendWhatsApp = useCallback(
+    async (message) => {
+      const userId = getUserId();
+      const res = await fetch('/api/automation/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, leadId, message })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Message sent');
+        await fetchLead();
+        return true;
+      }
+      toast.error(data.error || 'Send failed');
+      return false;
+    },
+    [leadId, fetchLead]
+  );
+
+  const initiateCall = useCallback(async () => {
+    if (!lead?.phone) {
+      toast.error('No phone number');
+      return;
+    }
+    try {
+      const res = await fetch('/api/automation/calls/initiate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          userId: getUserId(),
+          businessId: localStorage.getItem('businessId'),
+          leadId: lead._id,
+          leadPhone: lead.phone
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        window.dispatchEvent(new CustomEvent('lfg-initiate-call', { detail: result.data }));
+      } else {
+        window.location.href = `tel:${lead.phone}`;
+      }
+    } catch {
+      window.location.href = `tel:${lead.phone}`;
+    }
+  }, [lead]);
+
+  const openWhatsApp = useCallback(
+    (customMessage = '') => {
+      if (!lead?.phone) {
+        toast.error('No phone number');
+        return;
+      }
+      const phone = lead.phone.replace(/\D/g, '');
+      const url = customMessage
+        ? `https://wa.me/${phone}?text=${encodeURIComponent(customMessage)}`
+        : `https://wa.me/${phone}`;
+      window.open(url, '_blank');
+      if (lead.status === 'new') updateStatus('contacted');
+    },
+    [lead, updateStatus]
+  );
+
+  const renderTemplate = useCallback(
+    (body) => {
+      if (!body || !lead) return '';
+      return body.replace(/\{\{(.*?)\}\}/g, (match, field) => {
+        const key = field.trim();
+        if (key === 'name') return lead.name;
+        if (key === 'serviceInterest') return lead.serviceInterest || 'our services';
+        return match;
+      });
+    },
+    [lead]
+  );
+
+  const deleteLead = useCallback(async () => {
+    if (!window.confirm('Permanently delete this lead and all history?')) return;
+    setUpdating(true);
+    try {
+      const userId = getUserId();
+      const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Lead deleted');
+        router.push('/automation/leads');
+      } else toast.error(data.error || 'Delete failed');
+    } catch {
+      toast.error('Delete failed');
+    } finally {
+      setUpdating(false);
+    }
+  }, [leadId, router]);
+
+  return {
+    lead,
+    tasks,
+    teamMembers,
+    templates,
+    intelligence,
+    loading,
+    updating,
+    showHistory,
+    setShowHistory,
+    refresh,
+    updateStatus,
+    assignLead,
+    addNote,
+    createTask,
+    completeTask,
+    sendWhatsApp,
+    initiateCall,
+    openWhatsApp,
+    renderTemplate,
+    deleteLead
+  };
+}

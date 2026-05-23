@@ -378,49 +378,24 @@ export default function RevenueAudit() {
   const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-20 pt-28 bg-grid">
-
-      <div className="relative z-[5] mx-auto w-full max-w-7xl">
-        <div className="flex flex-col items-center text-center">
-
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={0.1}
-          >
-            <Heading level={1} className="text-6xl">
-              Built for Teams That Want
-              <br />
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, oklch(0.55 0.22 255), oklch(0.62 0.2 240))",
-                  fontSize: "50px",
-                }}
-              >
-                Faster Conversions
-              </span>
-            </Heading>
-          </motion.div>
-
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={0.3}
-            className="mt-4 text-gray-400 max-w-xl"
-          >
-            Improve your team’s performance with smarter workflows and faster results.
-          </motion.p>
-
-        </div>
-      </div>
-
-
-
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-20 pt-16 bg-grid">
       <div className="relative z-[10] mx-auto w-full max-w-7xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          custom={0}
+          className="text-center mb-12"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-600 mb-2">Product tour</p>
+          <Heading level={2} className="text-3xl md:text-4xl text-balance">
+            See how teams convert faster
+          </Heading>
+          <p className="mt-3 text-slate-500 max-w-xl mx-auto">
+            Explore WhatsApp capture, smart routing, and analytics — built for high-performance sales teams.
+          </p>
+        </motion.div>
 
         {/* Interactive Feature Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">

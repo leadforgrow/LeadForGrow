@@ -50,6 +50,13 @@ export async function GET(request) {
     const eventId = searchParams.get('eventId');
     const campaignName = searchParams.get('campaignName');
     const adId = searchParams.get('adId');
+    const view = searchParams.get('view');
+    const priority = searchParams.get('priority');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50', 10)), 100);
+    const skip = (page - 1) * limit;
 
     const query = { businessId: business._id, archived: false };
 
@@ -57,6 +64,10 @@ export async function GET(request) {
     const isRestrictedRole = ['member', 'TEAM_MEMBER', 'VIEW_ONLY'].includes(user.role);
 
     if (isRestrictedRole) {
+      query.assignedTo = user._id;
+    } else if (assignedTo === 'unassigned') {
+      query.assignedTo = null;
+    } else if (assignedTo === 'me') {
       query.assignedTo = user._id;
     } else if (assignedTo) {
       query.assignedTo = assignedTo;
@@ -67,28 +78,79 @@ export async function GET(request) {
     if (eventId) query.eventId = eventId;
     if (campaignName) query.campaignName = campaignName;
     if (adId) query.adId = adId;
+    if (priority) query.priority = priority;
+
+    if (dateFrom || dateTo) {
+      query.receivedAt = {};
+      if (dateFrom) query.receivedAt.$gte = new Date(dateFrom);
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        query.receivedAt.$lte = end;
+      }
+    }
+
+    if (view === 'today-followups') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      query.nextFollowUpAt = { $gte: today, $lt: tomorrow };
+    } else if (view === 'hot') {
+      query.priority = { $in: ['high', 'urgent'] };
+    } else if (view === 'unassigned' && !isRestrictedRole) {
+      query.assignedTo = null;
+    } else if (view === 'whatsapp-unread') {
+      query.isRead = false;
+      query.$or = [
+        { source: 'whatsapp' },
+        { whatsappId: { $exists: true, $ne: null } }
+      ];
+    } else if (view === 'my-leads' && !isRestrictedRole) {
+      query.assignedTo = user._id;
+    }
 
     if (search) {
-      query.$or = [
+      const searchOr = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
         { serviceInterest: { $regex: search, $options: 'i' } }
       ];
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: searchOr }];
+        delete query.$or;
+      } else {
+        query.$or = searchOr;
+      }
     }
 
 
     console.log('[API Leads] Query:', JSON.stringify(query));
 
-    const leads = await Lead.find(query)
-      .populate('assignedTo', 'email firstName lastName')
-      .populate('eventId', 'name')
-      .sort({ receivedAt: -1 })
-      .lean();
+    const [leads, total] = await Promise.all([
+      Lead.find(query)
+        .populate('assignedTo', 'email firstName lastName')
+        .populate('eventId', 'name')
+        .sort({ receivedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Lead.countDocuments(query)
+    ]);
 
-    console.log('[API Leads] Found leads:', leads.length);
+    console.log('[API Leads] Found leads:', leads.length, 'total:', total);
 
-    return NextResponse.json({ success: true, data: leads });
+    return NextResponse.json({
+      success: true,
+      data: leads,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit) || 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching leads:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch leads' }, { status: 500 });

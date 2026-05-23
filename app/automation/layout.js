@@ -14,7 +14,7 @@ export const metadata = {
 export default function AutomationLayout({ children }) {
   return (
     <AccessControl>
-      <div className="flex h-screen bg-[#f8f9fc] relative overflow-hidden">
+      <div className="flex h-screen bg-[#f8f9fc] dark:bg-slate-950 relative overflow-hidden transition-colors duration-300">
         {/* Style injection to fix duplicate scrollbars */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -22,7 +22,7 @@ export default function AutomationLayout({ children }) {
         ` }} />
 
         <Sidebar />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-[#f8f9fc]">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-[#f8f9fc] dark:bg-slate-950 transition-colors duration-300">
           <div className="flex-1">
             {children}
           </div>

@@ -27,7 +27,14 @@ import { ThemeProvider } from "./components/ThemeContext";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className="font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.classList.toggle('light',t==='light');}catch(e){}})();`
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning className="font-sans antialiased text-slate-900 dark:text-slate-100 bg-[#f8f9fc] dark:bg-slate-950 transition-colors duration-300">
         {/* <Script
   id="interakt-sdk"
   strategy="afterInteractive"
