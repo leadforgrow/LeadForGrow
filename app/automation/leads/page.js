@@ -64,6 +64,7 @@ export default function EnterpriseLeadsPage() {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [showBulkTemplateMenu, setShowBulkTemplateMenu] = useState(false);
   const [activeTemplateLead, setActiveTemplateLead] = useState(null);
+  const [activeMobileMenu, setActiveMobileMenu] = useState(null);
 
   const fetchTeam = async () => {
     try {
@@ -101,6 +102,12 @@ export default function EnterpriseLeadsPage() {
       if (activeAssignDropdown && !e.target.closest('.assign-trigger') && !e.target.closest('.assign-dropdown')) {
         setActiveAssignDropdown(null);
       }
+      if (activeMobileMenu && !e.target.closest('.mobile-menu-trigger') && !e.target.closest('.mobile-menu-dropdown')) {
+        setActiveMobileMenu(null);
+      }
+      if (activeTemplateLead && !e.target.closest('.template-trigger') && !e.target.closest('.template-dropdown')) {
+        setActiveTemplateLead(null);
+      }
     };
     document.addEventListener('mousedown', handleClickAway);
 
@@ -108,7 +115,7 @@ export default function EnterpriseLeadsPage() {
       clearInterval(interval);
       document.removeEventListener('mousedown', handleClickAway);
     };
-  }, [statusFilter, activeAssignDropdown]);
+  }, [statusFilter, activeAssignDropdown, activeMobileMenu, activeTemplateLead]);
 
   const handleAssignLead = async (leadId, newAssigneeId) => {
     try {
@@ -284,11 +291,14 @@ export default function EnterpriseLeadsPage() {
         window.dispatchEvent(new CustomEvent('lfg-initiate-call', { detail: result.data }));
         toast.dismiss(tid);
       } else {
-        throw new Error(result.error);
+        console.warn('AI Call not connected or failed, falling back to tel: protocol', result.error);
+        toast.dismiss(tid);
+        window.location.href = `tel:${lead.phone}`;
       }
     } catch (error) {
       console.error('Call Initiation Error:', error);
-      toast.error(error.message || 'Failed to start call', { id: tid });
+      toast.dismiss(tid);
+      window.location.href = `tel:${lead.phone}`;
     }
   };
 
@@ -503,7 +513,7 @@ export default function EnterpriseLeadsPage() {
               <p className="text-xs text-slate-500 font-medium">{leads.length} active leads in pipeline</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={fetchLeads}
                 className="px-3 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg text-sm hover:bg-slate-50 transition-colors flex items-center gap-2"
@@ -550,7 +560,7 @@ export default function EnterpriseLeadsPage() {
           </div>
 
           {/* Compact Stats - Minimal Design */}
-          <div className="grid grid-cols-5 gap-3 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
             <div className="bg-white border border-slate-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Immediate Rescue</span>
@@ -686,7 +696,7 @@ export default function EnterpriseLeadsPage() {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
                     {/* Sticky Left */}
-                    <th className="sticky left-0 z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
+                    <th className="lg:sticky lg:left-0 z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
                       <button
                         onClick={() => {
                           if (selectedLeads.length === sortedLeads.length) {
@@ -704,7 +714,7 @@ export default function EnterpriseLeadsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="sticky left-[52px] z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
+                    <th className="lg:sticky lg:left-[52px] z-20 bg-slate-50 px-4 py-2.5 text-left border-r border-slate-200">
                       <button onClick={() => handleSort('leadAge')} className="flex items-center gap-1 hover:text-slate-900 text-xs font-semibold text-slate-600 uppercase whitespace-nowrap">
                         Age <SortIcon field="leadAge" />
                       </button>
@@ -744,8 +754,8 @@ export default function EnterpriseLeadsPage() {
                     )}
 
                     {/* Sticky Right */}
-                    <th className="sticky right-0 z-20 bg-slate-50 px-4 py-2.5 text-center text-xs font-semibold text-slate-600 uppercase border-l border-slate-200">
-                      Actions
+                    <th className="lg:sticky lg:right-0 z-20 bg-slate-50 px-4 py-2.5 text-center border-l border-slate-200 w-[60px]">
+                      <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
@@ -763,7 +773,7 @@ export default function EnterpriseLeadsPage() {
                         onClick={() => router.push(`/automation/leads/${lead._id}`)}
                       >
                         {/* # */}
-                        <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100 whitespace-nowrap">
+                        <td className="lg:sticky lg:left-0 z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100 whitespace-nowrap">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -784,7 +794,7 @@ export default function EnterpriseLeadsPage() {
                         </td>
 
                         {/* Lead Age - Simple Badge */}
-                        <td className="sticky left-[52px] z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100">
+                        <td className="lg:sticky lg:left-[52px] z-10 bg-white group-hover:bg-slate-50 px-4 py-3 border-r border-slate-100">
                           <div className="flex items-center gap-2">
                             <Clock className="w-3.5 h-3.5 text-slate-400" />
                             <span className={`text-xs font-semibold ${intel.leadAge.classification === 'fresh' ? 'text-emerald-600' :
@@ -984,97 +994,137 @@ export default function EnterpriseLeadsPage() {
                           </>
                         )}
 
-                        {/* Actions - Cell-Triggered Stretch Reveal */}
+                        {/* Actions - Expandable Anchored System */}
                         <td
-                          className="group/action-cell sticky right-0 z-20 bg-white px-4 py-3 border-l border-slate-100 transition-colors hover:bg-slate-50"
+                          className="lg:sticky lg:right-0 z-20 bg-white border-l border-slate-100 transition-colors relative w-[60px] px-2 py-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex items-center justify-end">
-                            <div className="flex items-center gap-1.5">
-                              {/* Primary Call Action - Dialer Integrated */}
-                              <button
-                                onClick={(e) => initiateCall(lead, e)}
-                                className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-all"
-                                title="Call Lead"
-                              >
-                                <Phone className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* Secondary Actions - Revealed on CELL hover */}
-                              <div className="flex items-center gap-1.5">
+                          {/* Desktop Actions - Anchored to right edge, expands leftwards */}
+                          <div className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 group/actions items-center justify-end z-10 bg-white rounded-lg pl-2">
+                            
+                            {/* Hidden Secondary Actions */}
+                            <div className="overflow-hidden max-w-0 opacity-0 group-hover/actions:max-w-[220px] group-hover/actions:opacity-100 transition-all duration-200 ease-out flex items-center gap-1.5 pr-1.5 whitespace-nowrap">
                                 <a
                                   href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all"
-                                  title="WhatsApp"
+                                  className="w-[36px] h-[36px] flex items-center justify-center bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 transition-all flex-shrink-0"
+                                  aria-label="WhatsApp"
                                 >
-                                  <MessageCircle className="w-3.5 h-3.5" />
+                                  <MessageCircle className="w-4 h-4" />
                                 </a>
-                                <div className="relative">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveTemplateLead(activeTemplateLead === lead._id ? null : lead._id);
-                                    }}
-                                    className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-all"
-                                    title="Send Template"
-                                  >
-                                    <MessageSquare className="w-3.5 h-3.5" />
-                                  </button>
-                                  {activeTemplateLead === lead._id && (
-                                    <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-[100] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                      <div className="p-3 border-b border-slate-100 bg-slate-50/50">
-                                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Select Template</p>
-                                      </div>
-                                      <div className="max-h-60 overflow-y-auto">
-                                        {templates.length > 0 ? (
-                                          templates.map((template) => (
-                                            <button
-                                              key={template.id}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleSendTemplate(template, lead);
-                                              }}
-                                              className="w-full text-left p-3 hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0"
-                                            >
-                                              <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${template.channel === 'whatsapp' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
-                                                <p className="text-[11px] font-bold text-slate-900">{template.name}</p>
-                                              </div>
-                                              <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{template.body}</p>
-                                            </button>
-                                          ))
-                                        ) : (
-                                          <div className="p-4 text-center">
-                                            <p className="text-[10px] text-slate-400">No manual templates found</p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveTemplateLead(activeTemplateLead === lead._id ? null : lead._id);
+                                  }}
+                                  className="template-trigger w-[36px] h-[36px] flex items-center justify-center bg-white border border-slate-200 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all flex-shrink-0"
+                                  aria-label="Send Template"
+                                >
+                                  <MessageSquare className="w-4 h-4" />
+                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     router.push(`/automation/leads/${lead._id}`);
                                   }}
-                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-all"
-                                  title="View Details"
+                                  className="w-[36px] h-[36px] flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all flex-shrink-0"
+                                  aria-label="View Details"
                                 >
-                                  <ArrowRight className="w-3.5 h-3.5" />
+                                  <ArrowRight className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={(e) => deleteLead(lead._id, e)}
-                                  className="flex-shrink-0 p-2 bg-white border border-slate-300 rounded-lg text-red-600 hover:bg-red-50 transition-all"
-                                  title="Delete Lead"
+                                  className="w-[36px] h-[36px] flex items-center justify-center bg-white border border-slate-200 rounded-lg text-red-600 hover:bg-red-50 hover:border-red-200 transition-all flex-shrink-0"
+                                  aria-label="Delete Lead"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
-
-                              </div>
                             </div>
+
+                            {/* Primary Call Action - Always Visible */}
+                            <button
+                                onClick={(e) => initiateCall(lead, e)}
+                                className="w-[36px] h-[36px] flex items-center justify-center bg-white border border-slate-200 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all flex-shrink-0 shadow-sm"
+                                aria-label="Call Lead"
+                            >
+                                <Phone className="w-4 h-4" />
+                            </button>
                           </div>
+
+                          {/* Mobile Actions Button */}
+                          <div className="lg:hidden flex items-center justify-center h-full relative">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMobileMenu(activeMobileMenu === lead._id ? null : lead._id);
+                                }}
+                                className="mobile-menu-trigger w-[36px] h-[36px] flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-all"
+                                aria-label="More Actions"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+                              
+                              {/* Mobile Popover */}
+                              {activeMobileMenu === lead._id && (
+                                <div className="mobile-menu-dropdown absolute right-0 bottom-full mb-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200 overflow-hidden">
+                                  <div className="p-1.5 flex flex-col gap-1">
+                                    <button onClick={(e) => { initiateCall(lead, e); setActiveMobileMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                      <Phone className="w-4 h-4" /> Call Lead
+                                    </button>
+                                    <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                                      <MessageCircle className="w-4 h-4" /> WhatsApp
+                                    </a>
+                                    <button onClick={(e) => { e.stopPropagation(); setActiveTemplateLead(lead._id); setActiveMobileMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                                      <MessageSquare className="w-4 h-4" /> Send Message
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); router.push(`/automation/leads/${lead._id}`); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                                      <ArrowRight className="w-4 h-4" /> Open Details
+                                    </button>
+                                    <div className="h-px bg-slate-100 my-1" />
+                                    <button onClick={(e) => { deleteLead(lead._id, e); setActiveMobileMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                      <Trash2 className="w-4 h-4" /> Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+
+                          {/* Template Menu Dropdown (Shared for Mobile and Desktop) */}
+                          {activeTemplateLead === lead._id && (
+                              <div className="template-dropdown absolute right-10 bottom-full mb-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-200 z-[110] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Select Template</p>
+                                  <button onClick={() => setActiveTemplateLead(null)} className="p-1 hover:bg-slate-200 rounded-md">
+                                    <X className="w-3.5 h-3.5 text-slate-500" />
+                                  </button>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                  {templates.length > 0 ? (
+                                    templates.map((template) => (
+                                      <button
+                                        key={template.id}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSendTemplate(template, lead);
+                                        }}
+                                        className="w-full text-left p-3 hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <div className={`w-1.5 h-1.5 rounded-full ${template.channel === 'whatsapp' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                                          <p className="text-[11px] font-bold text-slate-900">{template.name}</p>
+                                        </div>
+                                        <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{template.body}</p>
+                                      </button>
+                                    ))
+                                  ) : (
+                                    <div className="p-4 text-center">
+                                      <p className="text-[10px] text-slate-400">No templates found</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                          )}
                         </td>
                       </tr>
                     );

@@ -118,7 +118,7 @@ export default function FormsPage() {
   return (
     <div className="px-8 py-10">
       {/* Header */}
-      <div className="mb-10 flex items-center justify-between">
+      <div className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
             <Layout className="w-5 h-5 text-violet-600" strokeWidth={2.5} />

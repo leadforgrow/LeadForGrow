@@ -261,7 +261,7 @@ export default function TasksPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
         {[
           { value: 'today', label: 'Due Today', icon: Clock },
           { value: 'overdue', label: 'Overdue', icon: AlertCircle },

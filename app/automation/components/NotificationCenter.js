@@ -99,7 +99,7 @@ export default function NotificationCenter() {
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-900">Notifications</h3>
             {unreadCount > 0 && (
-              <button 
+              <button
                 onClick={markAllAsRead}
                 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700"
               >
@@ -118,7 +118,7 @@ export default function NotificationCenter() {
               </div>
             ) : (
               notifications.map((n) => (
-                <div 
+                <div
                   key={n._id}
                   className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors relative group ${!n.isRead ? 'bg-indigo-50/30' : ''}`}
                 >
@@ -141,7 +141,7 @@ export default function NotificationCenter() {
                         {n.message}
                       </p>
                       {n.link && (
-                        <Link 
+                        <Link
                           href={n.link}
                           onClick={() => {
                             markAsRead(n._id);
@@ -155,7 +155,7 @@ export default function NotificationCenter() {
                     </div>
                   </div>
                   {!n.isRead && (
-                    <button 
+                    <button
                       onClick={() => markAsRead(n._id)}
                       className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
@@ -168,9 +168,9 @@ export default function NotificationCenter() {
           </div>
 
           <div className="p-3 bg-slate-50 text-center rounded-b-2xl">
-             <Link href="/automation/reports" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-indigo-600">
-                View All Activity
-             </Link>
+            <Link href="/automation/reports" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-indigo-600">
+              View All Activity
+            </Link>
           </div>
         </div>
       )}

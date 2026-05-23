@@ -605,7 +605,7 @@ function PredictiveForecastCard({ metrics }) {
                     <stop offset="100%" stopColor="#818cf8" stopOpacity="0.2" />
                   </linearGradient>
                 </defs>
-                
+
                 {/* Horizontal Grid Lines */}
                 {[0, 50, 100, 150].map(y => (
                   <line key={y} x1="0" y1={y} x2="600" y2={y} stroke="#f1f5f9" strokeWidth="1" />
@@ -618,7 +618,7 @@ function PredictiveForecastCard({ metrics }) {
                   const x = 50 + i * (barWidth + gap);
                   const h = v * 1.5;
                   const isProjected = i > 3;
-                  
+
                   return (
                     <g key={i} className="group/bar">
                       <rect
@@ -849,8 +849,8 @@ function AiCopilotCard({ metrics }) {
         {chatHistory.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[90%] px-3 py-2 rounded-xl text-[12px] leading-relaxed ${msg.role === 'user'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-700 shadow-sm'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white border border-slate-200 text-slate-700 shadow-sm'
               }`}>
               {msg.text}
             </div>

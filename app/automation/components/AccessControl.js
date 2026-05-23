@@ -13,12 +13,12 @@ export default function AccessControl({ children }) {
   useEffect(() => {
     const plan = localStorage.getItem('userPlan');
     setUserPlan(plan || '');
-    
+
     // Check if user has Growth plan or higher, enterprise, trial, or any Agency plan
     // We only block users on the 'free' plan
     const lowerPlan = (plan || '').toLowerCase();
     const isFree = lowerPlan === 'free' || !lowerPlan;
-    
+
     setHasAccess(!isFree);
     setChecking(false);
   }, []);

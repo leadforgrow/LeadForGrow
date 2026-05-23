@@ -541,7 +541,7 @@ export default function ReportsPage() {
         </div>
 
         {/* ── KPI Row ─────────────────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 14 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" style={{ marginBottom: 14 }}>
           <KpiCard label="Total Leads" value={stats.totalLeads} delta={12} deltaLabel="vs last period" icon="TotalLeads" color={T.indigo} accent={T.indigo} />
           <KpiCard label="Avg Response" value={stats.avgResponseTimeHours} unit="h" delta={-4} deltaLabel="improved" icon="AvgResponse" color="#0891B2" accent="#0891B2" />
           <KpiCard label="Converted" value={stats.converted} delta={stats.conversionRate} deltaLabel="win rate" icon="Converted" color={T.emerald} accent={T.emerald} />
@@ -549,7 +549,7 @@ export default function ReportsPage() {
         </div>
 
         {/* ── Hero Chart + Funnel ──────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 12, marginBottom: 12 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_296px] gap-3" style={{ marginBottom: 12 }}>
           <Card>
             <SectionHead title="Lead Volume" sub={`Daily captures — last ${period} days`} right={liveTag} />
             <AreaChart data={stats.dailyTrends} />
@@ -561,7 +561,7 @@ export default function ReportsPage() {
         </div>
 
         {/* ── Sources / Team / Heatmap row ─────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" style={{ marginBottom: 12 }}>
           <Card>
             <SectionHead title="Lead Sources" sub="Attribution breakdown" />
             {stats.leadsBySource.length
@@ -579,7 +579,7 @@ export default function ReportsPage() {
         </div>
 
         {/* ── Activity Feed + Utilities ─────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 284px', gap: 12 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_284px] gap-3">
           {/* Activity feed */}
           <Card pad={null}>
             <div style={{ padding: '18px 20px 14px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

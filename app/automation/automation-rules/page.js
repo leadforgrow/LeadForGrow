@@ -1,21 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { 
-  Sparkles, 
-  MessageCircle, 
-  Bell, 
-  RefreshCw, 
-  CheckCircle2, 
-  Rocket, 
-  Settings, 
-  Save, 
-  X, 
+import {
+  MessageCircle,
+  Bell,
+  RefreshCw,
+  CheckCircle2,
+  Rocket,
+  Settings,
+  Save,
+  X,
   ChevronRight,
   Mail,
   Smartphone,
   History,
-  AlertCircle
+  AlertCircle,
+  Workflow,
+  MailPlus,
+  BellRing,
+  UserRoundPlus,
+  Clock3,
+  MessageCircleMore,
+  GitBranchPlus,
+  RotateCcw,
+  CheckSquare,
+  FileText,
+  CalendarClock,
+  ArrowRightCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Heading from '@/app/components/ui/Heading';
@@ -27,7 +38,7 @@ export default function AutomationRulesPage() {
   const [editForm, setEditForm] = useState(null);
 
   const [saving, setSaving] = useState(false);
-  
+
   // Cloudinary Config (Persisted in localStorage for convenience)
   const [cloudinaryConfig, setCloudinaryConfig] = useState({
     cloudName: '',
@@ -82,7 +93,7 @@ export default function AutomationRulesPage() {
 
       const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId
         },
@@ -119,12 +130,12 @@ export default function AutomationRulesPage() {
     try {
       const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId
         },
-        body: JSON.stringify({ 
-          userId, 
+        body: JSON.stringify({
+          userId,
           ruleId: editingRule._id,
           name: editForm.name,
           description: editForm.description,
@@ -156,13 +167,45 @@ export default function AutomationRulesPage() {
     }
   };
 
-  const getRuleIcon = (type) => {
-    const icons = {
-      'instant_acknowledgement': MessageCircle,
-      'notify_team': Bell,
-      'follow_up_reminder': RefreshCw
-    };
-    return icons[type] || Sparkles;
+  const getRuleIcon = (rule) => {
+    const name = (rule?.name || '').toLowerCase();
+    const type = (rule?.type || '').toLowerCase();
+
+    if (name.includes('welcome') || name.includes('acknowledgement') || type === 'instant_acknowledgement') {
+      return MailPlus;
+    }
+    if (name.includes('notify') || type === 'notify_team') {
+      return BellRing;
+    }
+    if (name.includes('assign') || type === 'auto_assign') {
+      return UserRoundPlus;
+    }
+    if (name.includes('follow-up') || name.includes('followup') || name.includes('reminder') || type === 'follow_up_reminder') {
+      return Clock3;
+    }
+    if (name.includes('whatsapp') || name.includes('reply') || name.includes('message')) {
+      return MessageCircleMore;
+    }
+    if (name.includes('routing') || name.includes('route')) {
+      return GitBranchPlus;
+    }
+    if (name.includes('recovery') || name.includes('recover')) {
+      return RotateCcw;
+    }
+    if (name.includes('task')) {
+      return CheckSquare;
+    }
+    if (name.includes('form') || name.includes('trigger')) {
+      return FileText;
+    }
+    if (name.includes('calendar') || name.includes('event') || name.includes('session')) {
+      return CalendarClock;
+    }
+    if (name.includes('status') || name.includes('update')) {
+      return ArrowRightCircle;
+    }
+
+    return Workflow;
   };
 
   if (loading) {
@@ -179,7 +222,7 @@ export default function AutomationRulesPage() {
       <div className="flex items-center justify-between mb-12">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-orange-600" strokeWidth={2.5} />
+            <Workflow className="w-5 h-5 text-orange-600" strokeWidth={2.5} />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Automation Rules</h1>
@@ -198,22 +241,20 @@ export default function AutomationRulesPage() {
         {/* Rules Explorer */}
         <div className="lg:col-span-2 space-y-4">
           {rules.map((rule) => {
-            const Icon = getRuleIcon(rule.type);
+            const Icon = getRuleIcon(rule);
             const isSelected = editingRule?._id === rule._id;
-            
+
             return (
               <div
                 key={rule._id}
-                className={`group bg-white rounded-[24px] border-2 p-6 transition-all hover:shadow-xl ${
-                  isSelected ? 'border-indigo-600' : 'border-slate-100'
-                }`}
+                className={`group bg-white rounded-[24px] border-2 p-6 transition-all hover:shadow-xl ${isSelected ? 'border-indigo-600' : 'border-slate-100'
+                  }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      rule.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      <Icon className="w-6 h-6" />
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${rule.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
+                      }`}>
+                      <Icon className="w-5 h-5" />
                     </div>
                     <div>
                       <Heading level={3} className="flex items-center gap-2">
@@ -225,7 +266,7 @@ export default function AutomationRulesPage() {
                         )}
                       </Heading>
                       <p className="text-sm text-slate-500 mt-1">{rule.description}</p>
-                      
+
                       {/* Configuration Preview */}
                       {rule.enabled && (
                         <div className="flex items-center gap-4 mt-4 text-xs font-medium">
@@ -254,14 +295,12 @@ export default function AutomationRulesPage() {
                     </button>
                     <button
                       onClick={() => toggleRule(rule._id)}
-                      className={`relative w-14 h-7 rounded-full transition-all ${
-                        rule.enabled ? 'bg-indigo-600' : 'bg-slate-300'
-                      }`}
+                      className={`relative w-14 h-7 rounded-full transition-all ${rule.enabled ? 'bg-indigo-600' : 'bg-slate-300'
+                        }`}
                     >
                       <div
-                        className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                          rule.enabled ? 'translate-x-8' : 'translate-x-1'
-                        }`}
+                        className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${rule.enabled ? 'translate-x-8' : 'translate-x-1'
+                          }`}
                       ></div>
                     </button>
                   </div>
@@ -277,7 +316,7 @@ export default function AutomationRulesPage() {
             <div className="bg-white rounded-[32px] border-2 border-slate-100 p-8 sticky top-8 animate-in slide-in-from-right duration-300">
               <div className="flex items-center justify-between mb-8">
                 <Heading level={2}>Configure Rule</Heading>
-                <button 
+                <button
                   onClick={() => setEditingRule(null)}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
@@ -293,11 +332,10 @@ export default function AutomationRulesPage() {
                       <button
                         key={ch}
                         onClick={() => setEditForm({ ...editForm, channel: ch })}
-                        className={`py-2 text-xs font-bold rounded-xl border-2 transition-all ${
-                          editForm.channel === ch 
-                            ? 'border-indigo-600 bg-indigo-50 text-indigo-600' 
+                        className={`py-2 text-xs font-bold rounded-xl border-2 transition-all ${editForm.channel === ch
+                            ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                             : 'border-slate-50 text-slate-400 hover:border-slate-200'
-                        }`}
+                          }`}
                       >
                         {ch.toUpperCase()}
                       </button>
@@ -330,7 +368,7 @@ export default function AutomationRulesPage() {
                     />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {['name', 'serviceInterest', 'phone'].map(tag => (
-                        <button 
+                        <button
                           key={tag}
                           onClick={() => setEditForm({ ...editForm, messageTemplate: editForm.messageTemplate + ` {{${tag}}}` })}
                           className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
@@ -353,21 +391,20 @@ export default function AutomationRulesPage() {
                       value={editForm.whatsappTemplate}
                       onChange={(e) => setEditForm({ ...editForm, whatsappTemplate: e.target.value })}
                       disabled={!!editForm.whatsappTemplateName}
-                      className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none ${
-                        editForm.whatsappTemplateName 
-                          ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                      className={`w-full px-4 py-3 border-2 rounded-xl outline-none transition-all font-medium text-slate-900 resize-none ${editForm.whatsappTemplateName
+                          ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
                           : 'bg-slate-50 border-transparent focus:border-emerald-500'
-                      }`}
+                        }`}
                       placeholder="Enter custom WhatsApp message..."
                     />
                     {editForm.whatsappTemplateName && (
                       <p className="text-[10px] text-emerald-600 font-bold mt-1">🔒 Locked: Verified Meta templates cannot be edited directly.</p>
                     )}
-                    
+
                     {!editForm.whatsappTemplateName && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {['name', 'serviceInterest', 'phone'].map(tag => (
-                          <button 
+                          <button
                             key={tag}
                             onClick={() => setEditForm({ ...editForm, whatsappTemplate: (editForm.whatsappTemplate || '') + ` {{${tag}}}` })}
                             className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
@@ -385,9 +422,9 @@ export default function AutomationRulesPage() {
                         onChange={(e) => {
                           const selectedName = e.target.value;
                           const selectedRule = rules.find(r => r.name === selectedName && r.type === 'manual_template');
-                          
-                          setEditForm({ 
-                            ...editForm, 
+
+                          setEditForm({
+                            ...editForm,
                             whatsappTemplateName: selectedName,
                             whatsappTemplate: selectedRule?.config?.whatsappTemplate || ''
                           });
@@ -416,124 +453,124 @@ export default function AutomationRulesPage() {
                       />
                       <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl flex items-center justify-center transition-colors">
                         <span className="text-xs font-bold">Upload</span>
-                        <input 
-                          type="file" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          className="hidden"
                           accept="video/*,image/*"
                           onChange={async (e) => {
-                             const file = e.target.files[0];
-                             if (!file) return;
-                             
-                             toast.loading('Preparing upload...');
-                             try {
-                               let fullUrl = '';
-                               let uploaded = false;
+                            const file = e.target.files[0];
+                            if (!file) return;
 
-                               // 1. Try Automatic Signed Upload (Server Configured)
-                               try {
-                                 const sigReq = await fetch('/api/cloudinary-sign', { method: 'POST' });
-                                 if (sigReq.ok) {
-                                   const sigData = await sigReq.json();
-                                   if (sigData.success) {
-                                      toast.loading('Uploading to Cloudinary (Fast)...');
-                                      const cloudData = new FormData();
-                                      cloudData.append('file', file);
-                                      cloudData.append('api_key', sigData.apiKey);
-                                      cloudData.append('timestamp', sigData.timestamp);
-                                      cloudData.append('signature', sigData.signature);
-                                      
-                                      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`, {
-                                        method: 'POST',
-                                        body: cloudData
-                                      });
-                                      const cloudJson = await cloudRes.json();
-                                      if (cloudJson.secure_url) {
-                                        fullUrl = cloudJson.secure_url;
-                                        uploaded = true;
-                                      } else {
-                                        console.error('Signed upload failed:', cloudJson);
-                                      }
-                                   }
-                                 }
-                               } catch (err) {
-                                 console.warn('Auto-sign failed, falling back...', err);
-                               }
+                            toast.loading('Preparing upload...');
+                            try {
+                              let fullUrl = '';
+                              let uploaded = false;
 
-                               // 2. Try Manual Cloudinary Config (Unsigned)
-                               if (!uploaded && cloudinaryConfig.cloudName && cloudinaryConfig.uploadPreset) {
-                                  toast.loading('Uploading to Cloudinary (Manual)...');
-                                  const cloudData = new FormData();
-                                  cloudData.append('file', file);
-                                  cloudData.append('upload_preset', cloudinaryConfig.uploadPreset);
-                                  
-                                  const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, {
-                                    method: 'POST',
-                                    body: cloudData
-                                  });
-                                  const cloudJson = await cloudRes.json();
-                                  
-                                  if (cloudJson.secure_url) {
-                                    fullUrl = cloudJson.secure_url;
-                                    uploaded = true;
-                                  } else {
-                                    throw new Error(cloudJson.error?.message || 'Cloudinary upload failed');
+                              // 1. Try Automatic Signed Upload (Server Configured)
+                              try {
+                                const sigReq = await fetch('/api/cloudinary-sign', { method: 'POST' });
+                                if (sigReq.ok) {
+                                  const sigData = await sigReq.json();
+                                  if (sigData.success) {
+                                    toast.loading('Uploading to Cloudinary (Fast)...');
+                                    const cloudData = new FormData();
+                                    cloudData.append('file', file);
+                                    cloudData.append('api_key', sigData.apiKey);
+                                    cloudData.append('timestamp', sigData.timestamp);
+                                    cloudData.append('signature', sigData.signature);
+
+                                    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`, {
+                                      method: 'POST',
+                                      body: cloudData
+                                    });
+                                    const cloudJson = await cloudRes.json();
+                                    if (cloudJson.secure_url) {
+                                      fullUrl = cloudJson.secure_url;
+                                      uploaded = true;
+                                    } else {
+                                      console.error('Signed upload failed:', cloudJson);
+                                    }
                                   }
-                               } 
-                               
-                               // 3. Fallback to Local/Vercel (Small Files Only)
-                               if (!uploaded) {
-                                 toast.loading('Uploading locally...');
-                                 if (file.size > 4.5 * 1024 * 1024) {
-                                   throw new Error('File too large for local upload (>4.5MB). Configure Cloudinary above or in .env.');
-                                 }
-                                 const formData = new FormData();
-                                 formData.append('file', file);
-                                 
-                                 const req = await fetch('/api/upload', { method: 'POST', body: formData });
-                                 const res = await req.json();
-                                 if (res.success) {
-                                   fullUrl = `${window.location.origin}${res.url}`;
-                                 } else {
-                                   throw new Error(res.error || 'Upload failed');
-                                 }
-                               }
-                               
-                               setEditForm(prev => ({ ...prev, whatsappHeaderMedia: fullUrl }));
-                               toast.dismiss();
-                               toast.success('Media uploaded successfully!');
-                               
-                             } catch (err) {
-                               toast.dismiss();
-                               toast.error(err.message || 'Upload error');
-                             }
+                                }
+                              } catch (err) {
+                                console.warn('Auto-sign failed, falling back...', err);
+                              }
+
+                              // 2. Try Manual Cloudinary Config (Unsigned)
+                              if (!uploaded && cloudinaryConfig.cloudName && cloudinaryConfig.uploadPreset) {
+                                toast.loading('Uploading to Cloudinary (Manual)...');
+                                const cloudData = new FormData();
+                                cloudData.append('file', file);
+                                cloudData.append('upload_preset', cloudinaryConfig.uploadPreset);
+
+                                const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, {
+                                  method: 'POST',
+                                  body: cloudData
+                                });
+                                const cloudJson = await cloudRes.json();
+
+                                if (cloudJson.secure_url) {
+                                  fullUrl = cloudJson.secure_url;
+                                  uploaded = true;
+                                } else {
+                                  throw new Error(cloudJson.error?.message || 'Cloudinary upload failed');
+                                }
+                              }
+
+                              // 3. Fallback to Local/Vercel (Small Files Only)
+                              if (!uploaded) {
+                                toast.loading('Uploading locally...');
+                                if (file.size > 4.5 * 1024 * 1024) {
+                                  throw new Error('File too large for local upload (>4.5MB). Configure Cloudinary above or in .env.');
+                                }
+                                const formData = new FormData();
+                                formData.append('file', file);
+
+                                const req = await fetch('/api/upload', { method: 'POST', body: formData });
+                                const res = await req.json();
+                                if (res.success) {
+                                  fullUrl = `${window.location.origin}${res.url}`;
+                                } else {
+                                  throw new Error(res.error || 'Upload failed');
+                                }
+                              }
+
+                              setEditForm(prev => ({ ...prev, whatsappHeaderMedia: fullUrl }));
+                              toast.dismiss();
+                              toast.success('Media uploaded successfully!');
+
+                            } catch (err) {
+                              toast.dismiss();
+                              toast.error(err.message || 'Upload error');
+                            }
                           }}
                         />
                       </label>
                     </div>
-                    
+
                     {/* Cloudinary Settings Toggle */}
                     <div className="mt-3 p-3 bg-slate-100 rounded-xl border border-slate-200">
                       <div className="flex items-center gap-2 mb-2">
-                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">✨ Enable Large Video Uploads (Cloudinary)</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">✨ Enable Large Video Uploads (Cloudinary)</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <input 
-                           type="text" 
-                           placeholder="Cloud Name"
-                           className="text-xs px-2 py-1.5 rounded border border-slate-300"
-                           value={cloudinaryConfig.cloudName}
-                           onChange={(e) => saveCloudinaryConfig('cloudName', e.target.value)}
+                        <input
+                          type="text"
+                          placeholder="Cloud Name"
+                          className="text-xs px-2 py-1.5 rounded border border-slate-300"
+                          value={cloudinaryConfig.cloudName}
+                          onChange={(e) => saveCloudinaryConfig('cloudName', e.target.value)}
                         />
-                         <input 
-                           type="text" 
-                           placeholder="Upload Preset (Unsigned)"
-                           className="text-xs px-2 py-1.5 rounded border border-slate-300"
-                           value={cloudinaryConfig.uploadPreset}
-                           onChange={(e) => saveCloudinaryConfig('uploadPreset', e.target.value)}
+                        <input
+                          type="text"
+                          placeholder="Upload Preset (Unsigned)"
+                          className="text-xs px-2 py-1.5 rounded border border-slate-300"
+                          value={cloudinaryConfig.uploadPreset}
+                          onChange={(e) => saveCloudinaryConfig('uploadPreset', e.target.value)}
                         />
                       </div>
                       <p className="text-[10px] text-slate-400 mt-1">
-                        Use Cloudinary to bypass the 4.5MB upload limit. 
+                        Use Cloudinary to bypass the 4.5MB upload limit.
                         <a href="https://cloudinary.com/documentation/upload_presets" target="_blank" className="underline hover:text-indigo-600 ml-1">Get keys here</a>
                       </p>
                     </div>
@@ -574,7 +611,7 @@ export default function AutomationRulesPage() {
           ) : (
             <div className="bg-white border border-slate-200 rounded-[40px] p-10 text-left sticky top-8 shadow-sm">
               <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-8">
-                <Sparkles className="w-10 h-10 text-slate-200" />
+                <Workflow className="w-10 h-10 text-slate-200" />
               </div>
               <Heading level={2} className="text-slate-400">Configuration Required</Heading>
               <p className="text-slate-400 mt-2 max-w-xs font-medium italic">Select a rule from the explorer to manage automation intelligence.</p>

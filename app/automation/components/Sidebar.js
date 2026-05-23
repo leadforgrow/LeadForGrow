@@ -6,7 +6,8 @@ import {
   LayoutDashboard,
   Users,
   CheckSquare,
-  Sparkles,
+  SlidersHorizontal,
+  Rows3,
   UserCog,
   BarChart3,
   Settings,
@@ -145,12 +146,12 @@ export default function Sidebar() {
       role: 'owner', // Restricted to owners/admins
       items: [
         { name: 'Dashboard', href: '/automation', icon: LayoutDashboard },
-        { 
-          name: 'Live Chat', 
-          href: '/automation/chat', 
-          icon: MessagesSquare, 
+        {
+          name: 'Live Chat',
+          href: '/automation/chat',
+          icon: MessagesSquare,
           status: 'active',
-          permission: ['dashboard_access', 'reports_access'] 
+          permission: ['dashboard_access', 'reports_access']
         }
       ]
     },
@@ -191,8 +192,8 @@ export default function Sidebar() {
     {
       label: 'Automation',
       items: [
-        { name: 'Automation Rules', href: '/automation/automation-rules', icon: Sparkles, count: contextualData.activeAutomations, status: 'active' },
-        { name: 'Automation Sequences', href: '/automation/sequences', icon: Sparkles },
+        { name: 'Automation Rules', href: '/automation/automation-rules', icon: SlidersHorizontal, count: contextualData.activeAutomations, status: 'active' },
+        { name: 'Automation Sequences', href: '/automation/sequences', icon: Rows3 },
         { name: 'Email Templates', href: '/automation/templates', icon: FileText },
         { name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
         { name: 'Forms', href: '/automation/forms', icon: FileText, role: 'owner' },
@@ -233,7 +234,7 @@ export default function Sidebar() {
         if (item.role && userRole !== 'owner' && !userRole.includes('admin') && !userRole.includes('super')) {
           if (item.role !== userRole) return false;
         }
-        
+
         // Permission check
         if (item.permission) {
           return item.permission.every(p => userData.permissions.includes(p));
@@ -353,7 +354,7 @@ export default function Sidebar() {
                       )}
 
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-700' : group.highImpact ? 'text-slate-400' : 'text-slate-500'}`} strokeWidth={1.5} />
+                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-slate-700' : group.highImpact ? 'text-slate-400' : 'text-slate-500'}`} strokeWidth={1.5} />
                         <span className="truncate">
                           {item.name}
                         </span>
