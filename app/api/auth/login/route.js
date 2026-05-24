@@ -60,7 +60,7 @@ export async function POST(req) {
     }
 
     const { generateToken } = await import("@/lib/auth");
-    const token = generateToken(user);
+    const token = generateToken(user, { plan: workspace.plan });
 
     return NextResponse.json({
       success: true,

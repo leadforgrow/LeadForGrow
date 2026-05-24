@@ -42,6 +42,7 @@ export default function TeamPage() {
             <TeamGrid
               team={ws.team}
               userPlan={ws.userPlan}
+              maxTeamMembers={ws.maxTeamMembers}
               onAdd={() => ws.setShowAddModal(true)}
               onRemove={ws.deleteMember}
             />

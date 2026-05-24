@@ -10,6 +10,9 @@ import Form from "@/models/Form";
 import Invoice from "@/models/Invoice";
 import OnboardingCall from "@/models/OnboardingCall";
 import Website from "@/models/Website";
+import Integration from "@/models/Integration";
+import IntegrationLog from "@/models/IntegrationLog";
+import { applyPlanQuotas } from "@/lib/plans";
 
 const models = {
   User,
@@ -21,6 +24,8 @@ const models = {
   Invoice,
   OnboardingCall,
   Website,
+  Integration,
+  IntegrationLog,
 };
 
 export async function POST(request) {
@@ -66,7 +71,23 @@ export async function POST(request) {
 
       case "update":
         let cleanData = { ...updateData };
-        delete cleanData._id; // prevent _id modification
+        delete cleanData._id;
+
+        // Business plan changes should trigger quota defaults via save middleware
+        if (modelName === "Business") {
+          const doc = await Model.findById(id);
+          if (!doc) {
+            return NextResponse.json({ error: "Record not found" }, { status: 404 });
+          }
+          const prevPlan = doc.plan;
+          Object.assign(doc, cleanData);
+          if (cleanData.plan && cleanData.plan !== prevPlan) {
+            applyPlanQuotas(doc, doc.plan);
+          }
+          await doc.save();
+          return NextResponse.json({ data: doc.toObject() });
+        }
+
         const updated = await Model.findByIdAndUpdate(id, cleanData, { new: true }).lean();
         return NextResponse.json({ data: updated });
 

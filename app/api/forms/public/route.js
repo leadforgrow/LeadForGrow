@@ -30,9 +30,26 @@ export async function GET(req) {
                 redirectUrl: form.redirectUrl,
                 token: form.token
             }
+        }, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            },
         });
     } catch (error) {
         console.error('Public form fetch error:', error);
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
+}
+
+export async function OPTIONS() {
+    return new NextResponse(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        },
+    });
 }

@@ -14,7 +14,6 @@ import {
   CalendarDays,
   UserCog,
   Plug,
-  CreditCard,
   Settings
 } from 'lucide-react';
 
@@ -70,7 +69,6 @@ export const NAV_GROUPS = [
     items: [
       { id: 'team', name: 'Team', href: '/automation/settings/team', icon: UserCog, role: 'owner' },
       { id: 'integrations', name: 'Integrations', href: '/automation/settings/integrations', icon: Plug, role: 'owner' },
-      { id: 'billing', name: 'Billing', href: '/automation/settings/billing', icon: CreditCard, role: 'owner' },
       { id: 'crm-settings', name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner', exact: true }
     ]
   }

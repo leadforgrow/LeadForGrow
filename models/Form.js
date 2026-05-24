@@ -13,7 +13,7 @@ const FormFieldSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['text', 'email', 'phone', 'textarea', 'select', 'checkbox', 'radio'],
+    enum: ['text', 'email', 'phone', 'textarea', 'select', 'checkbox', 'radio', 'date', 'file', 'address'],
     required: true
   },
   required: {
@@ -28,6 +28,9 @@ const FormFieldSchema = new mongoose.Schema({
     type: String,
     trim: true
   }], // For select, radio, checkbox
+  helpText: { type: String, trim: true },
+  width: { type: String, enum: ['full', 'half'], default: 'full' },
+  defaultValue: { type: String, trim: true },
   validation: {
     pattern: String,
     minLength: Number,
@@ -111,7 +114,7 @@ const FormSchema = new mongoose.Schema({
   styling: {
     theme: {
       type: String,
-      enum: ['light', 'dark', 'custom'],
+      enum: ['light', 'dark', 'custom', 'minimal', 'gradient'],
       default: 'light'
     },
     primaryColor: {
@@ -121,7 +124,17 @@ const FormSchema = new mongoose.Schema({
     buttonText: {
       type: String,
       default: 'Submit'
-    }
+    },
+    borderRadius: { type: Number, default: 12 },
+    fontFamily: { type: String, default: 'system' },
+    backgroundColor: { type: String, trim: true },
+    formType: {
+      type: String,
+      enum: ['inline', 'popup', 'floating', 'fullpage', 'multistep', 'conversational'],
+      default: 'floating'
+    },
+    logoUrl: { type: String, trim: true },
+    automation: { type: mongoose.Schema.Types.Mixed, default: {} }
   },
   
   // Success Configuration

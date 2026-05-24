@@ -1,7 +1,10 @@
 'use client';
 
-import { X, RefreshCw, Plug, Unplug, Copy, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
-import { COLOR_MAP, HEALTH_STYLES } from './constants';
+import { useState } from 'react';
+import { X, RefreshCw, Plug, Unplug, Copy, CheckCircle2, AlertCircle, Clock, RotateCcw, Settings2, ShieldCheck } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { COLOR_MAP, HEALTH_STYLES, STATUS_LABELS } from './constants';
+import IntegrationConfigForm from './IntegrationConfigForm';
 
 export default function IntegrationDetailPanel({
   integration,
@@ -9,19 +12,44 @@ export default function IntegrationDetailPanel({
   onConnect,
   onDisconnect,
   onTest,
-  connecting
+  onSync,
+  onUpdateConfig,
+  connecting,
+  logs = [],
+  logsLoading
 }) {
+  const [editMode, setEditMode] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   if (!integration) return null;
 
   const health = HEALTH_STYLES[integration.health] || HEALTH_STYLES.disconnected;
   const colorClass = COLOR_MAP[integration.color] || COLOR_MAP.blue;
+  const showConfigForm = !integration.connected || editMode;
 
-  const mockLogs = [
-    { id: 1, type: 'success', message: 'Webhook received: new_lead', time: '2 min ago' },
-    { id: 2, type: 'success', message: 'Sync completed — 12 records', time: '15 min ago' },
-    { id: 3, type: 'warning', message: 'Rate limit approaching', time: '1 hr ago' },
-    { id: 4, type: 'error', message: 'Token refresh failed (retry scheduled)', time: '3 hr ago' }
-  ];
+  const copyWebhook = async () => {
+    if (!integration.webhookUrl) return;
+    await navigator.clipboard.writeText(integration.webhookUrl);
+    setCopied(true);
+    toast.success('Webhook URL copied');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleConnect = (credentials) => {
+    if (integration.connected && editMode) {
+      onUpdateConfig?.(integration.id, { credentials });
+      setEditMode(false);
+    } else {
+      onConnect?.(integration.id, credentials);
+    }
+  };
+
+  const logIcon = (status) => {
+    if (status === 'success') return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" />;
+    if (status === 'warning') return <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5" />;
+    if (status === 'failed') return <AlertCircle className="w-3.5 h-3.5 text-red-500 mt-0.5" />;
+    return <Clock className="w-3.5 h-3.5 text-slate-400 mt-0.5" />;
+  };
 
   return (
     <>
@@ -36,7 +64,7 @@ export default function IntegrationDetailPanel({
               <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">{integration.name}</h2>
               <span className={`inline-flex items-center gap-1 text-[10px] font-medium mt-0.5 ${health.text}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${health.dot}`} />
-                {integration.connected ? health.label : 'Not connected'}
+                {integration.connected ? (STATUS_LABELS[integration.status] || health.label) : 'Not connected'}
               </span>
             </div>
           </div>
@@ -53,58 +81,127 @@ export default function IntegrationDetailPanel({
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Connected account</p>
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{integration.account}</p>
               {integration.lastSynced && (
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Last synced {integration.lastSynced}</p>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Last synced {integration.lastSynced}
+                </p>
+              )}
+              {integration.lastTestResult && (
+                <p className={`text-xs mt-1 flex items-center gap-1 ${integration.lastTestResult.success ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <ShieldCheck className="w-3 h-3" /> {integration.lastTestResult.message}
+                </p>
               )}
             </div>
           )}
 
-          <div>
-            <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Permissions</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {(integration.permissions || []).map((p) => (
-                <span key={p} className="px-2 py-1 text-[10px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 rounded-md">{p}</span>
-              ))}
+          {/* Credential form */}
+          {showConfigForm && integration.authType !== 'oauth' && (
+            <div>
+              <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-3">
+                {integration.connected ? 'Update credentials' : 'Connection credentials'}
+              </h3>
+              <IntegrationConfigForm
+                integration={integration}
+                onSubmit={handleConnect}
+                submitting={connecting}
+                submitLabel={integration.connected ? 'Save changes' : 'Save & connect'}
+              />
             </div>
-          </div>
+          )}
 
-          <div>
-            <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Features</h3>
-            <ul className="space-y-1">
-              {(integration.features || []).map((f) => (
-                <li key={f} className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> {f}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {integration.authType === 'oauth' && !integration.connected && (
+            <button
+              type="button"
+              onClick={() => onConnect?.(integration.id)}
+              disabled={connecting}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
+            >
+              <Plug className="w-4 h-4" /> Connect with {integration.oauthProvider || 'OAuth'}
+            </button>
+          )}
 
           {integration.connected && (
             <>
-              <div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Webhook endpoint</h3>
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <code className="flex-1 text-[10px] font-mono text-slate-600 dark:text-slate-400 break-all">
-                    https://leadforgrow.com/api/webhooks/{integration.id}
-                  </code>
-                  <button type="button" className="p-1.5 text-slate-400 hover:text-blue-600"><Copy className="w-3.5 h-3.5" /></button>
+              {/* Sync settings */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 flex items-center gap-1.5">
+                  <Settings2 className="w-3.5 h-3.5" /> Sync settings
+                </h3>
+                <label className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 dark:text-slate-400">Enable sync</span>
+                  <input
+                    type="checkbox"
+                    checked={integration.config?.syncEnabled !== false}
+                    onChange={(e) => onUpdateConfig?.(integration.id, { config: { syncEnabled: e.target.checked } })}
+                    className="rounded border-slate-300 text-blue-600"
+                  />
+                </label>
+                <label className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 dark:text-slate-400">Auto sync</span>
+                  <input
+                    type="checkbox"
+                    checked={integration.config?.autoSync === true}
+                    onChange={(e) => onUpdateConfig?.(integration.id, { config: { autoSync: e.target.checked } })}
+                    className="rounded border-slate-300 text-blue-600"
+                  />
+                </label>
+                <label className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 dark:text-slate-400">Webhooks enabled</span>
+                  <input
+                    type="checkbox"
+                    checked={integration.config?.webhookEnabled !== false}
+                    onChange={(e) => onUpdateConfig?.(integration.id, { config: { webhookEnabled: e.target.checked } })}
+                    className="rounded border-slate-300 text-blue-600"
+                  />
+                </label>
+              </div>
+
+              {integration.webhookUrl && (
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Webhook endpoint</h3>
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <code className="flex-1 text-[10px] font-mono text-slate-600 dark:text-slate-400 break-all">
+                      {integration.webhookUrl}
+                    </code>
+                    <button type="button" onClick={copyWebhook} className="p-1.5 text-slate-400 hover:text-blue-600">
+                      {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Paste this URL in your provider&apos;s webhook settings.</p>
                 </div>
+              )}
+
+              <div>
+                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Features</h3>
+                <ul className="space-y-1">
+                  {(integration.features || []).map((f) => (
+                    <li key={f} className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> {f}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <div>
-                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Recent activity</h3>
-                <div className="space-y-2">
-                  {mockLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-2 text-xs">
-                      {log.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5" />}
-                      {log.type === 'warning' && <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5" />}
-                      {log.type === 'error' && <AlertCircle className="w-3.5 h-3.5 text-red-500 mt-0.5" />}
-                      <div>
-                        <p className="text-slate-700 dark:text-slate-300">{log.message}</p>
-                        <p className="text-slate-400">{log.time}</p>
+                <h3 className="text-xs font-semibold text-slate-900 dark:text-slate-50 mb-2">Activity log</h3>
+                {logsLoading ? (
+                  <p className="text-xs text-slate-400">Loading logs…</p>
+                ) : logs.length === 0 ? (
+                  <p className="text-xs text-slate-400">No activity yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {logs.map((log) => (
+                      <div key={log.id} className="flex items-start gap-2 text-xs">
+                        {logIcon(log.status)}
+                        <div>
+                          <p className="text-slate-700 dark:text-slate-300">
+                            <span className="font-medium capitalize">{log.action}</span>: {log.message}
+                          </p>
+                          <p className="text-slate-400">{log.time}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -113,14 +210,33 @@ export default function IntegrationDetailPanel({
         <div className="p-5 border-t border-slate-200 dark:border-slate-800 space-y-2">
           {integration.connected ? (
             <>
-              <button
-                type="button"
-                onClick={onTest}
-                disabled={connecting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${connecting ? 'animate-spin' : ''}`} /> Test connection
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onTest?.(integration.id)}
+                  disabled={connecting}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${connecting ? 'animate-spin' : ''}`} /> Test
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSync?.(integration.id)}
+                  disabled={connecting}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 disabled:opacity-50"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${connecting ? 'animate-spin' : ''}`} /> Sync now
+                </button>
+              </div>
+              {integration.authType !== 'oauth' && (
+                <button
+                  type="button"
+                  onClick={() => setEditMode((v) => !v)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg"
+                >
+                  <Settings2 className="w-3.5 h-3.5" /> {editMode ? 'Cancel edit' : 'Edit credentials'}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onDisconnect(integration.id)}
@@ -130,16 +246,7 @@ export default function IntegrationDetailPanel({
                 <Unplug className="w-4 h-4" /> Disconnect
               </button>
             </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onConnect(integration.id)}
-              disabled={connecting}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
-            >
-              <Plug className="w-4 h-4" /> Connect {integration.name}
-            </button>
-          )}
+          ) : integration.authType !== 'oauth' ? null : null}
         </div>
       </aside>
     </>

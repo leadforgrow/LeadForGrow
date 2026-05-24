@@ -4,19 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Form Submission - LeadForGrow</title>
+    <title>Loading form…</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8fafc;
+            background: #f4f6fa;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -25,258 +21,407 @@
             color: #0f172a;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 480px;
-            width: 100%;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+        .page { width: 100%; max-width: 480px; }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .card.dark {
+            background: #0f172a;
+            color: #f8fafc;
         }
 
         h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 8px;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
             letter-spacing: -0.02em;
         }
 
         .subtitle {
             color: #64748b;
-            margin-bottom: 32px;
-            font-size: 15px;
+            margin-bottom: 28px;
+            font-size: 14px;
             line-height: 1.5;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .card.dark .subtitle { color: #94a3b8; }
+
+        .form-group { margin-bottom: 18px; }
 
         label {
             display: block;
             font-weight: 600;
-            color: #334155;
-            margin-bottom: 8px;
             font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            color: inherit;
         }
 
-        input,
-        textarea {
+        .help-text {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-bottom: 6px;
+        }
+
+        input, textarea, select {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.2s ease;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
             font-family: inherit;
             color: #0f172a;
-            /* Black text */
             background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input:hover,
-        textarea:hover {
-            border-color: #cbd5e1;
+        .card.dark input,
+        .card.dark textarea,
+        .card.dark select {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
         }
 
-        input:focus,
-        textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #4f46e5;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            border-color: var(--primary, #2563eb);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #2563eb) 15%, transparent);
+            background: #fff;
         }
 
-        input::placeholder,
-        textarea::placeholder {
-            color: #94a3b8;
+        .card.dark input:focus,
+        .card.dark textarea:focus,
+        .card.dark select:focus {
+            background: #1e293b;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 120px;
+        textarea { resize: vertical; min-height: 100px; }
+
+        .radio-group, .checkbox-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        button {
+        .radio-group label, .checkbox-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .file-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        button[type="submit"] {
             width: 100%;
-            padding: 14px;
-            background: #4f46e5;
+            padding: 13px;
+            background: var(--primary, #2563eb);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
             margin-top: 8px;
+            transition: opacity 0.2s, transform 0.15s;
+            font-family: inherit;
         }
 
-        button:hover {
-            background: #4338ca;
+        button[type="submit"]:hover:not(:disabled) {
+            opacity: 0.92;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            opacity: 0.7;
+        button[type="submit"]:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .message {
-            padding: 14px;
+        .alert {
+            padding: 12px 14px;
             border-radius: 10px;
-            margin-bottom: 24px;
-            font-weight: 500;
+            margin-bottom: 20px;
             font-size: 14px;
             display: none;
         }
 
-        .message.success {
+        .alert.success {
             background: #ecfdf5;
             color: #047857;
             border: 1px solid #a7f3d0;
         }
 
-        .message.error {
+        .alert.error {
             background: #fef2f2;
             color: #b91c1c;
             border: 1px solid #fecaca;
         }
 
-        .token-input {
-            background: #fffbeb;
-            border-color: #fcd34d;
-            color: #92400e;
+        .loading, .error-state {
+            text-align: center;
+            padding: 48px 24px;
         }
 
-        .help-text {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 6px;
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 16px;
         }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .powered {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+
+        .logo { height: 32px; margin-bottom: 16px; object-fit: contain; }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>🚀 Test Form Submission</h1>
-        <p class="subtitle">Submit a test lead to your LeadForGrow form</p>
+    <div class="page">
+        <div id="loadingState" class="card loading">
+            <div class="spinner"></div>
+            <p style="color:#64748b;font-size:14px;">Loading form…</p>
+        </div>
 
-        <div id="message" class="message"></div>
+        <div id="errorState" class="card error-state" style="display:none;">
+            <p style="font-size:18px;font-weight:600;margin-bottom:8px;">Form unavailable</p>
+            <p id="errorText" style="color:#64748b;font-size:14px;"></p>
+        </div>
 
-        <form id="testForm">
-            <div class="form-group">
-                <label for="token">Form Token *</label>
-                <input type="text" id="token" name="token" class="token-input" placeholder="lfg_form_..." required>
-                <p class="help-text">Get this from your form's embed code in the Forms page</p>
-            </div>
-
-            <div class="form-group">
-                <label for="name">Full Name *</label>
-                <input type="text" id="name" name="name" placeholder="John Doe" required>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Phone Number *</label>
-                <input type="tel" id="phone" name="phone" placeholder="+1234567890" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="john@example.com">
-            </div>
-
-            <div class="form-group">
-                <label for="serviceInterest">Service Interest</label>
-                <input type="text" id="serviceInterest" name="serviceInterest" placeholder="Web Development">
-            </div>
-
-            <div class="form-group">
-                <label for="message">Message</label>
-                <textarea id="message" name="message" placeholder="I'm interested in your services..."></textarea>
-            </div>
-
-            <button type="submit" id="submitBtn">
-                Submit Test Lead
-            </button>
-        </form>
+        <div id="formCard" class="card" style="display:none;">
+            <img id="logo" class="logo" style="display:none;" alt="">
+            <h1 id="formTitle"></h1>
+            <p id="formDesc" class="subtitle"></p>
+            <div id="alertBox" class="alert"></div>
+            <form id="leadForm"></form>
+            <p class="powered">Powered by LeadForGrow</p>
+        </div>
     </div>
 
     <script>
-        const form = document.getElementById('testForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const messageDiv = document.getElementById('message');
-
-        // Check for token in URL
         const urlParams = new URLSearchParams(window.location.search);
-        const tokenParam = urlParams.get('token');
-        if (tokenParam) {
-            const tokenInput = document.getElementById('token');
-            tokenInput.value = tokenParam;
-            tokenInput.closest('.form-group').style.display = 'none'; // Hide token field
-            document.querySelector('h1').textContent = 'Contact Us'; // User-friendly title
-            document.querySelector('.subtitle').style.display = 'none'; // Hide test subtitle
-            document.title = 'Contact Us';
+        const token = urlParams.get('token');
+
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const errorText = document.getElementById('errorText');
+        const formCard = document.getElementById('formCard');
+        const leadForm = document.getElementById('leadForm');
+        const alertBox = document.getElementById('alertBox');
+
+        function showError(msg) {
+            loadingState.style.display = 'none';
+            formCard.style.display = 'none';
+            errorState.style.display = 'block';
+            errorText.textContent = msg;
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function inputType(field) {
+            if (field.type === 'email') return 'email';
+            if (field.type === 'phone') return 'tel';
+            if (field.type === 'date') return 'date';
+            return 'text';
+        }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            messageDiv.style.display = 'none';
+        function renderField(field) {
+            const group = document.createElement('div');
+            group.className = 'form-group';
 
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
+            if (field.type === 'checkbox') {
+                const row = document.createElement('label');
+                row.className = 'checkbox-row';
+                row.innerHTML = `<input type="checkbox" name="${field.name}" ${field.required ? 'required' : ''}> ${field.label}`;
+                group.appendChild(row);
+                return group;
+            }
+
+            const label = document.createElement('label');
+            label.textContent = field.label + (field.required ? ' *' : '');
+            group.appendChild(label);
+
+            if (field.helpText) {
+                const help = document.createElement('p');
+                help.className = 'help-text';
+                help.textContent = field.helpText;
+                group.appendChild(help);
+            }
+
+            if (field.type === 'textarea' || field.type === 'address') {
+                const ta = document.createElement('textarea');
+                ta.name = field.name;
+                ta.placeholder = field.placeholder || '';
+                if (field.required) ta.required = true;
+                group.appendChild(ta);
+            } else if (field.type === 'select') {
+                const sel = document.createElement('select');
+                sel.name = field.name;
+                if (field.required) sel.required = true;
+                const ph = document.createElement('option');
+                ph.value = '';
+                ph.textContent = field.placeholder || 'Select…';
+                sel.appendChild(ph);
+                (field.options || []).forEach((o) => {
+                    const opt = document.createElement('option');
+                    opt.value = o;
+                    opt.textContent = o;
+                    sel.appendChild(opt);
+                });
+                group.appendChild(sel);
+            } else if (field.type === 'radio') {
+                const rg = document.createElement('div');
+                rg.className = 'radio-group';
+                (field.options || ['Yes', 'No']).forEach((o, i) => {
+                    const rl = document.createElement('label');
+                    rl.innerHTML = `<input type="radio" name="${field.name}" value="${o}" ${field.required && i === 0 ? 'required' : ''}> ${o}`;
+                    rg.appendChild(rl);
+                });
+                group.appendChild(rg);
+            } else if (field.type === 'file') {
+                const inp = document.createElement('input');
+                inp.type = 'file';
+                inp.name = field.name;
+                if (field.required) inp.required = true;
+                group.appendChild(inp);
+            } else {
+                const inp = document.createElement('input');
+                inp.type = inputType(field);
+                inp.name = field.name;
+                inp.placeholder = field.placeholder || '';
+                if (field.defaultValue) inp.value = field.defaultValue;
+                if (field.required) inp.required = true;
+                group.appendChild(inp);
+            }
+
+            return group;
+        }
+
+        async function init() {
+            if (!token) {
+                showError('No form token provided. Add ?token=YOUR_FORM_TOKEN to the URL.');
+                return;
+            }
 
             try {
-                const response = await fetch('/api/forms/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                const res = await fetch('/api/forms/public?token=' + encodeURIComponent(token));
+                const result = await res.json();
+
+                if (!result.success || !result.data) {
+                    showError(result.error || 'Form not found or has been unpublished.');
+                    return;
+                }
+
+                const form = result.data;
+                const styling = form.styling || {};
+                const theme = styling.theme || 'light';
+                const primary = styling.primaryColor || '#2563eb';
+                const radius = styling.borderRadius ?? 12;
+
+                document.title = form.name || 'Contact form';
+                formCard.style.setProperty('--primary', primary);
+                formCard.style.borderRadius = radius + 'px';
+
+                if (theme === 'dark') formCard.classList.add('dark');
+                if (theme === 'gradient') {
+                    formCard.style.background = styling.backgroundColor || 'linear-gradient(135deg,#f5f3ff,#eff6ff)';
+                } else if (styling.backgroundColor) {
+                    formCard.style.background = styling.backgroundColor;
+                }
+
+                if (styling.logoUrl) {
+                    const logo = document.getElementById('logo');
+                    logo.src = styling.logoUrl;
+                    logo.style.display = 'block';
+                }
+
+                document.getElementById('formTitle').textContent = form.name || 'Contact us';
+                const descEl = document.getElementById('formDesc');
+                if (form.description) {
+                    descEl.textContent = form.description;
+                } else {
+                    descEl.style.display = 'none';
+                }
+
+                (form.fields || []).forEach((field) => {
+                    leadForm.appendChild(renderField(field));
                 });
 
-                const result = await response.json();
+                const submitBtn = document.createElement('button');
+                submitBtn.type = 'submit';
+                submitBtn.textContent = styling.buttonText || 'Submit';
+                leadForm.appendChild(submitBtn);
 
-                if (result.success) {
-                    messageDiv.className = 'message success';
-                    messageDiv.textContent = '✅ ' + (result.message || 'Thank you! We will contact you soon.');
-                    form.reset();
+                leadForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending…';
+                    alertBox.style.display = 'none';
 
-                    // If hidden token existed, restore it
-                    if (tokenParam) {
-                        document.getElementById('token').value = tokenParam;
+                    const fd = new FormData(leadForm);
+                    const data = { token };
+                    fd.forEach((value, key) => { data[key] = value; });
+
+                    try {
+                        const subRes = await fetch('/api/forms/submit', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+                        const subResult = await subRes.json();
+
+                        if (subResult.success) {
+                            alertBox.className = 'alert success';
+                            alertBox.textContent = subResult.message || form.successMessage || 'Thank you! We will be in touch soon.';
+                            alertBox.style.display = 'block';
+                            leadForm.reset();
+
+                            if (subResult.redirectUrl) {
+                                setTimeout(() => { window.location.href = subResult.redirectUrl; }, 1500);
+                            }
+                        } else {
+                            alertBox.className = 'alert error';
+                            alertBox.textContent = subResult.error || 'Submission failed. Please try again.';
+                            alertBox.style.display = 'block';
+                        }
+                    } catch (err) {
+                        alertBox.className = 'alert error';
+                        alertBox.textContent = 'Network error. Please check your connection.';
+                        alertBox.style.display = 'block';
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = styling.buttonText || 'Submit';
                     }
+                });
 
-                    // If there's a redirect URL, show it
-                    if (result.redirectUrl) {
-                        setTimeout(() => {
-                            window.location.href = result.redirectUrl;
-                        }, 2000);
-                    }
-                } else {
-                    messageDiv.className = 'message error';
-                    messageDiv.textContent = '❌ ' + (result.error || 'Submission failed');
-                }
-            } catch (error) {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = '❌ Network error: ' + error.message;
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = tokenParam ? 'Submit Inquiry' : 'Submit Test Lead';
+                loadingState.style.display = 'none';
+                formCard.style.display = 'block';
+            } catch (err) {
+                showError('Could not load form. Please try again later.');
             }
-        });
+        }
+
+        init();
     </script>
 </body>
 

@@ -2,8 +2,9 @@
 
 import { Users, UserPlus } from 'lucide-react';
 import TeamMemberCard from './TeamMemberCard';
+import { getPlanLabel } from '@/lib/plans';
 
-export default function TeamGrid({ team, userPlan, onAdd, onRemove }) {
+export default function TeamGrid({ team, userPlan, maxTeamMembers = 1, onAdd, onRemove }) {
   if (team.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-12 text-center">
@@ -23,14 +24,23 @@ export default function TeamGrid({ team, userPlan, onAdd, onRemove }) {
     );
   }
 
+  const limit = maxTeamMembers ?? 1;
+  const atLimit = team.length >= limit;
+
   return (
     <div>
-      {userPlan === 'trial' && (
-        <div className="mb-4 flex items-center justify-between px-4 py-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/50">
-          <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Free trial · up to 2 team members</p>
-          <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 tabular-nums">{team.length} / 2</span>
-        </div>
-      )}
+      <div className={`mb-4 flex items-center justify-between px-4 py-3 rounded-xl border ${
+        atLimit
+          ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-900/50'
+          : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+      }`}>
+        <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          {getPlanLabel(userPlan)} plan · up to {limit} team member{limit !== 1 ? 's' : ''}
+        </p>
+        <span className={`text-xs font-semibold tabular-nums ${atLimit ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
+          {team.length} / {limit}
+        </span>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {team.map((member, i) => (

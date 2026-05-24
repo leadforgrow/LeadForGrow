@@ -156,11 +156,16 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: 'Form not found' }, { status: 404 });
     }
     
-    // Soft delete
+    // Soft delete — removes from list; existing leads/submissions are kept
     form.active = false;
     await form.save();
+
+    if (business.usage.formsCreated > 0) {
+      business.usage.formsCreated -= 1;
+      await business.save();
+    }
     
-    return NextResponse.json({ success: true, message: 'Form deactivated' });
+    return NextResponse.json({ success: true, message: 'Form deleted' });
   } catch (error) {
     console.error('Error deleting form:', error);
     return NextResponse.json({ success: false, error: 'Failed to delete form' }, { status: 500 });

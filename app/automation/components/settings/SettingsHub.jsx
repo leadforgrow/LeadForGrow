@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Settings, ChevronRight, Search, Plug, Shield, Users } from 'lucide-react';
+import { Settings, ChevronRight, Search, Plug, Users } from 'lucide-react';
 import { SETTINGS_HUB_CARDS, SECTION_COLORS } from './constants';
 
 export default function SettingsHub() {
@@ -36,9 +36,9 @@ export default function SettingsHub() {
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3 mt-6">
             {[
-              { label: 'Sections', value: '9', icon: Settings, accent: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
-              { label: 'Integrations', value: '6 connected', icon: Plug, accent: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
-              { label: 'Team', value: '4 members', icon: Users, accent: 'text-violet-600 bg-violet-50 dark:bg-violet-950/40' }
+              { label: 'Sections', value: String(SETTINGS_HUB_CARDS.length), icon: Settings, accent: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
+              { label: 'Integrations', value: '25+ apps', icon: Plug, accent: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
+              { label: 'Team', value: 'Roles & access', icon: Users, accent: 'text-violet-600 bg-violet-50 dark:bg-violet-950/40' }
             ].map((s) => {
               const Icon = s.icon;
               return (
@@ -96,14 +96,6 @@ export default function SettingsHub() {
         {filtered.length === 0 && (
           <p className="text-center text-sm text-slate-400 py-12">No sections match your search</p>
         )}
-
-        <div className="mt-8 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm flex items-center gap-3">
-          <Shield className="w-5 h-5 text-rose-500 flex-shrink-0" />
-          <div>
-            <p className="text-xs font-medium text-slate-800 dark:text-slate-200">Enterprise-ready administration</p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">All changes are logged. Role-based access applies to sensitive sections.</p>
-          </div>
-        </div>
       </div>
     </div>
   );

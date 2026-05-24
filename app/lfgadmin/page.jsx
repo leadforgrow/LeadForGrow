@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, Database, Search, Edit, Trash2, Plus, Save, X, RefreshCw, LayoutDashboard, Code, LayoutTemplate } from "lucide-react";
+import { Lock, Database, Edit, Trash2, Plus, Save, X, RefreshCw, LayoutDashboard, Code, LayoutTemplate, Crown, Users, FileText } from "lucide-react";
+import { BUSINESS_PLAN_ENUM, PLAN_QUOTAS, PLAN_LABELS } from "@/lib/plans";
 
 export default function LFGAdmin() {
   const [password, setPassword] = useState("");
@@ -224,9 +225,24 @@ export default function LFGAdmin() {
   
   // Helper for dynamic forms
   const HARDCODED_ENUMS = {
+    plan: BUSINESS_PLAN_ENUM,
     planName: ["Agency Starter", "Agency Growth", "Agency Pro", "Enterprise", "Free"],
     status: ["active", "suspended", "cancelled"],
     role: ["SUPER_ADMIN", "AGENCY_OWNER", "CLIENT_ADMIN", "TEAM_MEMBER", "VIEW_ONLY", "owner", "admin"],
+  };
+
+  const planBadge = (plan) => {
+    const p = (plan || "free").toLowerCase();
+    const colors = {
+      free: "bg-slate-100 text-slate-600",
+      trial: "bg-blue-100 text-blue-700",
+      growth: "bg-emerald-100 text-emerald-700",
+      pro: "bg-violet-100 text-violet-700",
+      premium: "bg-amber-100 text-amber-800",
+      enterprise: "bg-slate-800 text-white",
+    };
+    const key = Object.keys(colors).find((k) => p === k || p.startsWith(k));
+    return colors[key] || "bg-slate-100 text-slate-600";
   };
 
   return (
@@ -303,6 +319,37 @@ export default function LFGAdmin() {
           </div>
         </div>
 
+        {/* Plan reference — Business model */}
+        {selectedModel === "Business" && (
+          <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Crown className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-800">Plan & quota defaults</h3>
+              </div>
+              <p className="text-xs text-slate-600 mb-4">Changing <code className="bg-white px-1 rounded">plan</code> auto-applies quotas. Override <code className="bg-white px-1 rounded">quotas.maxTeamMembers</code> or <code className="bg-white px-1 rounded">quotas.maxForms</code> manually in Raw Data for custom limits.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                {["trial", "growth", "pro", "premium"].map((p) => (
+                  <div key={p} className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">{PLAN_LABELS[p]}</p>
+                    <p className="text-xs text-slate-700 mt-1 flex items-center gap-1"><Users className="w-3 h-3" /> {PLAN_QUOTAS[p].maxTeamMembers} users</p>
+                    <p className="text-xs text-slate-700 flex items-center gap-1"><FileText className="w-3 h-3" /> {PLAN_QUOTAS[p].maxForms} forms</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <p className="text-xs font-bold text-slate-500 uppercase mb-2">Access rules</p>
+              <ul className="text-xs text-slate-600 space-y-2">
+                <li>• All paid plans get full feature access</li>
+                <li>• Only <strong>free</strong> is feature-gated</li>
+                <li>• Limits enforced via quotas, not flags</li>
+                <li>• Integrations work on trial+</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* Table View Component */}
         <div className="flex-1 overflow-auto p-8 relative z-10">
           {error && !isModalOpen && (
@@ -339,7 +386,11 @@ export default function LFGAdmin() {
                       <tr key={doc._id || i} className="hover:bg-blue-50/50 transition-colors group">
                         {columns.map(col => (
                           <td key={col} className="px-6 py-4 text-sm text-slate-700 font-medium truncate max-w-[200px]">
-                            {typeof doc[col] === "object" ? "[Object]" : String(doc[col] || "")}
+                            {col === "plan" && doc[col] ? (
+                              <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-semibold capitalize ${planBadge(doc[col])}`}>
+                                {doc[col]}
+                              </span>
+                            ) : typeof doc[col] === "object" ? "[Object]" : String(doc[col] || "")}
                           </td>
                         ))}
                         <td className="px-6 py-4 text-right space-x-2">

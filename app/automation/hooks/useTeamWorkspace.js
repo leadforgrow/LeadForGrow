@@ -12,6 +12,21 @@ export function useTeamWorkspace() {
   const [assignmentStrategy, setAssignmentStrategy] = useState('solo');
   const [team, setTeam] = useState([]);
   const [userPlan, setUserPlan] = useState('free');
+  const [maxTeamMembers, setMaxTeamMembers] = useState(1);
+
+  const fetchPlanLimits = useCallback(async () => {
+    const userId = localStorage.getItem('userid');
+    if (!userId) return;
+    try {
+      const res = await fetch(`/api/auth/me?userId=${userId}`);
+      const data = await res.json();
+      if (data.success) {
+        setUserPlan(data.data.plan || 'free');
+        setMaxTeamMembers(data.data.quotas?.maxTeamMembers ?? 1);
+        localStorage.setItem('userPlan', data.data.plan || 'free');
+      }
+    } catch { /* ignore */ }
+  }, []);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMember, setNewMember] = useState({ ...EMPTY_MEMBER });
   const [createdMemberInfo, setCreatedMemberInfo] = useState(null);
@@ -44,9 +59,9 @@ export function useTeamWorkspace() {
   }, []);
 
   useEffect(() => {
-    setUserPlan(localStorage.getItem('userPlan') || 'free');
+    fetchPlanLimits();
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, fetchPlanLimits]);
 
   const stats = useMemo(() => {
     const active = team.filter((m) => m.active !== false).length;
@@ -90,8 +105,8 @@ export function useTeamWorkspace() {
   }, []);
 
   const addMember = useCallback(async () => {
-    if (userPlan === 'trial' && team.length >= 2) {
-      toast.error('Maximum 2 members on free trial');
+    if (team.length >= maxTeamMembers) {
+      toast.error(`Team limit reached (${maxTeamMembers} members on ${userPlan} plan)`);
       return;
     }
     try {
@@ -119,7 +134,7 @@ export function useTeamWorkspace() {
     } finally {
       setSaving(false);
     }
-  }, [newMember, team.length, userPlan]);
+  }, [newMember, team.length, userPlan, maxTeamMembers]);
 
   const closeModal = useCallback(() => {
     setShowAddModal(false);
@@ -134,6 +149,7 @@ export function useTeamWorkspace() {
     assignmentStrategy,
     setAssignmentStrategy,
     userPlan,
+    maxTeamMembers,
     showAddModal,
     setShowAddModal,
     newMember,

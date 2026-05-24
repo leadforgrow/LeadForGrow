@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
+import { BUSINESS_PLAN_ENUM, applyPlanQuotas, isUnlimitedPlan } from '@/lib/plans';
 
 // Revenue Intelligence Configuration Schema
 const RevenueConfigSchema = new mongoose.Schema({
@@ -209,7 +210,7 @@ const BusinessSchema = new mongoose.Schema({
   // Subscription & Plan
   plan: {
     type: String,
-    enum: ['free', 'trial', 'growth', 'enterprise', 'agency starter', 'agency growth', 'agency pro'],
+    enum: BUSINESS_PLAN_ENUM,
     default: 'free'
   },
   planStartDate: {
@@ -344,7 +345,7 @@ BusinessSchema.methods.generateWebhookSecret = function () {
 };
 
 BusinessSchema.methods.canCreateForm = function () {
-  if (this.plan === 'enterprise') return true;
+  if (isUnlimitedPlan(this.plan)) return true;
   return this.usage.formsCreated < this.quotas.maxForms;
 };
 
@@ -365,7 +366,7 @@ BusinessSchema.methods.incrementLeadCount = function () {
 };
 
 BusinessSchema.methods.hasReachedLeadLimit = function () {
-  if (this.plan === 'enterprise') return false;
+  if (isUnlimitedPlan(this.plan)) return false;
   return this.usage.leadsThisMonth >= this.quotas.maxLeadsPerMonth;
 };
 
@@ -415,38 +416,10 @@ BusinessSchema.methods.getEstimatedConversionRate = function (leadSource) {
   return source?.avgConversion || this.revenueConfig.conversionRate.avg;
 };
 
-// Update quotas based on plan
+// Update quotas when plan changes (admin can override quotas directly in DB)
 BusinessSchema.pre('save', async function () {
   if (this.isModified('plan')) {
-    switch (this.plan) {
-      case 'free':
-        this.quotas.maxForms = 1;
-        this.quotas.maxTeamMembers = 1;
-        this.quotas.maxAutomationRules = 3;
-        this.quotas.maxLeadsPerMonth = 100;
-        break;
-      case 'trial':
-        this.quotas.maxForms = 1;
-        this.quotas.maxTeamMembers = 2;
-        this.quotas.maxAutomationRules = 5;
-        this.quotas.maxLeadsPerMonth = 200;
-        break;
-      case 'growth':
-        this.quotas.maxForms = 10;
-        this.quotas.maxTeamMembers = 10;
-        this.quotas.maxAutomationRules = 20;
-        this.quotas.maxLeadsPerMonth = 1000;
-        break;
-      case 'enterprise':
-      case 'agency starter':
-      case 'agency growth':
-      case 'agency pro':
-        this.quotas.maxForms = 999999;
-        this.quotas.maxTeamMembers = 999999;
-        this.quotas.maxAutomationRules = 999999;
-        this.quotas.maxLeadsPerMonth = 999999;
-        break;
-    }
+    applyPlanQuotas(this, this.plan);
   }
 });
 

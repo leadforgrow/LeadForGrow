@@ -70,7 +70,8 @@ export default function PremiumHero({ onGetStarted, onWatchDemo }) {
             >
               Turn Lead enquiries into{' '}
               <RotatingWord />
-              <span className="text-slate-900 dark:text-white"> — before your competitor does.</span>
+              <br />
+              <span className="text-2xl font-medium text-slate-600 dark:text-slate-400">before your competitor does.</span>
             </motion.h1>
 
             <motion.p

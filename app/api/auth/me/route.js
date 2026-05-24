@@ -46,6 +46,8 @@ export async function GET(request) {
         businessId: business._id,
         companyName: business.businessName,
         plan: business.plan || 'free',
+        quotas: business.quotas || {},
+        usage: business.usage || {},
         onboardingComplete: business.onboardingComplete || false,
         apiKey: business.apiKey,
         permissions: [...new Set(permissions)]
