@@ -56,13 +56,13 @@
     if (event.data && event.data.type === 'LFG_CHAT_MSG') {
       console.log('[LFG Chat] Received message:', event.data);
       if (event.data.action === 'open') {
-        container.style.width = '420px';
-        container.style.height = '720px';
-        container.style.bottom = '20px';
-        container.style[pos] = '20px';
+        container.style.width = '400px';
+        container.style.height = '640px';
+        container.style.bottom = '16px';
+        container.style[pos] = '16px';
       } else if (event.data.action === 'close') {
-        container.style.width = '100px';
-        container.style.height = '150px';
+        container.style.width = '80px';
+        container.style.height = '100px';
         container.style.bottom = '0px';
         container.style[pos] = '0px';
       }

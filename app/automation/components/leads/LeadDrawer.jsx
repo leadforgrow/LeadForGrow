@@ -17,7 +17,7 @@ import { toast } from 'react-hot-toast';
 import StatusBadge from './StatusBadge';
 import FollowupChip from './FollowupChip';
 import LeadScoreBadge from './LeadScoreBadge';
-import { assigneeName, formatSource, formatRelative, formatDate } from './utils';
+import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOptions } from './utils';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
 import { PIPELINE_STAGES } from './constants';
 
@@ -143,8 +143,8 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
                         className="w-full text-sm font-medium bg-transparent border-none p-0 focus:ring-0"
                       >
                         <option value="">Unassigned</option>
-                        {teamMembers.map((m) => (
-                          <option key={m._id} value={m._id}>{assigneeName(m)}</option>
+                        {mapTeamMemberOptions(teamMembers).map((m) => (
+                          <option key={m.id} value={m.id}>{m.label}</option>
                         ))}
                       </select>
                     </div>

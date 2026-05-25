@@ -6,7 +6,7 @@ import { ChevronDown, ExternalLink, X } from 'lucide-react';
 import StatusBadge from '../leads/StatusBadge';
 import LeadScoreBadge from '../leads/LeadScoreBadge';
 import FollowupChip from '../leads/FollowupChip';
-import { assigneeName, formatSource, formatRelative, getLeadTags } from '../leads/utils';
+import { assigneeName, formatSource, formatRelative, getLeadTags, mapTeamMemberOptions } from '../leads/utils';
 import { PIPELINE_STAGES } from './constants';
 import ActivityItem from '../dashboard/primitives/ActivityItem';
 
@@ -101,8 +101,8 @@ export default function CRMProfilePanel({
             className="w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
           >
             <option value="">Unassigned</option>
-            {teamMembers.map((m) => (
-              <option key={m._id} value={m._id}>{assigneeName(m)}</option>
+            {mapTeamMemberOptions(teamMembers).map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
             ))}
           </select>
           <div className="mt-3">

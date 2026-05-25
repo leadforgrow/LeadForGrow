@@ -1,6 +1,7 @@
 'use client';
 
-import { Trash2, UserPlus, Download } from 'lucide-react';
+import { Trash2, Download } from 'lucide-react';
+import { mapTeamMemberOptions } from './utils';
 
 export default function BulkActionsBar({ count, teamMembers, onAssign, onDelete, onExport }) {
   if (count === 0) return null;
@@ -15,8 +16,8 @@ export default function BulkActionsBar({ count, teamMembers, onAssign, onDelete,
           className="text-xs px-2 py-1.5 rounded-md border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900"
         >
           <option value="" disabled>Assign to...</option>
-          {teamMembers.map((m) => (
-            <option key={m._id} value={m._id}>{m.firstName || m.email}</option>
+          {mapTeamMemberOptions(teamMembers).map((m) => (
+            <option key={m.id} value={m.id}>{m.label}</option>
           ))}
         </select>
         <button type="button" onClick={onExport} className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 hover:bg-blue-100/50">

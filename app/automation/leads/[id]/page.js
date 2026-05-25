@@ -8,6 +8,7 @@ import LeadDetailSkeleton from '../../components/leads/detail/LeadDetailSkeleton
 import LeadDetailHeader from '../../components/leads/detail/LeadDetailHeader';
 import LeadDetailProfile from '../../components/leads/detail/LeadDetailProfile';
 import LeadDetailWorkspace from '../../components/leads/detail/LeadDetailWorkspace';
+import ChatbotTranscript from '../../components/leads/detail/ChatbotTranscript';
 
 export default function LeadDetailPage({ params }) {
   const { id } = use(params);
@@ -76,7 +77,11 @@ export default function LeadDetailPage({ params }) {
             onWhatsApp={() => detail.openWhatsApp()}
           />
 
-          <LeadDetailWorkspace
+          <div className="space-y-6">
+            {detail.lead.source === 'bot' && (
+              <ChatbotTranscript lead={detail.lead} />
+            )}
+            <LeadDetailWorkspace
             lead={detail.lead}
             tasks={detail.tasks}
             teamMembers={detail.teamMembers}
@@ -87,6 +92,7 @@ export default function LeadDetailPage({ params }) {
             onCreateTask={detail.createTask}
             onCompleteTask={detail.completeTask}
           />
+          </div>
         </div>
       </div>
     </div>

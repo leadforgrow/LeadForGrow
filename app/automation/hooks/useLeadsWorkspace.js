@@ -25,6 +25,7 @@ export function useLeadsWorkspace() {
     ...DEFAULT_FILTERS,
     search: searchParams.get('search') || '',
     status: searchParams.get('filter') || searchParams.get('status') || 'all',
+    source: searchParams.get('source') || '',
     view: searchParams.get('view') || 'all'
   });
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');

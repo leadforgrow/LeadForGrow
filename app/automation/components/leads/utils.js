@@ -1,11 +1,41 @@
 import { STATUS_CONFIG } from './constants';
 
-export function assigneeName(user) {
+/** Unwrap User from TeamMember { userId: {...} } or return User as-is */
+export function resolveTeamUser(member) {
+  if (!member) return null;
+  if (member.email && !member.userId) return member;
+  const u = member.userId;
+  if (u && typeof u === 'object') return u;
+  if (typeof u === 'string') return { _id: u };
+  return member;
+}
+
+export function assigneeName(userOrMember) {
+  const user = resolveTeamUser(userOrMember);
   if (!user) return 'Unassigned';
-  if (user.firstName || user.lastName) {
-    return [user.firstName, user.lastName].filter(Boolean).join(' ');
+  const first = user.firstName || user.first_name;
+  const last = user.lastName || user.last_name;
+  if (first || last) return [first, last].filter(Boolean).join(' ');
+  if (user.name) return user.name;
+  if (userOrMember?.role === 'owner' && !user.email) return 'Business Owner';
+  if (user.email) {
+    const local = user.email.split('@')[0];
+    return local.charAt(0).toUpperCase() + local.slice(1);
   }
-  return user.email?.split('@')[0] || 'Team member';
+  return 'Team member';
+}
+
+/** User._id for assignment (not TeamMember._id) */
+export function teamMemberUserId(member) {
+  return resolveTeamUser(member)?._id || '';
+}
+
+/** Consistent { id, label } pairs for assignment dropdowns */
+export function mapTeamMemberOptions(teamMembers = []) {
+  return teamMembers.map((m) => ({
+    id: teamMemberUserId(m),
+    label: assigneeName(m),
+  })).filter((o) => o.id);
 }
 
 export function formatDate(date, opts = {}) {
@@ -63,10 +93,6 @@ export function getLeadTags(lead) {
   if (lead.priority === 'high' || lead.priority === 'urgent') tags.push('Hot');
   if (lead.campaignName) tags.push(lead.campaignName.slice(0, 20));
   return tags.slice(0, 3);
-}
-
-export function resolveTeamUser(member) {
-  return member?.userId || member;
 }
 
 export function buildLeadsQuery(filters, userId) {

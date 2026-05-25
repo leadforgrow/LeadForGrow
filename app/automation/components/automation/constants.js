@@ -9,7 +9,8 @@ import {
   FileText,
   CalendarClock,
   ArrowRightCircle,
-  Zap
+  Zap,
+  GitBranch
 } from 'lucide-react';
 
 export const TEMPLATE_VARIABLES = [
@@ -52,7 +53,8 @@ export const RULE_ICONS = {
   auto_assign: UserRoundPlus,
   follow_up_reminder: Clock3,
   lost_lead_reengagement: RotateCcw,
-  manual_template: FileText
+  manual_template: FileText,
+  sequence_runner: GitBranch,
 };
 
 export const RULE_ICON_FALLBACK = Zap;

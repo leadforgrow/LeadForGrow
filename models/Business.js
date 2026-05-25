@@ -121,6 +121,44 @@ const BusinessSettingsSchema = new mongoose.Schema({
     }
   },
 
+  // Website Chatbot Widget
+  chatbot: {
+    enabled: { type: Boolean, default: true },
+    published: { type: Boolean, default: false },
+    appearance: {
+      primaryColor: { type: String, default: '#0f766e' },
+      position: { type: String, enum: ['left', 'right'], default: 'right' },
+      botName: { type: String, default: 'Support' },
+      subtitle: { type: String, default: 'Typically replies in a few minutes' },
+      showBranding: { type: Boolean, default: true }
+    },
+    messages: {
+      greeting: { type: String, default: 'Hi there! 👋 Welcome to our site. May I know your name?' },
+      thankYou: { type: String, default: 'Thank you! Our team will contact you shortly.' },
+      offlineMessage: { type: String, default: 'We are currently away. Leave your details and we will get back to you.' }
+    },
+    flow: {
+      collectEmail: { type: Boolean, default: true },
+      collectPhone: { type: Boolean, default: true },
+      askSupportType: { type: Boolean, default: true },
+      questions: {
+        type: [String],
+        default: [
+          'What services are you primarily interested in?',
+          'How did you hear about us?',
+          'What is your estimated budget for this project?',
+          'How soon are you looking to get started?'
+        ]
+      }
+    },
+    stats: {
+      impressions: { type: Number, default: 0 },
+      conversationsStarted: { type: Number, default: 0 },
+      leadsCaptured: { type: Number, default: 0 }
+    },
+    lastPublishedAt: { type: Date }
+  },
+
   // Call Automation Settings
   callAutomation: {
     enabled: { type: Boolean, default: true },

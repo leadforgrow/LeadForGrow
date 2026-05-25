@@ -3,7 +3,7 @@
 import { Phone, Mail, Tag, Clock, User, Sparkles, ChevronDown, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { PIPELINE_STAGES } from '../constants';
-import { assigneeName, formatSource, formatDate, formatRelative, resolveTeamUser } from '../utils';
+import { assigneeName, formatSource, formatDate, formatRelative, mapTeamMemberOptions } from '../utils';
 import FollowupChip from '../FollowupChip';
 
 export default function LeadDetailProfile({
@@ -82,12 +82,9 @@ export default function LeadDetailProfile({
             className="w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
           >
             <option value="">Unassigned</option>
-            {teamMembers.map((m) => {
-              const user = resolveTeamUser(m);
-              return (
-                <option key={user._id} value={user._id}>{assigneeName(user)}</option>
-              );
-            })}
+            {mapTeamMemberOptions(teamMembers).map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
           </select>
           <label className="flex items-center gap-2 mt-2 cursor-pointer">
             <input

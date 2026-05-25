@@ -1,261 +1,345 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, MessageCircle, X, ChevronRight, User, Mail, Phone, Headphones, BarChart3, Bot } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Send, MessageCircle, X, Minus, Headphones, TrendingUp } from 'lucide-react';
+import { DEFAULT_CHATBOT_CONFIG } from '@/lib/chatbot/defaults';
 
-const Chatbot = ({ businessId = '696956dde910b99089019e29', position = 'right', isPreview = false }) => {
+function darken(hex, amount = 0.12) {
+  if (!hex || !hex.startsWith('#') || hex.length < 7) return hex || '#0f766e';
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, ((n >> 16) & 255) * (1 - amount)) | 0;
+  const g = Math.max(0, ((n >> 8) & 255) * (1 - amount)) | 0;
+  const b = Math.max(0, (n & 255) * (1 - amount)) | 0;
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+export default function Chatbot({
+  businessId = '696956dde910b99089019e29',
+  position = 'right',
+  isPreview = false,
+  previewConfig = null,
+}) {
+  const [widgetConfig, setWidgetConfig] = useState(null);
+  const [configLoading, setConfigLoading] = useState(!isPreview);
   const [isOpen, setIsOpen] = useState(isPreview);
   const [step, setStep] = useState(0);
-  const [messages, setMessages] = useState([
-    { type: 'bot', text: 'Hi there! 👋 Welcome to our site. May I know your name?' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [leadData, setLeadData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    responses: [],
-    supportType: '',
-    supportMessage: ''
+    name: '', email: '', phone: '', responses: [], supportType: '', supportMessage: '',
   });
-
+  const [submitted, setSubmitted] = useState(false);
   const scrollRef = useRef(null);
+  const startedRef = useRef(false);
+  const leadRef = useRef(leadData);
+  leadRef.current = leadData;
+
+  const cfg = useMemo(() => {
+    if (isPreview && previewConfig) return previewConfig;
+    if (widgetConfig?.active) return widgetConfig;
+    if (isPreview) {
+      return {
+        active: true,
+        businessName: 'Your Business',
+        appearance: DEFAULT_CHATBOT_CONFIG.appearance,
+        messages: DEFAULT_CHATBOT_CONFIG.messages,
+        flow: DEFAULT_CHATBOT_CONFIG.flow,
+      };
+    }
+    return null;
+  }, [isPreview, previewConfig, widgetConfig]);
+
+  const flow = cfg?.flow || DEFAULT_CHATBOT_CONFIG.flow;
+  const questions = useMemo(() => (flow.questions || []).filter(Boolean), [flow.questions]);
+  const supportStep = 3 + questions.length;
+  const messageStep = supportStep + (flow.askSupportType ? 1 : 0);
+
+  const primary = cfg?.appearance?.primaryColor || '#0f766e';
+  const primaryDark = darken(primary);
+  const botName = cfg?.appearance?.botName || 'Support';
+  const subtitle = cfg?.appearance?.subtitle || 'Typically replies in a few minutes';
+  const showBranding = cfg?.appearance?.showBranding !== false;
+  const pos = cfg?.appearance?.position || position;
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (isPreview || !businessId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/public/chatbot/config?businessId=${businessId}`);
+        const json = await res.json();
+        if (!cancelled && json.success) setWidgetConfig(json.data);
+      } catch {
+        if (!cancelled) setWidgetConfig({ active: false });
+      } finally {
+        if (!cancelled) setConfigLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [businessId, isPreview]);
+
+  useEffect(() => {
+    if (!cfg) return;
+    setMessages([{ type: 'bot', text: cfg.messages?.greeting || DEFAULT_CHATBOT_CONFIG.messages.greeting }]);
+    setStep(0);
+    setLeadData({ name: '', email: '', phone: '', responses: [], supportType: '', supportMessage: '' });
+    setSubmitted(false);
+  }, [cfg?.messages?.greeting, previewConfig]);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, isTyping]);
 
-  const questions = [
-    "What services are you primarily interested in?",
-    "How did you hear about us?",
-    "What is your estimated budget for this project?",
-    "How soon are you looking to get started?",
-    "Is there anything specific you'd like us to know before we call?"
-  ];
+  const addMessage = useCallback((text, type = 'bot') => {
+    setMessages((prev) => [...prev, { type, text }]);
+  }, []);
 
-  const addMessage = (text, type = 'bot') => {
-    setMessages(prev => [...prev, { type, text }]);
+  const notifyParent = (action) => {
+    if (typeof window !== 'undefined' && window.parent !== window) {
+      window.parent.postMessage({ type: 'LFG_CHAT_MSG', action }, '*');
+    }
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
+  const openChat = () => {
+    setIsOpen(true);
+    notifyParent('open');
+    if (!startedRef.current && !isPreview) {
+      startedRef.current = true;
+      fetch('/api/public/chatbot/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId, event: 'conversation_started' }),
+      }).catch(() => {});
+    }
+  };
 
-    const userText = inputValue.trim();
+  const afterContact = () => {
+    if (questions.length) return { text: questions[0], next: 3 };
+    if (flow.askSupportType) return { text: 'Do you need Technical Support or Sales Support?', next: supportStep };
+    return { text: 'Tell us briefly about your requirement:', next: messageStep };
+  };
+
+  const handleSend = async (overrideText) => {
+    const userText = (overrideText ?? inputValue).trim();
+    if (!userText || submitted) return;
+
     addMessage(userText, 'user');
     setInputValue('');
     setIsTyping(true);
+    await new Promise((r) => setTimeout(r, 650));
 
-    setTimeout(async () => {
-      let nextStep = step;
-      let botResponse = '';
+    let nextStep = step;
+    let botResponse = '';
 
-      if (step === 0) {
-        // Name
-        setLeadData(prev => ({ ...prev, name: userText }));
-        botResponse = `Nice to meet you, ${userText}! Can you please share your email address?`;
+    if (step === 0) {
+      setLeadData((prev) => ({ ...prev, name: userText }));
+      if (flow.collectEmail) {
+        botResponse = `Nice to meet you, ${userText}! What's your email address?`;
         nextStep = 1;
-      } else if (step === 1) {
-        // Email
-        if (!userText.includes('@')) {
-          botResponse = "That doesn't look like a valid email. Please try again.";
-          setIsTyping(false);
-          addMessage(botResponse);
-          return;
-        }
-        setLeadData(prev => ({ ...prev, email: userText }));
-        botResponse = "Thank you! And what's your phone number?";
+      } else if (flow.collectPhone) {
+        botResponse = `Thanks, ${userText}! What's the best phone number to reach you?`;
         nextStep = 2;
-      } else if (step === 2) {
-        // Phone
-        setLeadData(prev => ({ ...prev, phone: userText }));
-        botResponse = `Got it! Now, a few quick questions to help us serve you better. ${questions[0]}`;
-        nextStep = 3;
-      } else if (step >= 3 && step < 3 + questions.length) {
-        // Questions loop
-        const questionIdx = step - 3;
-        setLeadData(prev => ({
-          ...prev,
-          responses: [...prev.responses, { question: questions[questionIdx], answer: userText }]
-        }));
-
-        if (questionIdx < questions.length - 1) {
-          botResponse = questions[questionIdx + 1];
-          nextStep = step + 1;
-        } else {
-          botResponse = "Great! One last thing: Do you need Technical Support or Sales Support?";
-          nextStep = 3 + questions.length;
-        }
-      } else if (step === 3 + questions.length) {
-        // Support Type
-        const type = userText.toLowerCase().includes('tech') ? 'technical' : 'sales';
-        setLeadData(prev => ({ ...prev, supportType: type }));
-        botResponse = "Please write a brief message about your requirement:";
+      } else {
+        ({ text: botResponse, next: nextStep } = afterContact());
+      }
+    } else if (step === 1) {
+      if (!userText.includes('@') || !userText.includes('.')) {
+        addMessage("That doesn't look like a valid email. Could you try again?");
+        setIsTyping(false);
+        return;
+      }
+      setLeadData((prev) => ({ ...prev, email: userText }));
+      if (flow.collectPhone) {
+        botResponse = 'Great! And your phone number?';
+        nextStep = 2;
+      } else {
+        ({ text: botResponse, next: nextStep } = afterContact());
+      }
+    } else if (step === 2) {
+      setLeadData((prev) => ({ ...prev, phone: userText }));
+      ({ text: botResponse, next: nextStep } = afterContact());
+    } else if (step >= 3 && step < supportStep) {
+      const qIdx = step - 3;
+      setLeadData((prev) => ({
+        ...prev,
+        responses: [...prev.responses, { question: questions[qIdx], answer: userText }],
+      }));
+      if (qIdx < questions.length - 1) {
+        botResponse = questions[qIdx + 1];
         nextStep = step + 1;
-      } else if (step === 4 + questions.length) {
-        // Support Message & Final Submission
-        const finalData = {
-          ...leadData,
-          supportMessage: userText,
-          businessId
-        };
-        setLeadData(finalData);
+      } else if (flow.askSupportType) {
+        botResponse = 'Almost done — do you need Technical Support or Sales Support?';
+        nextStep = supportStep;
+      } else {
+        botResponse = 'Please share a brief message about your requirement:';
+        nextStep = messageStep;
+      }
+    } else if (step === supportStep && flow.askSupportType) {
+      const type = userText.toLowerCase().includes('tech') ? 'technical' : 'sales';
+      setLeadData((prev) => ({ ...prev, supportType: type }));
+      botResponse = 'Please write a brief message about your requirement:';
+      nextStep = messageStep;
+    } else if (step === messageStep) {
+      const current = leadRef.current;
+      const finalLead = { ...current, supportMessage: userText, businessId };
+      botResponse = cfg?.messages?.thankYou || DEFAULT_CHATBOT_CONFIG.messages.thankYou;
+      nextStep = messageStep + 1;
+      setSubmitted(true);
+      setLeadData((prev) => ({ ...prev, supportMessage: userText }));
 
-        // Final Message
-        botResponse = "Our team will contact you shortly. Thank you!";
-        nextStep = step + 1;
+      const transcript = [...messages, { type: 'user', text: userText }, { type: 'bot', text: botResponse }];
 
-        // Submit to API (Skip in preview mode)
-        if (isPreview) {
-          console.log('[Chatbot Preview] Lead data captured:', finalData);
-        } else {
-          try {
-            await fetch('/api/public/chatbot', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(finalData)
-            });
-          } catch (error) {
-            console.error('Failed to submit chatbot lead:', error);
-          }
+      if (!isPreview) {
+        try {
+          await fetch('/api/public/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...finalLead, transcript }),
+          });
+        } catch (err) {
+          console.error('[Chatbot] Submit failed:', err);
         }
       }
+    }
 
-      setIsTyping(false);
-      if (botResponse) addMessage(botResponse);
-      setStep(nextStep);
-    }, 1000);
+    setIsTyping(false);
+    if (botResponse) addMessage(botResponse);
+    setStep(nextStep);
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') handleSend();
-  };
+  if (!isPreview && (configLoading || !cfg?.active)) return null;
+
+  const posClass = isPreview
+    ? `absolute bottom-4 ${pos === 'left' ? 'left-4' : 'right-4'}`
+    : `fixed bottom-6 ${pos === 'left' ? 'left-6' : 'right-6'} z-[9999]`;
+
+  const showQuickReplies = step === supportStep && flow.askSupportType && !submitted;
+  const showInput = !submitted && !showQuickReplies;
 
   return (
-    <div className={`${isPreview ? 'relative w-full h-full min-h-[500px]' : `fixed bottom-32 ${position === 'left' ? 'left-6' : 'right-6'} z-[9999]`} font-sans`}>
-      {/* Chat Button */}
+    <div className={`${posClass} font-sans`}>
       {!isOpen && (
         <button
-          onClick={() => {
-            setIsOpen(true);
-            window.parent.postMessage({ type: 'LFG_CHAT_MSG', action: 'open' }, '*');
-          }}
-          className="w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 group"
+          type="button"
+          onClick={openChat}
+          aria-label="Open chat"
+          className="group relative w-[60px] h-[60px] text-white rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          style={{ background: `linear-gradient(145deg, ${primary}, ${primaryDark})` }}
         >
-          <MessageCircle className="w-8 h-8 group-hover:rotate-12 transition-transform" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+          <MessageCircle className="w-7 h-7" strokeWidth={2} />
+          <span className="absolute top-1 right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />
         </button>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
-        <div className={`${isPreview ? 'w-full h-full' : 'w-[380px] h-[580px]'} bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-100 transition-all animate-in slide-in-from-bottom-10 fade-in duration-300`}>
-          {/* Header */}
-          <div className="bg-indigo-600 p-4 text-white flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Bot className="w-6 h-6" />
+        <div
+          className={`${isPreview ? 'w-[340px] h-[520px]' : 'w-[380px] h-[600px] max-h-[85vh]'} bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/80`}
+        >
+          <div
+            className="px-4 py-3.5 text-white flex items-center justify-between flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${primary}, ${primaryDark})` }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                {botName.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h3 className="font-bold text-sm">Assistant</h3>
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm truncate">{botName}</h3>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
-                  <span className="text-[10px] text-indigo-100 font-medium uppercase tracking-wider">Online</span>
+                  <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse" />
+                  <span className="text-[11px] text-white/80 truncate">{subtitle}</span>
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                window.parent.postMessage({ type: 'LFG_CHAT_MSG', action: 'close' }, '*');
-              }}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button type="button" onClick={() => { setIsOpen(false); notifyParent('close'); }} className="p-2 hover:bg-white/10 rounded-lg">
+                <Minus className="w-4 h-4" />
+              </button>
+              <button type="button" onClick={() => { setIsOpen(false); notifyParent('close'); }} className="p-2 hover:bg-white/10 rounded-lg">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Messages */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50"
-          >
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/80">
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-              >
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.type === 'user'
-                  ? 'bg-indigo-600 text-white rounded-tr-none'
-                  : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
-                  }`}>
+              <div key={i} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.type === 'bot' && (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white mr-2 flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: primary }}
+                  >
+                    {botName.charAt(0)}
+                  </div>
+                )}
+                <div
+                  className={`max-w-[78%] px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                    msg.type === 'user'
+                      ? 'text-white rounded-2xl rounded-br-md'
+                      : 'bg-white text-slate-800 rounded-2xl rounded-bl-md border border-slate-100 shadow-sm'
+                  }`}
+                  style={msg.type === 'user' ? { backgroundColor: primary } : undefined}
+                >
                   {msg.text}
                 </div>
               </div>
             ))}
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce"></span>
-                  <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce delay-75"></span>
-                  <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce delay-150"></span>
+                <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />
+                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Input Area */}
-          <div className="p-4 bg-white border-t border-slate-100">
-            {step === 3 + questions.length ? (
-              <div className="grid grid-cols-2 gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <button
-                  onClick={() => { setInputValue('Technical Support'); handleSend(); }}
-                  className="flex items-center justify-center gap-2 p-3 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 rounded-xl text-xs font-semibold transition-all group"
-                >
-                  <Headphones className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  Technical
+          <div className="p-3 bg-white border-t border-slate-100 flex-shrink-0">
+            {showQuickReplies && (
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <button type="button" onClick={() => handleSend('Technical Support')} className="flex items-center justify-center gap-1.5 p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                  <Headphones className="w-3.5 h-3.5" /> Technical
                 </button>
-                <button
-                  onClick={() => { setInputValue('Sales Support'); handleSend(); }}
-                  className="flex items-center justify-center gap-2 p-3 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 rounded-xl text-xs font-semibold transition-all group"
-                >
-                  <BarChart3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  Sales
+                <button type="button" onClick={() => handleSend('Sales Support')} className="flex items-center justify-center gap-1.5 p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                  <TrendingUp className="w-3.5 h-3.5" /> Sales
                 </button>
               </div>
-            ) : step <= 5 + questions.length ? (
-              <div className="relative group">
+            )}
+
+            {showInput && (
+              <div className="relative">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 pr-12 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-slate-900"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder="Type a message..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                 />
                 <button
-                  onClick={handleSend}
+                  type="button"
+                  onClick={() => handleSend()}
                   disabled={!inputValue.trim()}
-                  className="absolute right-2 top-1.5 w-9 h-9 bg-indigo-600 text-white rounded-lg flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:bg-slate-300 hover:scale-105 active:scale-95 transition-all"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg flex items-center justify-center text-white disabled:opacity-40"
+                  style={{ backgroundColor: primary }}
                 >
                   <Send className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <div className="text-center py-2 text-xs text-slate-500 font-medium">
-                Our team will be in touch soon! ✨
-              </div>
             )}
-            <a href="https://www.leadforgrow.com" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 mt-3 opacity-50 hover:opacity-100 transition-opacity">
-              <span className="text-[10px] text-black font-bold">Powered by LeadForGrow</span>
-            </a>
+
+            {submitted && <p className="text-center text-xs text-slate-500 py-2 font-medium">Conversation complete</p>}
+
+            {showBranding && (
+              <a href="https://www.leadforgrow.com" target="_blank" rel="noopener noreferrer" className="block text-center mt-2 text-[10px] text-slate-400 hover:text-slate-600">
+                Powered by LeadForGrow
+              </a>
+            )}
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default Chatbot;
+}

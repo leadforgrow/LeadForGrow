@@ -1,6 +1,7 @@
 'use client';
 
 import { SOURCE_FILTER_OPTIONS, STAGE_FILTER_OPTIONS } from './constants';
+import { mapTeamMemberOptions } from '../leads/utils';
 
 export default function FilterBar({
   sourceFilter,
@@ -46,8 +47,8 @@ export default function FilterBar({
             className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
           >
             <option value="all">All team members</option>
-            {teamMembers.map((m) => (
-              <option key={m._id} value={m._id}>{m.name}</option>
+            {mapTeamMemberOptions(teamMembers).map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
             ))}
           </select>
         </div>

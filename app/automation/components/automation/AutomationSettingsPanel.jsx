@@ -1,10 +1,62 @@
 'use client';
 
-import { X, Save, Settings2 } from 'lucide-react';
+import Link from 'next/link';
+import { X, Save, Settings2, GitBranch, ExternalLink } from 'lucide-react';
 import AutomationStatusBadge from './StatusBadge';
 import ChannelSelector from './ChannelSelector';
 import TemplateEditor from './TemplateEditor';
 import { getChannelLabel, getTriggerLabel } from './constants';
+
+function SequenceRunnerPanel({ rule, onClose }) {
+  return (
+    <>
+      <div className="flex-shrink-0 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-50 truncate">{rule.name}</h3>
+              <AutomationStatusBadge rule={rule} size="xs" />
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{rule.description}</p>
+            <div className="flex flex-wrap gap-2 mt-2 text-[10px] text-slate-400">
+              <span>{getTriggerLabel(rule)}</span>
+              <span>·</span>
+              <span>Workflow sequence</span>
+            </div>
+          </div>
+          {onClose && (
+            <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/40">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <GitBranch className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Sequence automation</p>
+              <p className="text-xs text-slate-500">Toggle ON/OFF from the list. Edit workflow in Sequences.</p>
+            </div>
+          </div>
+          <Link
+            href="/automation/sequences"
+            className="inline-flex items-center gap-2 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Edit workflow in Sequences
+          </Link>
+        </div>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          This rule runs the linked sequence when its trigger fires. Use the toggle on the automation card to activate or pause — no template editing here.
+        </p>
+      </div>
+    </>
+  );
+}
 
 function PanelContent({
   rule,
@@ -28,6 +80,10 @@ function PanelContent({
         <p className="text-xs text-slate-400 mt-1 max-w-xs">Choose a rule from the list to configure channels, templates, and settings.</p>
       </div>
     );
+  }
+
+  if (rule.type === 'sequence_runner') {
+    return <SequenceRunnerPanel rule={rule} onClose={onClose} />;
   }
 
   const hasChannelConfig = ['instant_acknowledgement', 'lost_lead_reengagement'].includes(rule.type) || form.channel;

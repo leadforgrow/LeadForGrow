@@ -52,6 +52,7 @@ export const SOURCE_OPTIONS = [
   { value: 'whatsapp', label: 'WhatsApp' },
   { value: 'website', label: 'Website' },
   { value: 'form', label: 'Form' },
+  { value: 'bot', label: 'Chatbot' },
   { value: 'manual', label: 'Manual' },
   { value: 'meta_ads', label: 'Meta Ads' },
   { value: 'instagram_ad', label: 'Instagram Ad' },

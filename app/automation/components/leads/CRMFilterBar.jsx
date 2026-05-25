@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, BookmarkPlus } from 'lucide-react';
 import { SMART_VIEWS, SOURCE_OPTIONS, PIPELINE_STAGES } from './constants';
+import { mapTeamMemberOptions } from './utils';
 
 export default function CRMFilterBar({
   filters,
@@ -75,8 +76,8 @@ export default function CRMFilterBar({
           <option value="">All Agents</option>
           <option value="me">My Leads</option>
           <option value="unassigned">Unassigned</option>
-          {teamMembers.map((m) => (
-            <option key={m._id} value={m._id}>{m.firstName || m.email}</option>
+          {mapTeamMemberOptions(teamMembers).map((m) => (
+            <option key={m.id} value={m.id}>{m.label}</option>
           ))}
         </select>
 

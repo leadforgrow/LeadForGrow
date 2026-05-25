@@ -31,6 +31,15 @@ export const PUT = withPlanAccess('automation', async (req, { params }) => {
       );
     }
 
+    // Sync linked sequence when toggling sequence_runner rules
+    if (rule.type === 'sequence_runner' && enabled !== undefined && rule.config?.sequenceId) {
+      const AutomationSequence = (await import('@/models/automation/AutomationSequence')).default;
+      await AutomationSequence.updateOne(
+        { _id: rule.config.sequenceId, businessId },
+        { $set: { status: enabled ? 'active' : 'paused', active: enabled } }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       data: rule

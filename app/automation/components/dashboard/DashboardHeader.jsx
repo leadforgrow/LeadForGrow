@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Search, Plus, Sparkles, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { Search, Plus, RefreshCw } from 'lucide-react';
+import { BusinessAssistantTrigger } from '../assistant/BusinessAssistantFab';
 
 export default function DashboardHeader({
   businessName,
@@ -60,13 +61,7 @@ export default function DashboardHeader({
               <span className="sm:hidden">Lead</span>
             </Link>
 
-            <Link
-              href="/automation/chat"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              Assistant
-            </Link>
+            <BusinessAssistantTrigger />
           </div>
         </div>
       </div>

@@ -123,6 +123,14 @@ export const PUT = withPlanAccess('automation', async (req) => {
     await rule.save();
     console.log(`[API Rules] Rule ${ruleId} saved successfully. Config:`, rule.config);
 
+    if (rule.type === 'sequence_runner' && updates.enabled !== undefined && rule.config?.sequenceId) {
+      const AutomationSequence = (await import('@/models/automation/AutomationSequence')).default;
+      await AutomationSequence.updateOne(
+        { _id: rule.config.sequenceId, businessId },
+        { $set: { status: updates.enabled ? 'active' : 'paused', active: updates.enabled } }
+      );
+    }
+
     return NextResponse.json({ success: true, data: rule });
   } catch (error) {
     console.error('Error updating rule:', error);

@@ -15,6 +15,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { PIPELINE_STAGES } from './constants';
+import { mapTeamMemberOptions } from './utils';
 
 export default function LeadActionsMenu({
   lead,
@@ -120,14 +121,14 @@ export default function LeadActionsMenu({
 
           {showAssign && (
             <div className="border-t border-slate-100 dark:border-slate-800 max-h-36 overflow-y-auto">
-              {teamMembers.map((m) => (
+              {mapTeamMemberOptions(teamMembers).map((m) => (
                 <button
-                  key={m._id}
+                  key={m.id}
                   type="button"
-                  onClick={() => { onAssign(lead._id, m._id); setOpen(false); }}
+                  onClick={() => { onAssign(lead._id, m.id); setOpen(false); }}
                   className="w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800 truncate"
                 >
-                  {m.firstName || m.email}
+                  {m.label}
                 </button>
               ))}
             </div>

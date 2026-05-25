@@ -30,7 +30,8 @@ const AutomationRuleSchema = new mongoose.Schema({
       'auto_assign',
       'follow_up_reminder',
       'lost_lead_reengagement',
-      'manual_template'
+      'manual_template',
+      'sequence_runner',
     ],
     required: true
   },
@@ -110,7 +111,13 @@ const AutomationRuleSchema = new mongoose.Schema({
     },
     metaComponents: {
       type: Array
-    }
+    },
+
+    // Sequence workflow link
+    sequenceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'AutomationSequence',
+    },
   },
 
   // Trigger Conditions

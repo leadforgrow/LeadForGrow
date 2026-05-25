@@ -1,43 +1,70 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import AutomationSequence from '@/models/automation/AutomationSequence';
+import { withPlanAccess } from '@/lib/accessControl';
+import { syncSequenceRule } from '@/lib/sequences/ruleSync';
 
-export async function GET(req) {
-    try {
-        await dbConnect();
-        const { searchParams } = new URL(req.url);
-        const businessId = searchParams.get('businessId');
+export const GET = withPlanAccess('automation', async (req) => {
+  try {
+    await dbConnect();
+    const businessId = req.user.businessId;
+    const sequences = await AutomationSequence.find({ businessId })
+      .sort({ updatedAt: -1 })
+      .lean();
+    return NextResponse.json({ success: true, data: sequences });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+});
 
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID required' }, { status: 400 });
-        }
+export const POST = withPlanAccess('automation', async (req) => {
+  try {
+    await dbConnect();
+    const businessId = req.user.businessId;
+    const userId = req.user.userId;
+    const body = await req.json();
 
-        const sequences = await AutomationSequence.find({ businessId }).sort({ createdAt: -1 }).lean();
-        return NextResponse.json({ success: true, data: sequences });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const {
+      name,
+      description,
+      category = 'custom',
+      triggerType = 'new_lead',
+      triggerConfig = {},
+      nodes = [],
+      edges = [],
+      steps = [],
+      status = 'draft',
+      templateId,
+    } = body;
+
+    if (!name?.trim()) {
+      return NextResponse.json({ success: false, error: 'Sequence name required' }, { status: 400 });
     }
-}
 
-export async function POST(req) {
-    try {
-        await dbConnect();
-        const body = await req.json();
-        const { businessId, name, description, steps } = body;
+    const workflowMode = nodes.length > 0 ? 'graph' : 'linear';
 
-        if (!businessId || !name) {
-            return NextResponse.json({ success: false, error: 'Name required' }, { status: 400 });
-        }
+    const sequence = await AutomationSequence.create({
+      businessId,
+      name: name.trim(),
+      description,
+      category,
+      triggerType,
+      triggerConfig,
+      workflowMode,
+      nodes,
+      edges,
+      steps,
+      status,
+      createdBy: userId,
+      tags: body.tags || [],
+    });
 
-        const newSequence = await AutomationSequence.create({
-            businessId,
-            name,
-            description,
-            steps: steps || []
-        });
+    await syncSequenceRule(sequence, userId);
 
-        return NextResponse.json({ success: true, data: newSequence });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-}
+    const populated = await AutomationSequence.findById(sequence._id).lean();
+    return NextResponse.json({ success: true, data: populated }, { status: 201 });
+  } catch (error) {
+    console.error('[Sequences API] POST error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+});

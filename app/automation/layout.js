@@ -1,10 +1,9 @@
 import { Toaster } from 'react-hot-toast';
 import AccessControl from './components/AccessControl';
 import Sidebar from './components/Sidebar';
-import Footer from '../components/Footer';
 import GlobalDialer from './components/GlobalDialer';
 import ReminderMonitor from './components/ReminderMonitor';
-import NotificationCenter from './components/NotificationCenter';
+import BusinessAssistantRoot from './components/assistant/BusinessAssistantRoot';
 
 export const metadata = {
   title: 'Automation - LeadForGrow',
@@ -14,23 +13,21 @@ export const metadata = {
 export default function AutomationLayout({ children }) {
   return (
     <AccessControl>
-      <div className="flex h-screen bg-[#f8f9fc] dark:bg-slate-950 relative overflow-hidden transition-colors duration-300">
-        {/* Style injection to fix duplicate scrollbars */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-          body { overflow: hidden !important; height: 100vh !important; }
-        ` }} />
+      <BusinessAssistantRoot>
+        <div className="flex h-screen bg-[#f8f9fc] dark:bg-slate-950 relative overflow-hidden transition-colors duration-300">
+          <style dangerouslySetInnerHTML={{
+            __html: `body { overflow: hidden !important; height: 100vh !important; }`
+          }} />
 
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-[#f8f9fc] dark:bg-slate-950 transition-colors duration-300">
-          <div className="flex-1">
-            {children}
-          </div>
-        </main>
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-[#f8f9fc] dark:bg-slate-950 transition-colors duration-300">
+            <div className="flex-1">{children}</div>
+          </main>
 
-        <GlobalDialer />
-        <ReminderMonitor />
-      </div>
+          <GlobalDialer />
+          <ReminderMonitor />
+        </div>
+      </BusinessAssistantRoot>
     </AccessControl>
   );
 }

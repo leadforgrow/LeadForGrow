@@ -1,6 +1,7 @@
 'use client';
 
 import { X, Send, Sparkles } from 'lucide-react';
+import { mapTeamMemberOptions } from '../leads/utils';
 
 export default function CreateTaskModal({
   open,
@@ -54,8 +55,8 @@ export default function CreateTaskModal({
                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 <option value="">Select teammate...</option>
-                {teamMembers.map((m) => (
-                  <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>
+                {mapTeamMemberOptions(teamMembers).map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
                 ))}
               </select>
             </div>
