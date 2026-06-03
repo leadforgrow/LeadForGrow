@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import {
   buildInsights,
   buildKPIs,
@@ -44,8 +45,7 @@ export function useReportsWorkspace() {
   }, [router]);
 
   const fetchAll = useCallback(async (silent = false) => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) {
+    if (!localStorage.getItem('userToken') && !localStorage.getItem('token')) {
       setError('Not signed in');
       setLoading(false);
       return;
@@ -55,17 +55,16 @@ export function useReportsWorkspace() {
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const qs = `userId=${userId}`;
       const [reportsRes, metricsRes, activitiesRes, convRes, overdueRes, todayRes, upcomingRes, teamRes] =
         await Promise.all([
-          fetch(`/api/automation/reports?${qs}&period=${period}`),
-          fetch(`/api/business/revenue-metric?${qs}`, { credentials: 'include' }),
-          fetch(`/api/automation/activities?${qs}&limit=15`),
-          fetch('/api/automation/chat/conversations?status=&search=', { credentials: 'include' }).catch(() => null),
-          fetch(`/api/automation/tasks?${qs}&filter=overdue`),
-          fetch(`/api/automation/tasks?${qs}&filter=today`),
-          fetch(`/api/automation/tasks?${qs}&filter=upcoming`),
-          fetch(`/api/automation/team?${qs}`)
+          authFetch(`/api/automation/reports?period=${period}`),
+          authFetch('/api/business/revenue-metric'),
+          authFetch('/api/automation/activities?limit=15'),
+          authFetch('/api/automation/chat/conversations?status=&search=').catch(() => null),
+          authFetch('/api/automation/tasks?filter=overdue'),
+          authFetch('/api/automation/tasks?filter=today'),
+          authFetch('/api/automation/tasks?filter=upcoming'),
+          authFetch('/api/automation/team'),
         ]);
 
       const [reportsJson, metricsJson, activitiesJson, overdueJson, todayJson, upcomingJson, teamJson] =

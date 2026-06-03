@@ -11,9 +11,9 @@ import { fadeUp } from './motionConfig';
 const ROTATING_WORDS = ['deals', 'revenue', 'conversions', 'customers'];
 
 const OUTCOMES = [
-  { icon: Timer, value: '<60s', label: 'First WhatsApp reply', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
+  { icon: Timer, value: '<60s', label: 'First WhatsApp reply', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
   { icon: ShieldCheck, value: '0', label: 'Leads lost to delay', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
-  { icon: Repeat2, value: '3×', label: 'More follow-ups sent', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/40' },
+  { icon: Repeat2, value: '3×', label: 'More follow-ups sent', color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40' },
 ];
 
 const PROOF_POINTS = [
@@ -39,7 +39,7 @@ function RotatingWord() {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute left-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent"
+          className="absolute left-0 bg-gradient-to-r from-blue-600 via-sky-600 to-sky-600 bg-clip-text text-transparent"
         >
           {ROTATING_WORDS[index]}
         </motion.span>
@@ -57,8 +57,8 @@ export default function PremiumHero({ onGetStarted, onWatchDemo }) {
       {/* Headline glow */}
       <div className="pointer-events-none absolute left-[5%] top-[28%] h-[420px] w-[420px] rounded-full bg-blue-500/[0.06] blur-[100px] dark:bg-blue-600/[0.1]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-28 pb-16 lg:pt-32 lg:pb-24">
-        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-24 pb-12 lg:pt-28 lg:pb-16">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-10 xl:gap-14">
           {/* LEFT */}
           <div>
             <motion.h1
@@ -176,7 +176,7 @@ export default function PremiumHero({ onGetStarted, onWatchDemo }) {
               transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
               className="relative"
             >
-              <div className="absolute -inset-8 bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-violet-500/10 rounded-full blur-3xl" />
+              <div className="absolute -inset-8 bg-gradient-to-tr from-blue-500/10 via-sky-500/5 to-sky-500/10 rounded-full blur-3xl" />
               <CrmCommandCenter />
             </motion.div>
 
@@ -187,8 +187,8 @@ export default function PremiumHero({ onGetStarted, onWatchDemo }) {
               transition={{ delay: 1.2, duration: 0.5 }}
               className="absolute -left-2 top-[18%] z-20 hidden sm:block"
             >
-              <div className="rounded-xl border border-emerald-200/80 dark:border-emerald-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
-                <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide">Just now</p>
+              <div className="rounded-xl border border-blue-200/80 dark:border-blue-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
+                <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">Just now</p>
                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 mt-0.5">Lead replied in 47s</p>
               </div>
             </motion.div>
@@ -199,8 +199,8 @@ export default function PremiumHero({ onGetStarted, onWatchDemo }) {
               transition={{ delay: 1.4, duration: 0.5 }}
               className="absolute -right-1 bottom-[22%] z-20 hidden sm:block"
             >
-              <div className="rounded-xl border border-blue-200/80 dark:border-blue-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
-                <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">AI routed</p>
+              <div className="rounded-xl border border-sky-200/80 dark:border-sky-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
+                <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wide">Auto routed</p>
                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 mt-0.5">Deal moved to Won</p>
               </div>
             </motion.div>

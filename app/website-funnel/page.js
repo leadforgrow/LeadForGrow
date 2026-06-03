@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import UserNavbar from '../user/Header';
 import Heading from '@/app/components/ui/Heading';
+import { authFetch, getAuthToken } from '@/lib/apiClient';
 
 export default function WebsiteFunnelPage() {
   const router = useRouter();
@@ -31,9 +32,8 @@ export default function WebsiteFunnelPage() {
 
   const fetchWebsites = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) return;
-      const res = await fetch(`/api/website-funnel/list?userId=${userId}`);
+      if (!getAuthToken()) return;
+      const res = await authFetch('/api/website-funnel/list');
       const data = await res.json();
       if (data.success) {
         setWebsites(data.websites);

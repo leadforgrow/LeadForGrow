@@ -1,49 +1,41 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Notification from '@/models/automation/Notification';
+import { withAuth } from '@/lib/auth';
 
-export async function GET(request) {
-    try {
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
+export const GET = withAuth()(async (req) => {
+  try {
+    await dbConnect();
+    const userId = req.user.userId;
 
-        if (!userId) {
-            return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
-        }
+    const notifications = await Notification.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
 
-        await dbConnect();
+    return NextResponse.json({ success: true, data: notifications });
+  } catch (error) {
+    console.error('[Notifications API] GET Error:', error);
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+  }
+});
 
-        const notifications = await Notification.find({ userId })
-            .sort({ createdAt: -1 })
-            .limit(20)
-            .lean();
+export const PUT = withAuth()(async (req) => {
+  try {
+    const { notificationId, markAll } = await req.json();
+    const userId = req.user.userId;
 
-        return NextResponse.json({ success: true, data: notifications });
-    } catch (error) {
-        console.error('[Notifications API] GET Error:', error);
-        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    await dbConnect();
+
+    if (markAll) {
+      await Notification.updateMany({ userId, isRead: false }, { isRead: true });
+    } else if (notificationId) {
+      await Notification.updateOne({ _id: notificationId, userId }, { isRead: true });
     }
-}
 
-export async function PUT(request) {
-    try {
-        const { userId, notificationId, markAll } = await request.json();
-
-        if (!userId) {
-            return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
-        }
-
-        await dbConnect();
-
-        if (markAll) {
-            await Notification.updateMany({ userId, isRead: false }, { isRead: true });
-        } else if (notificationId) {
-            await Notification.updateOne({ _id: notificationId, userId }, { isRead: true });
-        }
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('[Notifications API] PUT Error:', error);
-        return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
-    }
-}
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[Notifications API] PUT Error:', error);
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+  }
+});

@@ -16,6 +16,7 @@ import {
 import UserNavbar from '../../user/Header';
 import SuccessModal from '../../components/website/SuccessModal';
 import PublishSettingsModal from '../../components/website/PublishSettingsModal';
+import { authFetch } from '@/lib/apiClient';
 
 function DashboardContent() {
   const router = useRouter();
@@ -35,8 +36,7 @@ function DashboardContent() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userid') || '6778f2e20000000000000001';
-      const res = await fetch(`/api/websites?userId=${userId}`);
+      const res = await authFetch('/api/websites');
       const result = await res.json();
       if (result.success) {
         setProjects(result.data);
@@ -65,7 +65,7 @@ function DashboardContent() {
     setSettingsModal({ ...settingsModal, isOpen: false });
     
     try {
-      const res = await fetch(`/api/websites/${projectId}`, {
+      const res = await authFetch(`/api/websites/${projectId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'published', slug })

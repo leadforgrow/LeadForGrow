@@ -15,6 +15,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 export default function OnboardingFlow({ onComplete }) {
   const router = useRouter();
@@ -35,8 +36,7 @@ export default function OnboardingFlow({ onComplete }) {
 
   const fetchSetupStatus = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/setup-status?userId=${userId}`);
+      const res = await authFetch('/api/automation/setup-status');
       const data = await res.json();
       if (data.success) {
         setSetupStatus(data.data);
@@ -77,11 +77,10 @@ export default function OnboardingFlow({ onComplete }) {
   const handleFinalComplete = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/automation/setup-status', {
+      const res = await authFetch('/api/automation/setup-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, complete: true })
+        body: JSON.stringify({ complete: true })
       });
       const data = await res.json();
       if (data.success) {

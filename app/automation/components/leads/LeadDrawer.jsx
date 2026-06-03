@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 import StatusBadge from './StatusBadge';
 import FollowupChip from './FollowupChip';
 import LeadScoreBadge from './LeadScoreBadge';
@@ -30,8 +31,7 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
   useEffect(() => {
     if (!leadId) return;
     setLoading(true);
-    const userId = localStorage.getItem('userid');
-    fetch(`/api/automation/leads/${leadId}?userId=${userId}`)
+    authFetch(`/api/automation/leads/${leadId}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.success) setLead(data.data);
@@ -49,8 +49,8 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
 
   const addNote = async () => {
     if (!note.trim()) return;
-    const userId = localStorage.getItem('userid');
-    const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+    const userId = getUserId();
+    const res = await authFetch(`/api/automation/leads/${leadId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note: note.trim(), performedBy: userId })
@@ -59,8 +59,7 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
     if (data.success) {
       setNote('');
       toast.success('Note added');
-      const userId = localStorage.getItem('userid');
-      const refetch = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`);
+      const refetch = await authFetch(`/api/automation/leads/${leadId}`);
       const refreshed = await refetch.json();
       if (refreshed.success) setLead(refreshed.data);
     }

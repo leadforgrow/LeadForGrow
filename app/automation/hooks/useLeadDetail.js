@@ -3,11 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
-
-function getUserId() {
-  return localStorage.getItem('userid');
-}
 
 export function useLeadDetail(leadId) {
   const router = useRouter();
@@ -20,42 +17,35 @@ export function useLeadDetail(leadId) {
   const [showHistory, setShowHistory] = useState(false);
 
   const fetchLead = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId || !leadId) return;
-    const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`);
+    if (!leadId) return;
+    const res = await authFetch(`/api/automation/leads/${leadId}`);
     const data = await res.json();
     if (data.success) setLead(data.data);
     return data;
   }, [leadId]);
 
   const fetchTasks = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId || !leadId) return;
-    const res = await fetch(`/api/automation/tasks?userId=${userId}&leadId=${leadId}`);
+    if (!leadId) return;
+    const res = await authFetch(`/api/automation/tasks?leadId=${leadId}`);
     const data = await res.json();
     if (data.success) setTasks(data.data);
   }, [leadId]);
 
   const fetchTeam = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
-    const res = await fetch(`/api/automation/team?userId=${userId}`);
+    const res = await authFetch('/api/automation/team');
     const data = await res.json();
     if (data.success) setTeamMembers(data.data);
   }, []);
 
   const fetchTemplates = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
-    const res = await fetch(`/api/automation/templates?userId=${userId}`);
+    const res = await authFetch('/api/automation/templates');
     const data = await res.json();
     if (data.success) setTemplates(data.manual || []);
   }, []);
 
   useEffect(() => {
     async function load() {
-      const userId = getUserId();
-      if (!userId) {
+      if (!getUserId()) {
         router.push('/user/register');
         return;
       }
@@ -82,7 +72,7 @@ export function useLeadDetail(leadId) {
       setUpdating(true);
       try {
         const userId = getUserId();
-        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status, performedBy: userId })
@@ -106,7 +96,7 @@ export function useLeadDetail(leadId) {
       setUpdating(true);
       try {
         const userId = getUserId();
-        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -135,7 +125,7 @@ export function useLeadDetail(leadId) {
       setUpdating(true);
       try {
         const userId = getUserId();
-        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ note: text.trim(), performedBy: userId })
@@ -156,8 +146,7 @@ export function useLeadDetail(leadId) {
 
   const createTask = useCallback(
     async (task) => {
-      const userId = getUserId();
-      const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
+      const res = await authFetch('/api/automation/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...task, leadId })
@@ -177,7 +166,7 @@ export function useLeadDetail(leadId) {
   const completeTask = useCallback(
     async (taskId) => {
       const userId = getUserId();
-      const res = await fetch(`/api/automation/tasks/${taskId}?userId=${userId}`, {
+      const res = await authFetch(`/api/automation/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'completed', performedBy: userId })
@@ -193,11 +182,10 @@ export function useLeadDetail(leadId) {
 
   const sendWhatsApp = useCallback(
     async (message) => {
-      const userId = getUserId();
-      const res = await fetch('/api/automation/whatsapp/send', {
+      const res = await authFetch('/api/automation/whatsapp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, leadId, message })
+        body: JSON.stringify({ leadId, message })
       });
       const data = await res.json();
       if (data.success) {
@@ -217,12 +205,9 @@ export function useLeadDetail(leadId) {
       return;
     }
     try {
-      const res = await fetch('/api/automation/calls/initiate', {
+      const res = await authFetch('/api/automation/calls/initiate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: getUserId(),
           businessId: localStorage.getItem('businessId'),
@@ -274,8 +259,7 @@ export function useLeadDetail(leadId) {
     if (!window.confirm('Permanently delete this lead and all history?')) return;
     setUpdating(true);
     try {
-      const userId = getUserId();
-      const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/automation/leads/${leadId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         toast.success('Lead deleted');

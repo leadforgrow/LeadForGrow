@@ -22,6 +22,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import Link from 'next/link';
 
 export default function AgencyDashboard() {
@@ -35,13 +36,11 @@ export default function AgencyDashboard() {
   
   const fetchSummary = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      
       const [usageRes, clientsRes, invoicesRes, statsRes] = await Promise.all([
-        fetch('/api/agency/usage', { headers: { 'x-user-id': userId } }),
-        fetch('/api/agency/clients', { headers: { 'x-user-id': userId } }),
-        fetch('/api/agency/invoices', { headers: { 'x-user-id': userId } }),
-        fetch('/api/agency/reports/stats', { headers: { 'x-user-id': userId } })
+        authFetch('/api/agency/usage'),
+        authFetch('/api/agency/clients'),
+        authFetch('/api/agency/invoices'),
+        authFetch('/api/agency/reports/stats')
       ]);
       
       const usageData = await usageRes.json();

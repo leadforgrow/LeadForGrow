@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 
 const EMPTY_TASK = {
   leadId: '',
@@ -35,12 +36,10 @@ export function useTasksWorkspace() {
   const [newTask, setNewTask] = useState({ ...EMPTY_TASK, leadId: initialLeadId.current || '' });
 
   const fetchTasks = useCallback(async (silent = false) => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
-      const res = await fetch(`/api/automation/tasks?userId=${userId}&filter=${filter}`);
+      const res = await authFetch(`/api/automation/tasks?filter=${filter}`);
       const data = await res.json();
       if (data.success) setTasks(data.data || []);
     } catch {
@@ -52,12 +51,10 @@ export function useTasksWorkspace() {
   }, [filter]);
 
   const fetchCounts = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
     try {
       const [today, overdue, upcoming, all] = await Promise.all(
         ['today', 'overdue', 'upcoming', 'all'].map(async (f) => {
-          const res = await fetch(`/api/automation/tasks?userId=${userId}&filter=${f}`);
+          const res = await authFetch(`/api/automation/tasks?filter=${f}`);
           const data = await res.json();
           return data.success ? (data.data?.length || 0) : 0;
         })
@@ -69,15 +66,13 @@ export function useTasksWorkspace() {
   }, []);
 
   const fetchLeads = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    const res = await fetch(`/api/automation/leads?userId=${userId}&limit=200`);
+    const res = await authFetch('/api/automation/leads?limit=200');
     const data = await res.json();
     if (data.success) setLeads(data.data || []);
   }, []);
 
   const fetchTeam = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    const res = await fetch(`/api/automation/team?userId=${userId}`);
+    const res = await authFetch('/api/automation/team');
     const data = await res.json();
     if (data.success) {
       setTeamMembers(
@@ -132,11 +127,11 @@ export function useTasksWorkspace() {
 
   const markDone = useCallback(async (taskId, silent = false) => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/tasks/${taskId}?userId=${userId}`, {
+      const userId = getUserId();
+      const res = await authFetch(`/api/automation/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completed', performedBy: userId })
+        body: JSON.stringify({ status: 'completed', performedBy: userId }),
       });
       const data = await res.json();
       if (data.success) {
@@ -160,11 +155,10 @@ export function useTasksWorkspace() {
   const rescheduleTask = useCallback(async (dueDate) => {
     if (!selectedTask) return;
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/tasks/${selectedTask._id}?userId=${userId}`, {
+      const res = await authFetch(`/api/automation/tasks/${selectedTask._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dueDate })
+        body: JSON.stringify({ dueDate }),
       });
       const data = await res.json();
       if (data.success) {
@@ -180,11 +174,10 @@ export function useTasksWorkspace() {
 
   const createTask = useCallback(async (payload) => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/tasks?userId=${userId}`, {
+      const res = await authFetch('/api/automation/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {

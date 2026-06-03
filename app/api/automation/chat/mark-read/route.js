@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '../../../../../lib/mongodb';
 import WhatsAppConversation from '../../../../../models/automation/WhatsAppConversation';
 import { withPermissions } from '../../../../../lib/rbac';
+import { emitChatRead } from '../../../../../lib/realtime/publish';
 
 /**
  * POST /api/automation/chat/mark-read
@@ -38,6 +39,8 @@ async function handler(req) {
     if (!conversation) {
       return NextResponse.json({ success: false, error: 'Conversation not found' }, { status: 404 });
     }
+
+    await emitChatRead(user.businessId, { leadId, status, conversationId: conversation._id });
 
     return NextResponse.json({ success: true, data: conversation });
 

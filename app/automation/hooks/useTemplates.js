@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { DEFAULT_WELCOME, DEFAULT_FOLLOWUP, newManualTemplate } from '../components/templates/constants';
 
 export function useTemplates() {
@@ -20,8 +21,6 @@ export function useTemplates() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const getUserId = () => (typeof window !== 'undefined' ? localStorage.getItem('userid') : null);
-
   const stats = useMemo(() => {
     const whatsapp = manualTemplates.filter((t) => t.channel === 'whatsapp').length;
     const email = manualTemplates.filter((t) => t.channel === 'email').length;
@@ -39,11 +38,9 @@ export function useTemplates() {
   }, [manualTemplates, searchQuery]);
 
   const fetchData = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     try {
       setLoading(true);
-      const res = await fetch(`/api/automation/templates?userId=${userId}`);
+      const res = await authFetch('/api/automation/templates');
       const data = await res.json();
       if (data.success) {
         if (data.welcome) setWelcomeTemplate(data.welcome);
@@ -60,11 +57,9 @@ export function useTemplates() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const saveAll = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/automation/templates', {
+      const res = await authFetch('/api/automation/templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,7 +67,6 @@ export function useTemplates() {
           followUp: followUpTemplate,
           manual: manualTemplates,
           deleteManualIds: deleteIds,
-          userId,
         }),
       });
       const data = await res.json();
@@ -93,14 +87,12 @@ export function useTemplates() {
   }, [welcomeTemplate, followUpTemplate, manualTemplates, deleteIds, fetchData]);
 
   const syncMeta = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     setSyncing(true);
     try {
-      const res = await fetch('/api/automation/templates/sync', {
+      const res = await authFetch('/api/automation/templates/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (data.success) {
@@ -150,10 +142,10 @@ export function useTemplates() {
     const index = manualTemplates.findIndex((t) => (t.id && t.id === template.id) || t === template);
     if (template.id) {
       try {
-        const res = await fetch('/api/automation/templates/delete', {
+        const res = await authFetch('/api/automation/templates/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ templateId: template.id, userId: getUserId() }),
+          body: JSON.stringify({ templateId: template.id }),
         });
         const data = await res.json();
         if (!data.success) {

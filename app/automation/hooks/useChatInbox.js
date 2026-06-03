@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
+import { useRealtime, REALTIME_EVENTS } from '@/app/automation/hooks/useRealtime';
 
 export function useChatInbox() {
   const searchParams = useSearchParams();
@@ -19,12 +21,14 @@ export function useChatInbox() {
   const [search, setSearch] = useState('');
   const [businessName, setBusinessName] = useState('us');
   const initialLeadId = useRef(searchParams.get('leadId'));
+  const selectedLeadIdRef = useRef(null);
+  selectedLeadIdRef.current = selectedChat?.leadId?._id;
 
   const fetchConversations = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       const statusParam = ['unread', 'intervened'].includes(filter) ? filter : '';
-      const res = await fetch(
+      const res = await authFetch(
         `/api/automation/chat/conversations?status=${statusParam}&search=${encodeURIComponent(search)}`
       );
       const data = await res.json();
@@ -40,7 +44,7 @@ export function useChatInbox() {
     if (!leadId) return;
     try {
       if (showLoading) setMessagesLoading(true);
-      const res = await fetch(`/api/automation/chat/messages?leadId=${leadId}`);
+      const res = await authFetch(`/api/automation/chat/messages?leadId=${leadId}`);
       const data = await res.json();
       if (data.success) setMessages(data.data || []);
     } catch {
@@ -51,16 +55,14 @@ export function useChatInbox() {
   }, []);
 
   const fetchLeadDetail = useCallback(async (leadId) => {
-    const userId = localStorage.getItem('userid');
-    if (!userId || !leadId) return;
-    const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`);
+    if (!leadId) return;
+    const res = await authFetch(`/api/automation/leads/${leadId}`);
     const data = await res.json();
     if (data.success) setLeadDetail(data.data);
   }, []);
 
   const fetchTeam = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    const res = await fetch(`/api/automation/team?userId=${userId}`);
+    const res = await authFetch('/api/automation/team');
     const data = await res.json();
     if (data.success) {
       setTeamMembers(
@@ -77,19 +79,15 @@ export function useChatInbox() {
   }, []);
 
   const fetchTemplates = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    const res = await fetch(`/api/automation/templates?userId=${userId}`);
+    const res = await authFetch('/api/automation/templates');
     const data = await res.json();
     if (data.success) setTemplates(data.manual || []);
   }, []);
 
   useEffect(() => {
     async function init() {
-      const userId = localStorage.getItem('userid');
-      if (userId) {
-        const me = await fetch(`/api/auth/me?userId=${userId}`).then((r) => r.json());
-        if (me.success) setBusinessName(me.data.companyName || 'us');
-      }
+      const me = await authFetch('/api/auth/me').then((r) => r.json());
+      if (me.success) setBusinessName(me.data.companyName || 'us');
       await Promise.all([fetchTeam(), fetchTemplates()]);
     }
     init();
@@ -97,16 +95,30 @@ export function useChatInbox() {
 
   useEffect(() => {
     fetchConversations();
-    const interval = setInterval(() => fetchConversations(true), 5000);
-    return () => clearInterval(interval);
   }, [fetchConversations]);
+
+  useRealtime({
+    onEvent: useCallback((event) => {
+      if (
+        event.type === REALTIME_EVENTS.CHAT_MESSAGE ||
+        event.type === REALTIME_EVENTS.CHAT_READ
+      ) {
+        fetchConversations(true);
+        const eventLeadId = event.data?.leadId;
+        if (eventLeadId && eventLeadId === selectedLeadIdRef.current) {
+          fetchMessages(eventLeadId, false);
+          if (event.type === REALTIME_EVENTS.CHAT_MESSAGE) {
+            fetchLeadDetail(eventLeadId);
+          }
+        }
+      }
+    }, [fetchConversations, fetchMessages, fetchLeadDetail]),
+  });
 
   useEffect(() => {
     if (!selectedChat?.leadId?._id) return;
     fetchMessages(selectedChat.leadId._id, true);
     fetchLeadDetail(selectedChat.leadId._id);
-    const interval = setInterval(() => fetchMessages(selectedChat.leadId._id, false), 5000);
-    return () => clearInterval(interval);
   }, [selectedChat?.leadId?._id, fetchMessages, fetchLeadDetail]);
 
   const filteredConversations = useMemo(() => {
@@ -134,7 +146,7 @@ export function useChatInbox() {
   );
 
   const markAsRead = useCallback(async (leadId) => {
-    await fetch('/api/automation/chat/mark-read', {
+    await authFetch('/api/automation/chat/mark-read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ leadId, status: 'read' })
@@ -172,13 +184,13 @@ export function useChatInbox() {
       if (!selectedChat?.leadId?._id) return;
       const leadId = selectedChat.leadId._id;
       try {
-        await fetch('/api/automation/chat/mark-read', {
+        await authFetch('/api/automation/chat/mark-read', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ leadId, status: 'intervened' })
         });
         const intro = `Thanks for reaching out to ${businessName}. Our team has joined the chat.`;
-        await fetch('/api/automation/chat/send', {
+        await authFetch('/api/automation/chat/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ leadId, message: intro })
@@ -209,7 +221,7 @@ export function useChatInbox() {
       };
       setMessages((prev) => [...prev, temp]);
       try {
-        const res = await fetch('/api/automation/chat/send', {
+        const res = await authFetch('/api/automation/chat/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ leadId, message: text })
@@ -240,7 +252,7 @@ export function useChatInbox() {
   const assignChat = useCallback(
     async (assigneeId) => {
       if (!selectedChat) return;
-      const res = await fetch('/api/automation/chat/assign', {
+      const res = await authFetch('/api/automation/chat/assign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId: selectedChat._id, assignedTo: assigneeId })
@@ -257,8 +269,8 @@ export function useChatInbox() {
   const updateLeadStatus = useCallback(
     async (status) => {
       if (!selectedChat?.leadId?._id) return;
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/leads/${selectedChat.leadId._id}?userId=${userId}`, {
+      const userId = getUserId();
+      const res = await authFetch(`/api/automation/leads/${selectedChat.leadId._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, performedBy: userId })
@@ -276,8 +288,8 @@ export function useChatInbox() {
   const addNote = useCallback(
     async (note) => {
       if (!note.trim() || !selectedChat?.leadId?._id) return;
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/leads/${selectedChat.leadId._id}?userId=${userId}`, {
+      const userId = getUserId();
+      const res = await authFetch(`/api/automation/leads/${selectedChat.leadId._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: note.trim(), performedBy: userId })
@@ -295,14 +307,11 @@ export function useChatInbox() {
     const lead = selectedChat?.leadId;
     if (!lead?.phone) return toast.error('No phone');
     try {
-      const res = await fetch('/api/automation/calls/initiate', {
+      const res = await authFetch('/api/automation/calls/initiate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: localStorage.getItem('userid'),
+          userId: getUserId(),
           businessId: localStorage.getItem('businessId'),
           leadId: lead._id,
           leadPhone: lead.phone

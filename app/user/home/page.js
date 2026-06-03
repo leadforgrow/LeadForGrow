@@ -1,21 +1,28 @@
 'use client';
 
 import React from 'react';
-import LeadForGrowHero from './F';
-import AgencyOSLanding from './S';
-import PricingSection from './P';
+import { LANDING_PAGE_BG } from '@/app/components/landing/landingStyles';
 import ContactFormSection from './C';
-import PainSection from './Pain';
-import RevenueAudit from './RevenueAudit';
-import SafetyNet from './SafetyNet';
-import LeaderboardSection from './Leaderboard';
-import Footer from './Footer';
 import UserNavbar from '../Header';
 import TrustPopup from '@/app/components/TrustPopup';
 import SuccessNotification from '@/app/components/SuccessNotification';
 import PremiumHero from '@/app/components/landing/PremiumHero';
 import FeatureModules from '@/app/components/landing/FeatureModules';
 import SmoothScroll from '@/app/components/landing/SmoothScroll';
+import TrustedCompanies from '@/app/components/landing/TrustedCompanies';
+import IndustrySolutionsSection from '@/app/components/landing/IndustrySolutionsSection';
+import WhatsAppAutomationSection from '@/app/components/landing/WhatsAppAutomationSection';
+import RevenueEngineWorkflow from '@/app/components/landing/RevenueEngineWorkflow';
+import ProductTourSection from '@/app/components/landing/ProductTourSection';
+import AIFeaturesSection from '@/app/components/landing/AIFeaturesSection';
+import RoiComparisonSection from '@/app/components/landing/RoiComparisonSection';
+import CallingEfficiencySection from '@/app/components/landing/CallingEfficiencySection';
+import IntegrationsSection from '@/app/components/landing/IntegrationsSection';
+import TestimonialSection from '@/app/components/landing/TestimonialSection';
+import LandingPricingSection from '@/app/components/landing/LandingPricingSection';
+import FAQSection from '@/app/components/landing/FAQSection';
+import LandingCTA from '@/app/components/landing/LandingCTA';
+import { authFetch } from '@/lib/apiClient';
 import { X } from 'lucide-react';
 
 export default function LeadForGrowHeroPage() {
@@ -24,196 +31,141 @@ export default function LeadForGrowHeroPage() {
   const [showSuccess, setShowSuccess] = React.useState(false);
   const [meetLink, setMeetLink] = React.useState('');
   const [userData, setUserData] = React.useState(null);
-  const [userPlan, setUserPlan] = React.useState('free');
 
   React.useEffect(() => {
-    const storedPlan = localStorage.getItem('userPlan');
-    if (storedPlan) setUserPlan(storedPlan);
-    
     const userId = localStorage.getItem('userid');
     if (userId) {
       fetch(`/api/user/profile/${userId}`)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.businessPlan) {
             const plan = (data.businessPlan || 'free').toLowerCase();
-            setUserPlan(plan);
             localStorage.setItem('userPlan', plan);
           }
         })
-        .catch(err => console.error('Error fetching user plan:', err));
+        .catch(() => {});
     }
   }, []);
 
-  // Handle Get Started button click
   const handleGetStarted = () => {
     const userId = localStorage.getItem('userid');
-    
     if (!userId) {
-      // Not logged in - redirect to register
       window.location.href = '/user/register';
       return;
     }
-
-    // Logged in - fetch user data and show popup
     fetchUserDataAndShowPopup(userId);
   };
 
-  // Fetch user data
   const fetchUserDataAndShowPopup = async (userId) => {
     try {
       const response = await fetch(`/api/user/profile/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setUserData(data);
-        setShowTrustPopup(true);
-      } else {
-        console.error('Failed to fetch user data');
-        // Fallback: show popup anyway
-        setShowTrustPopup(true);
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      // Fallback: show popup anyway
-      setShowTrustPopup(true);
-    }
+    } catch { /* ignore */ }
+    setShowTrustPopup(true);
   };
 
-  // Handle activate trial
   const handleActivateTrial = async () => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) {
+    const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+    if (!token) {
       window.location.href = '/user/register';
       return;
     }
-
     try {
-      const response = await fetch('/api/business/activate-trial', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-      });
-
+      const response = await authFetch('/api/business/activate-trial', { method: 'POST' });
       const data = await response.json();
-
       if (data.success) {
         localStorage.setItem('businessPlan', 'trial');
         localStorage.setItem('userPlan', 'trial');
         window.location.href = '/automation';
+      } else if (data.error?.includes('Current plan is')) {
+        window.location.href = '/automation';
       } else {
-        // If already on a plan or other error, just go to dashboard
-        if (data.error && data.error.includes('Current plan is')) {
-           window.location.href = '/automation';
-        } else {
-           alert(data.error || 'Failed to activate trial. Please try again.');
-        }
+        alert(data.error || 'Failed to activate trial.');
       }
-    } catch (error) {
-      console.error('Error activating trial:', error);
+    } catch {
       alert('An error occurred. Please try again.');
     }
   };
 
-  // Handle schedule call
   const handleScheduleCall = async () => {
-    const userId = localStorage.getItem('userid');
-    
     try {
-      const response = await fetch('/api/onboarding/schedule-call', {
+      const response = await authFetch('/api/onboarding/schedule-call', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
       });
-
       const data = await response.json();
-
       if (data.success) {
-        // Close popup and show success notification
         setShowTrustPopup(false);
         setMeetLink(data.meetLink);
         setShowSuccess(true);
       } else {
-        alert('Failed to schedule call. Please try again.');
+        alert(data.error || 'Failed to schedule call. Please try again.');
       }
-    } catch (error) {
-      console.error('Error scheduling call:', error);
+    } catch {
       alert('An error occurred. Please try again.');
     }
   };
 
   return (
     <SmoothScroll>
-    <div className="min-h-screen bg-[#fafbfe] dark:bg-[#050508] transition-colors duration-500 overflow-x-hidden">
-      <UserNavbar />
+      <div className={`min-h-screen ${LANDING_PAGE_BG} transition-colors duration-500 overflow-x-hidden`}>
+        <UserNavbar />
 
-      <PremiumHero
-        onGetStarted={handleGetStarted}
-        onWatchDemo={() => setShowVideo(true)}
-      />
+        <PremiumHero onGetStarted={handleGetStarted} onWatchDemo={() => setShowVideo(true)} />
+        <TrustedCompanies />
+        <FeatureModules />
+        <IndustrySolutionsSection />
+        <WhatsAppAutomationSection />
+        <RevenueEngineWorkflow />
+        <ProductTourSection />
+        <AIFeaturesSection />
+        <RoiComparisonSection />
+        <CallingEfficiencySection />
+        <IntegrationsSection />
+        <TestimonialSection />
+        <LandingPricingSection />
+        <FAQSection />
+        <LandingCTA />
+        <ContactFormSection />
 
-      <FeatureModules />
-
-      <RevenueAudit />
-
-  
-
-      <PainSection />
-      <LeadForGrowHero />
-      {/* <LeaderboardSection /> */}
-      <SafetyNet />
-      <AgencyOSLanding />
-      {/* <PricingSection onGetStarted={(planName) => {
-        const userId = localStorage.getItem('userid');
-        if (!userId) {
-          window.location.href = '/user/register';
-        } else {
-          fetchUserDataAndShowPopup(userId);
-        }
-      }} /> */}
-      <ContactFormSection />
-      {/* <Footer /> */}
-
-      {/* Video Modal */}
-      {showVideo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-            <button 
-              onClick={() => setShowVideo(false)}
-              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/HZZpgqgy3kg?autoplay=1" 
-              title="Product Demo"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+        {showVideo && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+              <button
+                type="button"
+                onClick={() => setShowVideo(false)}
+                className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/HZZpgqgy3kg?autoplay=1"
+                title="Product Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Trust Popup */}
-      <TrustPopup
-        isOpen={showTrustPopup}
-        onClose={() => setShowTrustPopup(false)}
-        userName={userData?.name || ''}
-        onScheduleCall={handleScheduleCall}
-      />
+        <TrustPopup
+          isOpen={showTrustPopup}
+          onClose={() => setShowTrustPopup(false)}
+          userName={userData?.name || ''}
+          onScheduleCall={handleScheduleCall}
+        />
 
-      {/* Success Notification */}
-      <SuccessNotification
-        isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
-        meetLink={meetLink}
-      />
-    </div>
+        <SuccessNotification
+          isOpen={showSuccess}
+          onClose={() => setShowSuccess(false)}
+          meetLink={meetLink}
+        />
+      </div>
     </SmoothScroll>
   );
 }

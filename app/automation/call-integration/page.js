@@ -18,6 +18,7 @@ import {
   Check
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 export default function CallIntegrationPage() {
   const [usage, setUsage] = useState({
@@ -56,10 +57,9 @@ export default function CallIntegrationPage() {
   const fetchUsage = useCallback(async () => {
     try {
       let bId = localStorage.getItem('businessId');
-      const uId = localStorage.getItem('userid');
 
-      if (!bId && uId) {
-        const authRes = await fetch(`/api/auth/me?userId=${uId}`);
+      if (!bId) {
+        const authRes = await authFetch('/api/auth/me');
         const authData = await authRes.json();
         if (authData.success) {
           bId = authData.data.businessId;
@@ -69,7 +69,7 @@ export default function CallIntegrationPage() {
 
       if (!bId) return;
 
-      const res = await fetch(`/api/automation/call-integration?businessId=${bId}`);
+      const res = await authFetch(`/api/automation/call-integration?businessId=${bId}`);
       const result = await res.json();
 
       if (result.success && result.data) {
@@ -110,7 +110,7 @@ export default function CallIntegrationPage() {
     setVerifying(true);
     const tid = toast.loading('Verifying credentials...');
     try {
-      const res = await fetch('/api/automation/call-integration', {
+      const res = await authFetch('/api/automation/call-integration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function CallIntegrationPage() {
   const handleTriggerAI = async (missedCallId) => {
     const tid = toast.loading('Initiating AI Recovery...');
     try {
-      const res = await fetch('/api/automation/call-integration', {
+      const res = await authFetch('/api/automation/call-integration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +158,7 @@ export default function CallIntegrationPage() {
 
   const handleDeleteMissed = async (id) => {
     try {
-      const res = await fetch(`/api/automation/call-integration?id=${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/automation/call-integration?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success('Entry dismissed');
         fetchUsage();
@@ -175,7 +175,7 @@ export default function CallIntegrationPage() {
     setConnecting(true);
     try {
       const bId = localStorage.getItem('businessId');
-      const res = await fetch('/api/automation/call-integration', {
+      const res = await authFetch('/api/automation/call-integration', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId: bId, phone: phoneInput })
@@ -201,7 +201,7 @@ export default function CallIntegrationPage() {
     setSaving(true);
     try {
       const bId = localStorage.getItem('businessId');
-      const res = await fetch('/api/automation/call-integration', {
+      const res = await authFetch('/api/automation/call-integration', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId: bId, settings })
@@ -219,7 +219,7 @@ export default function CallIntegrationPage() {
   const handleSimulate = async () => {
     if (!testNumber) return toast.error('Enter a number to simulate');
     const bId = localStorage.getItem('businessId');
-    const res = await fetch('/api/automation/call-integration', {
+    const res = await authFetch('/api/automation/call-integration', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -239,7 +239,7 @@ export default function CallIntegrationPage() {
     const tid = toast.loading('Calling your personal phone...');
     try {
       const bId = localStorage.getItem('businessId');
-      const res = await fetch('/api/automation/call-integration', {
+      const res = await authFetch('/api/automation/call-integration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'test_connection', businessId: bId })
@@ -259,7 +259,7 @@ export default function CallIntegrationPage() {
     const tid = toast.loading('Simulating forwarded call...');
     try {
       const bId = localStorage.getItem('businessId');
-      const res = await fetch('/api/automation/call-integration/inbound?businessId=' + bId, {
+      const res = await authFetch('/api/automation/call-integration/inbound?businessId=' + bId, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -285,7 +285,7 @@ export default function CallIntegrationPage() {
 
     try {
       const bId = localStorage.getItem('businessId');
-      const res = await fetch(`/api/automation/call-integration?action=reset&businessId=${bId}`, {
+      const res = await authFetch(`/api/automation/call-integration?action=reset&businessId=${bId}`, {
         method: 'DELETE'
       });
       if (res.ok) {

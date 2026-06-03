@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Plus, Heart, AlertTriangle, XCircle, TrendingUp, Search, Building2, Pause, Play, Trash2, Loader2 } from 'lucide-react';
+import { authFetch } from '@/lib/apiClient';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
@@ -35,10 +36,7 @@ export default function ClientsPage() {
 
   const fetchTeam = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/team', {
-        headers: { 'x-user-id': userId }
-      });
+      const res = await authFetch('/api/agency/team');
       const data = await res.json();
       if (data.success) {
         setTeam(data.team);
@@ -50,10 +48,7 @@ export default function ClientsPage() {
 
   const fetchClients = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/clients', {
-        headers: { 'x-user-id': userId }
-      });
+      const res = await authFetch('/api/agency/clients');
       const data = await res.json();
       
       if (data.success) {
@@ -72,12 +67,10 @@ export default function ClientsPage() {
     setError('');
 
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/clients', {
+      const res = await authFetch('/api/agency/clients', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': userId
         },
         body: JSON.stringify(formData)
       });
@@ -108,12 +101,10 @@ export default function ClientsPage() {
 
   const handleStatusChange = async (clientId, newStatus) => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/agency/clients/${clientId}`, {
+      const res = await authFetch(`/api/agency/clients/${clientId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': userId
         },
         body: JSON.stringify({ status: newStatus })
       });

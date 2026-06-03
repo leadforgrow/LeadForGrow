@@ -25,6 +25,7 @@ export async function GET(request) {
         id: form._id,
         token: form.token,
         name: form.name,
+        description: form.description || '',
         fields: form.fields,
         styling: form.styling,
         successMessage: form.successMessage,

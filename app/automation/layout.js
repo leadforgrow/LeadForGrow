@@ -1,5 +1,7 @@
 import { Toaster } from 'react-hot-toast';
 import AccessControl from './components/AccessControl';
+import { AccessProvider } from './context/AccessContext';
+import UpgradeGateModal from './components/access/UpgradeGateModal';
 import Sidebar from './components/Sidebar';
 import GlobalDialer from './components/GlobalDialer';
 import ReminderMonitor from './components/ReminderMonitor';
@@ -13,6 +15,7 @@ export const metadata = {
 export default function AutomationLayout({ children }) {
   return (
     <AccessControl>
+      <AccessProvider>
       <BusinessAssistantRoot>
         <div className="flex h-screen bg-[#f8f9fc] dark:bg-slate-950 relative overflow-hidden transition-colors duration-300">
           <style dangerouslySetInnerHTML={{
@@ -28,6 +31,8 @@ export default function AutomationLayout({ children }) {
           <ReminderMonitor />
         </div>
       </BusinessAssistantRoot>
+      <UpgradeGateModal />
+      </AccessProvider>
     </AccessControl>
   );
 }

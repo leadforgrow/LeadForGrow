@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import UserNavbar from "../../Header";
 import toast from "react-hot-toast";
+import { authFetch, authJson } from "@/lib/apiClient";
 
 export default function ClientProfilePage() {
   const { id } = useParams();
@@ -44,14 +45,13 @@ export default function ClientProfilePage() {
   const fetchClientData = async () => {
     try {
       setLoading(true);
-      const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
-      
+
       const [clientRes, servicesRes, tasksRes, billingRes, activityRes] = await Promise.all([
-        fetch(`/api/clients?businessId=${bId}`).then(r => r.json()),
-        fetch(`/api/clients/services?clientId=${id}`).then(r => r.json()),
-        fetch(`/api/clients/tasks?clientId=${id}`).then(r => r.json()),
-        fetch(`/api/clients/billing?clientId=${id}`).then(r => r.json()),
-        fetch(`/api/clients/activity?clientId=${id}`).then(r => r.json())
+        authJson("/api/clients"),
+        authJson(`/api/clients/services?clientId=${id}`),
+        authJson(`/api/clients/tasks?clientId=${id}`),
+        authJson(`/api/clients/billing?clientId=${id}`),
+        authJson(`/api/clients/activity?clientId=${id}`),
       ]);
 
       if (clientRes.success) {
@@ -72,16 +72,13 @@ export default function ClientProfilePage() {
   const handleAddTask = async (e) => {
     e.preventDefault();
     try {
-      const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
-      const res = await fetch("/api/clients/tasks", {
+      const res = await authFetch("/api/clients/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          ...taskForm, 
-          clientId: id, 
-          businessId: bId,
+        body: JSON.stringify({
+          ...taskForm,
+          clientId: id,
           team: "System",
-          assignedTo: "67768a834164b38341065113" // Fallback to business owner/system
         })
       });
       if (res.ok) {
@@ -98,14 +95,12 @@ export default function ClientProfilePage() {
   const handleAddService = async (e) => {
     e.preventDefault();
     try {
-      const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
-      const payload = { 
-        ...serviceForm, 
-        clientId: id, 
-        businessId: bId,
+      const payload = {
+        ...serviceForm,
+        clientId: id,
         category: serviceForm.category === "Other" ? serviceForm.customCategory : serviceForm.category
       };
-      const res = await fetch("/api/clients/services", {
+      const res = await authFetch("/api/clients/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

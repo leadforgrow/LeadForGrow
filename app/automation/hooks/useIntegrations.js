@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { INTEGRATION_CATEGORIES, HEALTH_STYLES } from '../components/integrations/constants';
 
 function formatRelativeTime(dateStr) {
@@ -17,10 +18,6 @@ function formatRelativeTime(dateStr) {
   return `${days} day${days > 1 ? 's' : ''} ago`;
 }
 
-function apiUrl(path, userId) {
-  return `/api/integrations${path}?userId=${userId}`;
-}
-
 export function useIntegrations() {
   const [integrations, setIntegrations] = useState([]);
   const [categories, setCategories] = useState(INTEGRATION_CATEGORIES);
@@ -34,15 +31,10 @@ export function useIntegrations() {
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
-  const getUserId = () => (typeof window !== 'undefined' ? localStorage.getItem('userid') : null);
-
   const fetchIntegrations = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
-
     try {
       setLoading(true);
-      const res = await fetch(apiUrl('', userId));
+      const res = await authFetch('/api/integrations');
       const data = await res.json();
 
       if (data.success) {
@@ -98,12 +90,11 @@ export function useIntegrations() {
   }, []);
 
   const fetchLogs = useCallback(async (integrationId) => {
-    const userId = getUserId();
-    if (!userId || !integrationId) return;
+    if (!integrationId) return;
 
     try {
       setLogsLoading(true);
-      const res = await fetch(apiUrl(`/${integrationId}/logs`, userId));
+      const res = await authFetch(`/api/integrations/${integrationId}/logs`);
       const data = await res.json();
       if (data.success) {
         setLogs(data.data.logs.map((l) => ({
@@ -124,9 +115,6 @@ export function useIntegrations() {
   }, [selectedId, fetchLogs]);
 
   const connect = useCallback(async (id, credentials) => {
-    const userId = getUserId();
-    if (!userId) return;
-
     setConnecting(true);
     try {
       const item = integrations.find((i) => i.id === id);
@@ -135,7 +123,7 @@ export function useIntegrations() {
         const email = prompt('Enter connected account email (OAuth simulation):');
         if (!email) { setConnecting(false); return; }
 
-        const res = await fetch(apiUrl(`/${id}/oauth`, userId), {
+        const res = await authFetch(`/api/integrations/${id}/oauth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ connectedEmail: email, accessToken: 'simulated_token', scopes: ['email'] })
@@ -148,7 +136,7 @@ export function useIntegrations() {
         return;
       }
 
-      const res = await fetch(apiUrl(`/${id}/connect`, userId), {
+      const res = await authFetch(`/api/integrations/${id}/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credentials: credentials || {}, testOnConnect: true })
@@ -173,12 +161,9 @@ export function useIntegrations() {
   }, [integrations, updateIntegrationInState]);
 
   const disconnect = useCallback(async (id) => {
-    const userId = getUserId();
-    if (!userId) return;
-
     setConnecting(true);
     try {
-      const res = await fetch(apiUrl(`/${id}/disconnect`, userId), { method: 'POST' });
+      const res = await authFetch(`/api/integrations/${id}/disconnect`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         updateIntegrationInState(data.data);
@@ -192,12 +177,9 @@ export function useIntegrations() {
   }, [updateIntegrationInState]);
 
   const testConnection = useCallback(async (id) => {
-    const userId = getUserId();
-    if (!userId) return;
-
     setConnecting(true);
     try {
-      const res = await fetch(apiUrl(`/${id || selectedId}/test`, userId), { method: 'POST' });
+      const res = await authFetch(`/api/integrations/${id || selectedId}/test`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         updateIntegrationInState(data.data.integration);
@@ -212,12 +194,9 @@ export function useIntegrations() {
   }, [selectedId, updateIntegrationInState]);
 
   const syncNow = useCallback(async (id) => {
-    const userId = getUserId();
-    if (!userId) return;
-
     setConnecting(true);
     try {
-      const res = await fetch(apiUrl(`/${id || selectedId}/sync`, userId), { method: 'POST' });
+      const res = await authFetch(`/api/integrations/${id || selectedId}/sync`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         updateIntegrationInState(data.data.integration);
@@ -232,12 +211,9 @@ export function useIntegrations() {
   }, [selectedId, updateIntegrationInState, fetchLogs]);
 
   const updateConfig = useCallback(async (id, payload) => {
-    const userId = getUserId();
-    if (!userId) return;
-
     setConnecting(true);
     try {
-      const res = await fetch(apiUrl(`/${id}`, userId), {
+      const res = await authFetch(`/api/integrations/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -1,11 +1,12 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
 import { SettingsTabs, SettingsCard } from '../../components/settings/SettingsCard';
 import TeamSettingsPanel from '../../components/settings/TeamSettingsPanel';
 import RoleMatrix from '../../components/settings/RoleMatrix';
+import AddMemberModal from '../../components/team/AddMemberModal';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useTeamWorkspace } from '../../hooks/useTeamWorkspace';
 
 const TABS = [
   { id: 'members', label: 'Members' },
@@ -16,7 +17,8 @@ export default function TeamSettingsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tab = searchParams.get('tab') || 'members';
-  const { members, roles, matrix, roleStats, inviteMember, removeMember, updatePermission } = usePermissions();
+  const { roles, matrix, updatePermission } = usePermissions();
+  const ws = useTeamWorkspace();
 
   const setTab = (id) => router.replace(`/automation/settings/team?tab=${id}`);
 
@@ -45,13 +47,29 @@ export default function TeamSettingsPage() {
     <div className="space-y-5">
       <SettingsTabs tabs={TABS} active={tab} onChange={setTab} />
       <TeamSettingsPanel
-        members={members}
+        members={ws.team}
+        loading={ws.loading}
         roles={roles}
         matrix={matrix}
-        roleStats={roleStats}
-        onInvite={(data) => { inviteMember(data); toast.success('Invite sent (demo)'); }}
-        onRemove={(id) => { removeMember(id); toast.success('Member removed (demo)'); }}
+        roleStats={{
+          total: ws.stats.total,
+          active: ws.stats.active,
+          pending: 0,
+          limit: ws.maxTeamMembers
+        }}
+        onAdd={() => ws.setShowAddModal(true)}
+        onRemove={ws.deleteMember}
         onPermissionChange={updatePermission}
+      />
+
+      <AddMemberModal
+        open={ws.showAddModal}
+        saving={ws.saving}
+        member={ws.newMember}
+        onChange={ws.setNewMember}
+        createdInfo={ws.createdMemberInfo}
+        onClose={ws.closeModal}
+        onSubmit={ws.addMember}
       />
     </div>
   );

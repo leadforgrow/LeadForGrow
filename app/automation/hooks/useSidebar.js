@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { authFetch } from '@/lib/apiClient';
 
 export function useSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -39,9 +40,7 @@ export function useSidebar() {
 
   const fetchUser = useCallback(async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) return;
-      const res = await fetch(`/api/auth/me?userId=${userId}`);
+      const res = await authFetch('/api/auth/me');
       const data = await res.json();
       if (data.success) {
         setUserData({
@@ -63,8 +62,8 @@ export function useSidebar() {
   const fetchStats = useCallback(async () => {
     try {
       const [statsRes, convRes] = await Promise.all([
-        fetch('/api/automation/sidebar-stats', { credentials: 'include' }),
-        fetch('/api/automation/chat/conversations?status=unread&search=', { credentials: 'include' }).catch(() => null)
+        authFetch('/api/automation/sidebar-stats'),
+        authFetch('/api/automation/chat/conversations?status=unread&search=').catch(() => null)
       ]);
       const statsJson = await statsRes.json();
       if (statsJson.success) {

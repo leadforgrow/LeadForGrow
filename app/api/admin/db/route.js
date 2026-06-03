@@ -40,10 +40,20 @@ const models = {
   Event,
 };
 
-const ADMIN_PASSWORD = process.env.LFG_ADMIN_PASSWORD || 'lfg';
+const ADMIN_PASSWORD = process.env.LFG_ADMIN_PASSWORD;
 
 function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+
+function requireAdminPassword(password) {
+  if (!ADMIN_PASSWORD) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[Admin] LFG_ADMIN_PASSWORD must be set in production');
+    }
+    return false;
+  }
+  return password === ADMIN_PASSWORD;
 }
 
 function getSchemaDef(Model) {
@@ -79,7 +89,7 @@ export async function POST(request) {
     const body = await request.json();
     const { password, action, modelName, id, updateData, query, search, page = 1, limit = 50 } = body;
 
-    if (password !== ADMIN_PASSWORD) return unauthorized();
+    if (!requireAdminPassword(password)) return unauthorized();
 
     await dbConnect();
 

@@ -3,45 +3,22 @@ import mongoose from 'mongoose';
 import { dbConnect } from "@/lib/mongodb";
 import Lead from '@/models/automation/Lead';
 import Activity from '@/models/automation/Activity';
-import User from '@/models/User';
 import Business from '@/models/Business';
 import Form from '@/models/Form';
 import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// Helper to get user and business
-async function getUserAndBusiness(request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  if (!userId) {
-    return { error: `Authentication required: ${new URL(request.url).pathname}`, status: 401 };
-  }
-
-  await dbConnect();
-  const user = await User.findById(userId);
-  if (!user) {
-    return { error: 'User not found', status: 404 };
-  }
-
-  const business = await Business.findById(user.businessId);
-  if (!business) {
-    return { error: 'Business not found', status: 404 };
-  }
-
-  return { user, business };
-}
-
 // GET - Fetch all leads with filters
-export async function GET(request) {
+export const GET = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { user, business } = result;
+    const { user, business } = tenant;
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const source = searchParams.get('source');
@@ -155,17 +132,17 @@ export async function GET(request) {
     console.error('Error fetching leads:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch leads' }, { status: 500 });
   }
-}
+});
 
 // POST - Create new lead (manual entry or API)
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { user, business } = result;
+    const { user, business } = tenant;
     const body = await request.json();
 
     // Validate required fields (Allow name + phone OR name + email)
@@ -244,4 +221,4 @@ export async function POST(request) {
       error: 'Failed to create lead'
     }, { status: 500 });
   }
-}
+});

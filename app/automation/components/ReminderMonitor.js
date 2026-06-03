@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Phone, Bell, X, Calendar, Clock, Volume2, MessageCircle, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 
 export default function ReminderMonitor() {
     const [reminders, setReminders] = useState([]);
@@ -14,10 +15,7 @@ export default function ReminderMonitor() {
 
     const fetchDueTasks = async () => {
         try {
-            const userId = localStorage.getItem('userid');
-            if (!userId) return;
-
-            const res = await fetch(`/api/automation/tasks?userId=${userId}&status=pending`);
+            const res = await authFetch('/api/automation/tasks?status=pending');
             const data = await res.json();
 
             if (data.success) {
@@ -52,12 +50,12 @@ export default function ReminderMonitor() {
     }, []);
 
     const handleAction = async (task) => {
-        const userId = localStorage.getItem('userid');
+        const userId = getUserId();
 
         // 1. Execute Task Action
         if (task.type === 'call') {
             const bId = localStorage.getItem('businessId');
-            const res = await fetch('/api/automation/calls/initiate', {
+            const res = await authFetch('/api/automation/calls/initiate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -76,7 +74,7 @@ export default function ReminderMonitor() {
         }
 
         // 2. Mark task as completed
-        await fetch(`/api/automation/tasks/${task._id}?userId=${userId}`, {
+        await authFetch(`/api/automation/tasks/${task._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'completed', performedBy: userId })

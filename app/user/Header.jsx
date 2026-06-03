@@ -1,18 +1,75 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { ChevronDown, Plus, Home, GraduationCap, Landmark, HeartPulse, Briefcase, Shield, Wallet, Plane, Globe, Sparkles, Share2, Search, TrendingUp, Users } from "lucide-react";
+import {
+  ChevronDown,
+  Plus,
+  Home,
+  GraduationCap,
+  Landmark,
+  HeartPulse,
+  Briefcase,
+  Shield,
+  Wallet,
+  Plane,
+  Globe,
+  Sparkles,
+  Share2,
+  Search,
+  TrendingUp,
+  Users,
+  Menu,
+  X,
+} from "lucide-react";
+
+function NavUnderline({ active = false }) {
+  return (
+    <span
+      className={`absolute bottom-0 left-0 h-[2px] rounded-full bg-blue-600 transition-all duration-300 ease-out ${
+        active ? "w-full" : "w-0 group-hover:w-full"
+      }`}
+    />
+  );
+}
+
+function NavLink({ href, children, className = "", onClick, active = false }) {
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      className={`group relative inline-flex items-center py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors ${className}`}
+    >
+      {children}
+      <NavUnderline active={active} />
+    </a>
+  );
+}
+
+function NavDropdownTrigger({ children, isOpen }) {
+  return (
+    <button
+      suppressHydrationWarning
+      type="button"
+      className="group relative inline-flex items-center gap-1 py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+    >
+      {children}
+      <ChevronDown
+        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-blue-600" : ""}`}
+      />
+      <NavUnderline active={isOpen} />
+    </button>
+  );
+}
 
 const UserNavbar = () => {
-  // 1. State Hooks
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [businessPlan, setBusinessPlan] = useState(null);
   const [hasAgency, setHasAgency] = useState(false);
-  const [context, setContext] = useState('business');
+  const [context, setContext] = useState("business");
 
-  // 2. Constants & Dropdowns
   const productDropdown = [
     { label: "Website & Funnel Builder", href: "/product/builder" },
     { label: "Lead Capture Forms", href: "/product/forms" },
@@ -59,9 +116,8 @@ const UserNavbar = () => {
     { label: "Help Center", href: "/resources/help" },
   ];
 
-  const isPaid = isLoggedIn && businessPlan && businessPlan !== 'free';
+  const isPaid = isLoggedIn && businessPlan && businessPlan !== "free";
 
-  // 3. Action Handlers
   const handleProfileClick = () => {
     const userid = localStorage.getItem("userid");
     if (userid) {
@@ -82,83 +138,86 @@ const UserNavbar = () => {
       const response = await fetch(`/api/user/profile/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        const plan = (data.businessPlan || 'free').toLowerCase();
+        const plan = (data.businessPlan || "free").toLowerCase();
         setBusinessPlan(plan);
         setHasAgency(data.hasAgency);
         localStorage.setItem("businessPlan", plan);
         localStorage.setItem("hasAgency", data.hasAgency);
       }
     } catch (error) {
-      console.error('Failed to fetch session:', error);
+      console.error("Failed to fetch session:", error);
     }
   };
 
-  // 4. Effects
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.includes('/agency/clients/')) setContext('client');
-    else if (path.startsWith('/agency')) setContext('agency');
-    else setContext('business');
+    if (path.includes("/agency/clients/")) setContext("client");
+    else if (path.startsWith("/agency")) setContext("agency");
+    else setContext("business");
 
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
 
     const userid = localStorage.getItem("userid");
     if (userid) {
       setIsLoggedIn(true);
       const storedPlan = localStorage.getItem("businessPlan");
-      const storedHasAgency = localStorage.getItem("hasAgency") === 'true';
+      const storedHasAgency = localStorage.getItem("hasAgency") === "true";
       if (storedPlan) setBusinessPlan(storedPlan);
       setHasAgency(storedHasAgency);
       fetchSession(userid);
     }
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 5. Navigation Items logic
   let activePaidItems = [];
-  if (context === 'client') {
+  if (context === "client") {
     activePaidItems = [
       { label: "Business Home", icon: "Home", href: "/", special: true },
       { label: "Leads", href: "#leads" },
       { label: "Financials", href: "#invoices" },
-      { label: "Overview", href: "#overview" }
+      { label: "Overview", href: "#overview" },
     ];
   } else if (isPaid) {
     activePaidItems = [
       { label: "Websites", href: "/websites" },
       { label: "Leads", href: "/automation/leads" },
       { label: "Dashboard", href: "/automation" },
-      { label: "Report", href: "/automation/reports" }
+      { label: "Report", href: "/automation/reports" },
     ];
     if (hasAgency) {
       activePaidItems.push({ label: "Clients / Agency", href: "/agency", highlighted: true });
     }
   }
 
-  const activeCreateItems = (hasAgency && isPaid)
-    ? [
-      { label: "Create Website", href: "/website-funnel" },
-      { label: "Add New Client", href: "/agency/clients" }
-    ]
-    : [
-      { label: "Create Website", href: "/website-funnel" },
-      { label: "Create Form", href: "/automation/forms" }
-    ];
+  const activeCreateItems =
+    hasAgency && isPaid
+      ? [
+          { label: "Create Website", href: "/website-funnel" },
+          { label: "Add New Client", href: "/agency/clients" },
+        ]
+      : [
+          { label: "Create Website", href: "/website-funnel" },
+          { label: "Create Form", href: "/automation/forms" },
+        ];
 
   const DropdownMenu = ({ items, isOpen }) => {
     if (!isOpen) return null;
     return (
-      <div className="absolute top-full left-0 pt-3 w-72 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 backdrop-blur-xl">
+      <div className="absolute top-full right-0 pt-3 w-64 z-50">
+        <div className="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(15,23,42,0.12)] py-2 overflow-hidden">
           {items.map((item, idx) => (
             <a
               key={idx}
               href={item.href}
-              className="block px-6 py-3.5 text-sm font-medium text-slate-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-indigo-100/50 hover:text-indigo-600 transition-all duration-200 rounded-lg mx-2"
+              className="group/item block px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/80 dark:hover:bg-blue-950/30 transition-colors"
             >
-              {item.label}
+              <span className="relative">
+                {item.label}
+                <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-blue-600 group-hover/item:w-full transition-all duration-300" />
+              </span>
             </a>
           ))}
         </div>
@@ -169,25 +228,31 @@ const UserNavbar = () => {
   const IndustryDropdownMenu = ({ items, isOpen }) => {
     if (!isOpen) return null;
     return (
-      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 z-50 w-[520px]">
-        <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-100 p-4">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pb-3">Select Your Industry</div>
-          <div className="grid grid-cols-2 gap-1.5">
+      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 z-50 w-[520px] max-w-[calc(100vw-2rem)]">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_24px_60px_rgba(15,23,42,0.14)] p-4">
+          <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-2 pb-3">
+            Select your industry
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {items.map((item, idx) => {
               const Icon = item.icon;
               return (
                 <a
                   key={idx}
                   href={item.href}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-indigo-50 transition-all duration-200 group"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50/80 dark:hover:bg-blue-950/25 transition-all duration-200 group"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-indigo-100 flex items-center justify-center shrink-0 transition-colors">
-                    {Icon && <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />}
+                  <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-950/50 flex items-center justify-center shrink-0 transition-colors">
+                    {Icon && (
+                      <Icon className="w-4 h-4 text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                    )}
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">{item.label}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {item.label}
+                    </div>
                     {item.description && (
-                      <div className="text-[11px] text-slate-400 leading-tight mt-0.5">{item.description}</div>
+                      <div className="text-[11px] text-slate-400 leading-tight mt-0.5 truncate">{item.description}</div>
                     )}
                   </div>
                 </a>
@@ -199,134 +264,184 @@ const UserNavbar = () => {
     );
   };
 
+  const navShellClass = isScrolled
+    ? "bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
+    : "bg-white/60 dark:bg-slate-950/50 backdrop-blur-lg border-b border-slate-200/40 dark:border-slate-800/40";
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-      ? 'bg-white  shadow-md border-b '
-      : 'bg-white/95  backdrop-blur-xl'
-      }`}>
-      {businessPlan === 'trial' && (
-        <div className="bg-blue-600 text-white text-center py-2 text-sm font-medium">
-          You are using free trial of LeadForGrow for better services contact sales
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navShellClass}`}>
+      {businessPlan === "trial" && (
+        <div className="bg-gradient-to-r from-blue-600 to-sky-600 text-white text-center py-2 text-xs sm:text-sm font-medium">
+          You are on a free trial — contact sales for full access
         </div>
       )}
+
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-16 lg:h-[4.25rem]">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="flex items-center gap-3 group">
-              <img src="/image.png" alt="Logo" className="w-14 h-12 transition-transform group-hover:scale-105" />
-              <span className="text-2xl text-slate-900  tracking-tight font-semibold">
-                LeadForGrow
+            <a href="/" className="flex items-center gap-2.5 group">
+              <img
+                src="/image.png"
+                alt="LeadForGrow"
+                className="w-10 h-9 object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Lead<span className="text-blue-600">For</span>Grow
               </span>
             </a>
           </div>
 
-          {/* Navigation - Center */}
-          <div className="hidden xl:flex flex-1 justify-center px-4">
-            {isLoggedIn && (isPaid || context === 'client') ? (
-              // PAID OR CONTEXTUAL NAVIGATION
-              <div className="flex items-center space-x-8">
-                {activePaidItems.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={`text-[12px] transition-all uppercase tracking-widest font-bold flex items-center gap-2 ${item.special
-                      ? 'bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 active:scale-95 shadow-lg shadow-slate-200'
-                      : item.highlighted
-                        ? 'text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-md border border-indigo-100'
-                        : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                  >
-                    {item.label}
-                  </a>
-                ))}
+          {/* Desktop nav */}
+          <div className="hidden xl:flex flex-1 justify-center px-6">
+            {isLoggedIn && (isPaid || context === "client") ? (
+              <div className="flex items-center gap-7">
+                {activePaidItems.map((item) =>
+                  item.special ? (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className="inline-flex items-center gap-2 rounded-lg bg-slate-900 dark:bg-white px-4 py-2 text-[12px] font-semibold text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm"
+                    >
+                      {item.label}
+                    </a>
+                  ) : item.highlighted ? (
+                    <NavLink
+                      key={item.href}
+                      href={item.href}
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                      active
+                    >
+                      {item.label}
+                    </NavLink>
+                  ) : (
+                    <NavLink key={item.href} href={item.href}>
+                      {item.label}
+                    </NavLink>
+                  )
+                )}
               </div>
             ) : (
-              // PUBLIC/FREE NAVIGATION
-              <div className="flex items-center space-x-6 xl:space-x-8">
-                <div className="relative" onMouseEnter={() => setOpenDropdown('services')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button suppressHydrationWarning className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
-                    Services <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <IndustryDropdownMenu items={servicesDropdown} isOpen={openDropdown === 'services'} />
+              <div className="flex items-center gap-7">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown("services")}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <NavDropdownTrigger isOpen={openDropdown === "services"}>Services</NavDropdownTrigger>
+                  <IndustryDropdownMenu items={servicesDropdown} isOpen={openDropdown === "services"} />
                 </div>
 
-                <div className="relative" onMouseEnter={() => setOpenDropdown('industry')} onMouseLeave={() => setOpenDropdown(null)}>
-                  <button suppressHydrationWarning className="flex items-center gap-1 text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
-                    Industry <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <IndustryDropdownMenu items={industryDropdown} isOpen={openDropdown === 'industry'} />
+                <div
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown("industry")}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <NavDropdownTrigger isOpen={openDropdown === "industry"}>Industry</NavDropdownTrigger>
+                  <IndustryDropdownMenu items={industryDropdown} isOpen={openDropdown === "industry"} />
                 </div>
 
-                <a href="/pricing" className="text-sm text-slate-600  hover:text-indigo-600 transition-colors uppercase tracking-wider font-bold">
-                  Pricing
-                </a>
+                <NavLink href="/pricing">Pricing</NavLink>
               </div>
             )}
           </div>
 
-          {/* Auth Section - Right Side */}
-          <div className="hidden xl:block">
-            <div className="flex items-center space-x-4 xl:space-x-6">
-              {!isLoggedIn ? (
-                <>
-                  <a href="/user/login" className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
-                    Login
-                  </a>
-                  <a href="/user/register" className="px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
-                    Get Started
-                  </a>
-                </>
-              ) : (
-                <>
-                  <div className="relative" onMouseEnter={() => setOpenDropdown('create')} onMouseLeave={() => setOpenDropdown(null)}>
-                    <button suppressHydrationWarning className="flex items-center gap-2 px-8 py-3.5 text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 uppercase tracking-wider font-medium hover:scale-105">
-                      <Plus className="w-4 h-4" /> Create <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <DropdownMenu items={activeCreateItems} isOpen={openDropdown === 'create'} />
-                  </div>
-                  <button suppressHydrationWarning onClick={handleProfileClick} className="text-sm text-slate-600  hover:text-slate-900 transition-colors uppercase tracking-wider font-medium">
-                    Profile
+          {/* Desktop auth */}
+          <div className="hidden xl:flex items-center gap-3">
+            {!isLoggedIn ? (
+              <>
+                <NavLink href="/user/login" className="px-1">
+                  Log in
+                </NavLink>
+                <a
+                  href="/user/register"
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] hover:bg-blue-700 hover:shadow-[0_10px_28px_rgba(37,99,235,0.35)] transition-all duration-300"
+                >
+                  Get started
+                </a>
+              </>
+            ) : (
+              <>
+                <div
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown("create")}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <button
+                    suppressHydrationWarning
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] hover:bg-blue-700 transition-all duration-300"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "create" ? "rotate-180" : ""}`} />
                   </button>
-                  <button suppressHydrationWarning onClick={handleLogout} className="px-8 py-3.5 text-sm text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-xl transition-all duration-300 uppercase tracking-wider font-medium hover:scale-105">
-                    Logout
-                  </button>
-                </>
-              )}
-            </div>
+                  <DropdownMenu items={activeCreateItems} isOpen={openDropdown === "create"} />
+                </div>
+                <button
+                  suppressHydrationWarning
+                  type="button"
+                  onClick={handleProfileClick}
+                  className="group relative inline-flex items-center py-2 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  Profile
+                  <NavUnderline />
+                </button>
+                <button
+                  suppressHydrationWarning
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[13px] font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all duration-200"
+                >
+                  Log out
+                </button>
+              </>
+            )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile toggle */}
           <div className="xl:hidden">
-            <button suppressHydrationWarning onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600  hover:text-slate-900 hover:bg-slate-100 transition-all duration-200">
-              {isMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
+            <button
+              suppressHydrationWarning
+              type="button"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      <div className={`xl:hidden bg-white  border-t border-slate-200  transition-all duration-300 ease-in-out ${isMenuOpen ? "max-h-screen opacity-100 visible" : "max-h-0 opacity-0 invisible overflow-hidden"}`}>
-        <div className="px-4 pt-4 pb-6 space-y-2 max-h-[80vh] overflow-y-auto">
-          {isLoggedIn && (isPaid || context === 'client') ? (
+      <div
+        className={`xl:hidden border-t border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-all duration-300 ease-out ${
+          isMenuOpen ? "max-h-[85vh] opacity-100 visible overflow-y-auto" : "max-h-0 opacity-0 invisible overflow-hidden"
+        }`}
+      >
+        <div className="px-4 pt-3 pb-6 space-y-1">
+          {isLoggedIn && (isPaid || context === "client") ? (
             <>
               {activePaidItems.map((item, idx) => (
-                <a key={idx} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a
+                  key={idx}
+                  href={item.href}
+                  className="block px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   {item.label}
                 </a>
               ))}
-              <div className="space-y-1 pt-4 border-t border-slate-100 ">
-                <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Create</div>
+              <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-3 py-1.5">Create</div>
                 {activeCreateItems.map((item, idx) => (
-                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  <a
+                    key={idx}
+                    href={item.href}
+                    className="block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     {item.label}
                   </a>
                 ))}
@@ -334,30 +449,54 @@ const UserNavbar = () => {
             </>
           ) : (
             <>
-              <div className="space-y-1">
-                <div className="text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Product</div>
+              <div className="space-y-1 pb-2">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-3 py-1.5">Product</div>
                 {productDropdown.map((item, idx) => (
-                  <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  <a
+                    key={idx}
+                    href={item.href}
+                    className="block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     {item.label}
                   </a>
                 ))}
               </div>
-              <div className="space-y-1 pt-4 text-xs text-slate-400 uppercase tracking-widest px-4 py-2">Services</div>
-              {servicesDropdown.map((item, idx) => (
-                <a key={idx} href={item.href} className="block px-4 py-2 text-sm font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  {item.label}
-                </a>
-              ))}
-              <a href="/pricing" className="block px-4 py-3 text-base text-slate-700  hover:bg-slate-50 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <div className="space-y-1 py-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.12em] px-3 py-1.5">Services</div>
+                {servicesDropdown.map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={item.href}
+                    className="block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+              <a
+                href="/pricing"
+                className="block px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Pricing
               </a>
               {!isLoggedIn && (
-                <div className="space-y-2 pt-4 border-t border-slate-100 ">
-                  <a href="/user/login" className="block px-4 py-3 text-center text-slate-700  bg-slate-100  hover:bg-slate-200 rounded-lg transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    Login
+                <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <a
+                    href="/user/login"
+                    className="block px-3 py-2.5 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Log in
                   </a>
-                  <a href="/user/register" className="block px-4 py-3 text-center text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-lg shadow-indigo-500/20" onClick={() => setIsMenuOpen(false)}>
-                    Get Started
+                  <a
+                    href="/user/register"
+                    className="block px-3 py-2.5 text-center text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-[0_8px_24px_rgba(37,99,235,0.25)] transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Get started
                   </a>
                 </div>
               )}
@@ -365,12 +504,25 @@ const UserNavbar = () => {
           )}
 
           {isLoggedIn && (
-            <div className="space-y-2 pt-4 border-t border-slate-100 ">
-              <button suppressHydrationWarning onClick={() => { handleProfileClick(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-base font-medium text-slate-700  hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="space-y-1 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <button
+                suppressHydrationWarning
+                type="button"
+                onClick={() => {
+                  handleProfileClick();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
                 Profile
               </button>
-              <button suppressHydrationWarning onClick={handleLogout} className="w-full text-left px-4 py-3 text-base font-medium text-red-600  hover:bg-red-50 rounded-lg transition-colors">
-                Logout
+              <button
+                suppressHydrationWarning
+                type="button"
+                onClick={handleLogout}
+                className="w-full text-left px-3 py-2.5 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+              >
+                Log out
               </button>
             </div>
           )}

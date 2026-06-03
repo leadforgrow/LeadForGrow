@@ -1,11 +1,13 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { LANDING } from './landingStyles';
+import LandingSectionBg from './LandingSectionBg';
 import { motion, useInView } from 'framer-motion';
 import {
   MessagesSquare,
   Kanban,
-  Bot,
+  Zap,
   Users,
   BarChart3,
   Clock,
@@ -17,7 +19,7 @@ const MODULES = [
     icon: MessagesSquare,
     title: 'WhatsApp Inbox',
     description: 'Unified conversations with CRM context on every message.',
-    color: 'emerald',
+    color: 'blue',
     preview: '3 unread · 12s avg reply',
   },
   {
@@ -25,15 +27,15 @@ const MODULES = [
     icon: Kanban,
     title: 'Lead Pipeline',
     description: 'Visual kanban with smart stages and drag-and-drop deals.',
-    color: 'blue',
+    color: 'cyan',
     preview: '24 active · 8 hot leads',
   },
   {
     id: 'automation',
-    icon: Bot,
-    title: 'AI Automation',
-    description: 'Rules, sequences, and intelligent follow-ups on autopilot.',
-    color: 'violet',
+    icon: Zap,
+    title: 'Follow-up automation',
+    description: 'Rules, sequences, and timed follow-ups on autopilot.',
+    color: 'sky',
     preview: '6 rules live',
   },
   {
@@ -41,7 +43,7 @@ const MODULES = [
     icon: Users,
     title: 'Team Dashboard',
     description: 'Assign, track, and coach your sales team in real time.',
-    color: 'indigo',
+    color: 'cyan',
     preview: '4 agents online',
   },
   {
@@ -63,12 +65,10 @@ const MODULES = [
 ];
 
 const COLOR_MAP = {
-  emerald: { icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400', glow: 'group-hover:shadow-emerald-500/10', bar: 'bg-emerald-500' },
   blue: { icon: 'bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400', glow: 'group-hover:shadow-blue-500/10', bar: 'bg-blue-500' },
-  violet: { icon: 'bg-violet-100 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400', glow: 'group-hover:shadow-violet-500/10', bar: 'bg-violet-500' },
-  indigo: { icon: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400', glow: 'group-hover:shadow-indigo-500/10', bar: 'bg-indigo-500' },
-  amber: { icon: 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400', glow: 'group-hover:shadow-amber-500/10', bar: 'bg-amber-500' },
+  sky: { icon: 'bg-sky-100 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400', glow: 'group-hover:shadow-sky-500/10', bar: 'bg-sky-500' },
   cyan: { icon: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-400', glow: 'group-hover:shadow-cyan-500/10', bar: 'bg-cyan-500' },
+  amber: { icon: 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400', glow: 'group-hover:shadow-amber-500/10', bar: 'bg-amber-500' },
 };
 
 function ModuleCard({ module, index }) {
@@ -84,7 +84,7 @@ function ModuleCard({ module, index }) {
       transition={{ duration: 0.6, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={`group relative rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-5 shadow-sm transition-all duration-500 hover:shadow-xl ${colors.glow} overflow-hidden`}
+      className={`group relative rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900/80 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)] ${colors.glow} overflow-hidden`}
       style={{
         transform: hover ? 'perspective(800px) rotateX(2deg) rotateY(-2deg) translateY(-4px)' : 'perspective(800px) rotateX(0) rotateY(0)',
         transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s',
@@ -115,15 +115,13 @@ export default function FeatureModules() {
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section ref={ref} className="relative py-24 md:py-32 overflow-hidden bg-[#f8f9fc] dark:bg-slate-950">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:via-blue-950/10 pointer-events-none" />
-
-      <div className="relative mx-auto max-w-7xl px-6">
+    <LandingSectionBg ref={ref} variant="aurora" sectionClass={`${LANDING.section} overflow-hidden`}>
+      <div className="mx-auto max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="text-center max-w-2xl mx-auto mb-14"
+          className="text-center max-w-2xl mx-auto mb-10"
         >
           <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3">Platform modules</p>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
@@ -138,6 +136,6 @@ export default function FeatureModules() {
           ))}
         </div>
       </div>
-    </section>
+    </LandingSectionBg>
   );
 }

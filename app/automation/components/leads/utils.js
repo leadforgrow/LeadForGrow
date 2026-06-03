@@ -95,8 +95,8 @@ export function getLeadTags(lead) {
   return tags.slice(0, 3);
 }
 
-export function buildLeadsQuery(filters, userId) {
-  const params = new URLSearchParams({ userId });
+export function buildLeadsQuery(filters) {
+  const params = new URLSearchParams();
   if (filters.search) params.set('search', filters.search);
   if (filters.status && filters.status !== 'all') params.set('status', filters.status);
   if (filters.source) params.set('source', filters.source);

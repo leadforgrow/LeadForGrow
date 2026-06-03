@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { buildEditForm } from '../components/automation/constants';
 
 const EMPTY_CREATE = {
@@ -47,8 +48,7 @@ export function useAutomationRules() {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/automation-rules?userId=${userId}`);
+      const res = await authFetch('/api/automation/automation-rules');
       const data = await res.json();
       if (data.success) setRules(data.data || []);
       else toast.error(data.error || 'Failed to load automations');
@@ -103,7 +103,6 @@ export function useAutomationRules() {
       const rule = rules.find((r) => r._id === ruleId);
       if (!rule) return;
       const newEnabled = !rule.enabled;
-      const userId = localStorage.getItem('userid');
 
       setRules((prev) => prev.map((r) => (r._id === ruleId ? { ...r, enabled: newEnabled } : r)));
       if (selectedRule?._id === ruleId) {
@@ -111,10 +110,10 @@ export function useAutomationRules() {
       }
 
       try {
-        const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
+        const res = await authFetch('/api/automation/automation-rules', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
-          body: JSON.stringify({ userId, ruleId, enabled: newEnabled })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ruleId, enabled: newEnabled }),
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error);
@@ -130,13 +129,11 @@ export function useAutomationRules() {
   const saveEdit = useCallback(async () => {
     if (!selectedRule || !editForm) return;
     setSaving(true);
-    const userId = localStorage.getItem('userid');
     try {
-      const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
+      const res = await authFetch('/api/automation/automation-rules', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           ruleId: selectedRule._id,
           name: editForm.name,
           description: editForm.description,
@@ -148,9 +145,9 @@ export function useAutomationRules() {
             whatsappTemplateName: editForm.whatsappTemplateName,
             whatsappHeaderMedia: editForm.whatsappHeaderMedia,
             delayHours: editForm.delayHours,
-            emailSubject: editForm.emailSubject
-          }
-        })
+            emailSubject: editForm.emailSubject,
+          },
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -168,16 +165,15 @@ export function useAutomationRules() {
   }, [selectedRule, editForm]);
 
   const createRule = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
     try {
-      const res = await fetch(`/api/automation/automation-rules?userId=${userId}`, {
+      const res = await authFetch('/api/automation/automation-rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...createForm,
           triggers: { onLeadReceived: true },
-          config: { channel: 'both', delayHours: 0 }
-        })
+          config: { channel: 'both', delayHours: 0 },
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -203,7 +199,7 @@ export function useAutomationRules() {
         let uploaded = false;
 
         try {
-          const sigReq = await fetch('/api/cloudinary-sign', { method: 'POST' });
+          const sigReq = await authFetch('/api/cloudinary-sign', { method: 'POST' });
           if (sigReq.ok) {
             const sigData = await sigReq.json();
             if (sigData.success) {

@@ -1,64 +1,68 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Event from '@/models/automation/Event';
-import AutomationSequence from '@/models/automation/AutomationSequence';
 import Lead from '@/models/automation/Lead';
-import mongoose from 'mongoose';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
-export async function GET(req) {
-    try {
-        await dbConnect();
-        const { searchParams } = new URL(req.url);
-        const businessId = searchParams.get('businessId');
-
-        if (!businessId) {
-            return NextResponse.json({ success: false, error: 'Business ID required' }, { status: 400 });
-        }
-
-        const events = await Event.find({ businessId })
-            .populate('formId', 'name token')
-            .sort({ date: -1 })
-            .lean();
-
-        // Enrich with lead counts
-        const enrichedEvents = await Promise.all(events.map(async (event) => {
-            const leadCount = await Lead.countDocuments({ eventId: event._id });
-            const conversionCount = await Lead.countDocuments({ eventId: event._id, status: 'converted' });
-            return { ...event, leadCount, conversionCount };
-        }));
-
-        return NextResponse.json({ success: true, data: enrichedEvents });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+export const GET = withTenantAuth(async (req) => {
+  try {
+    const tenant = await resolveTenant(req);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
-}
 
-export async function POST(req) {
-    try {
-        await dbConnect();
-        const body = await req.json();
-        const { businessId, name, description, date, location, formId, sequenceId } = body;
+    await dbConnect();
+    const businessId = tenant.business._id;
 
-        if (!businessId || !name || !formId) {
-            return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
-        }
+    const events = await Event.find({ businessId })
+      .populate('formId', 'name token')
+      .sort({ date: -1 })
+      .lean();
 
-        // Clean up empty strings to avoid Mongoose CastErrors
-        const cleanedFormId = formId === "" ? null : formId;
-        const cleanedSequenceId = sequenceId === "" ? null : sequenceId;
+    const enrichedEvents = await Promise.all(
+      events.map(async (event) => {
+        const [leadCount, conversionCount] = await Promise.all([
+          Lead.countDocuments({ eventId: event._id }),
+          Lead.countDocuments({ eventId: event._id, status: 'converted' }),
+        ]);
+        return { ...event, leadCount, conversionCount };
+      })
+    );
 
-        const newEvent = await Event.create({
-            businessId,
-            name,
-            description,
-            date: date || new Date(),
-            location,
-            formId: cleanedFormId,
-            sequenceId: cleanedSequenceId
-        });
+    return NextResponse.json({ success: true, data: enrichedEvents });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+});
 
-        return NextResponse.json({ success: true, data: newEvent });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+export const POST = withTenantAuth(async (req) => {
+  try {
+    const tenant = await resolveTenant(req);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
-}
+
+    const body = await req.json();
+    const { name, description, date, location, formId, sequenceId } = body;
+
+    if (!name || !formId) {
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    }
+
+    await dbConnect();
+
+    const newEvent = await Event.create({
+      businessId: tenant.business._id,
+      name,
+      description,
+      date: date || new Date(),
+      location,
+      formId: formId === '' ? null : formId,
+      sequenceId: sequenceId === '' ? null : sequenceId,
+    });
+
+    return NextResponse.json({ success: true, data: newEvent });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+});

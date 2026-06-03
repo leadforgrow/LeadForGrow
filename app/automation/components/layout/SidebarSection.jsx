@@ -11,7 +11,8 @@ export default function SidebarSection({
   searchParams,
   collapsed,
   stats,
-  onNavigate
+  onNavigate,
+  onLockedClick
 }) {
   const [open, setOpen] = useState(true);
 
@@ -31,6 +32,7 @@ export default function SidebarSection({
             collapsed
             badgeCount={getBadge(item)}
             onNavigate={onNavigate}
+            onLockedClick={onLockedClick}
           />
         ))}
       </div>
@@ -61,6 +63,7 @@ export default function SidebarSection({
               collapsed={false}
               badgeCount={getBadge(item)}
               onNavigate={onNavigate}
+              onLockedClick={onLockedClick}
             />
           ))}
         </div>

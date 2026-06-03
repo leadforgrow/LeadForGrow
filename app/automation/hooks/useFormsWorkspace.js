@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { DEFAULT_FIELDS, normalizeStyling } from '../components/forms/constants';
 
 export function useFormsWorkspace() {
@@ -9,8 +10,8 @@ export function useFormsWorkspace() {
   const [saving, setSaving] = useState(false);
   const [forms, setForms] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [view, setView] = useState('builder'); // builder | preview | publish | analytics
-  const [workspaceMode, setWorkspaceMode] = useState('home'); // home | wizard | editor
+  const [view, setView] = useState('builder');
+  const [workspaceMode, setWorkspaceMode] = useState('home');
   const [wizardStep, setWizardStep] = useState(1);
   const [wizardDraft, setWizardDraft] = useState({
     name: '', description: '', formType: 'floating', leadSource: 'website', pipelineStage: 'new', templateId: null, templateFields: null,
@@ -26,8 +27,6 @@ export function useFormsWorkspace() {
   const [maxForms, setMaxForms] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
-
-  const getUserId = () => (typeof window !== 'undefined' ? localStorage.getItem('userid') : null);
 
   const selectedForm = useMemo(
     () => forms.find((f) => f._id === selectedId) || null,
@@ -48,10 +47,8 @@ export function useFormsWorkspace() {
   }, [forms]);
 
   const loadPlan = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     try {
-      const res = await fetch(`/api/auth/me?userId=${userId}`);
+      const res = await authFetch('/api/auth/me');
       const data = await res.json();
       if (data.success) {
         setUserPlan(data.data.plan || 'free');
@@ -61,15 +58,12 @@ export function useFormsWorkspace() {
   }, []);
 
   const fetchForms = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     try {
       setLoading(true);
-      const res = await fetch(`/api/forms?userId=${userId}`);
+      const res = await authFetch('/api/forms');
       const data = await res.json();
       if (data.success) {
         setForms(data.data);
-        // Don't auto-open editor — start on home view
       } else toast.error(data.error);
     } catch {
       toast.error('Failed to load forms');
@@ -101,11 +95,10 @@ export function useFormsWorkspace() {
   }, [selectedForm?._id, syncDraftFromForm]);
 
   const fetchSubmissions = useCallback(async (formId) => {
-    const userId = getUserId();
-    if (!userId || !formId) return;
+    if (!formId) return;
     setSubmissionsLoading(true);
     try {
-      const res = await fetch(`/api/automation/leads?userId=${userId}&source=form&limit=100`);
+      const res = await authFetch('/api/automation/leads?source=form&limit=100');
       const data = await res.json();
       if (data.success) {
         const filtered = (data.data || []).filter(
@@ -149,14 +142,12 @@ export function useFormsWorkspace() {
   }, []);
 
   const createForm = useCallback(async (payload = {}) => {
-    const userId = getUserId();
-    if (!userId) return null;
     if (forms.length >= maxForms) {
       toast.error(`Form limit reached (${maxForms} on ${userPlan} plan)`);
       return null;
     }
     try {
-      const res = await fetch(`/api/forms?userId=${userId}`, {
+      const res = await authFetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,11 +196,10 @@ export function useFormsWorkspace() {
   }, [wizardDraft, createForm]);
 
   const saveForm = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId || !selectedId) return;
+    if (!selectedId) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/forms?userId=${userId}`, {
+      const res = await authFetch('/api/forms', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -246,10 +236,8 @@ export function useFormsWorkspace() {
   }, [createForm]);
 
   const deleteForm = useCallback(async (formId) => {
-    const userId = getUserId();
-    if (!userId) return false;
     try {
-      const res = await fetch(`/api/forms?userId=${userId}&formId=${formId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/forms?formId=${formId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setForms((prev) => prev.filter((f) => f._id !== formId));
@@ -269,10 +257,9 @@ export function useFormsWorkspace() {
   }, [selectedId]);
 
   const togglePublish = useCallback(async (active) => {
-    const userId = getUserId();
-    if (!userId || !selectedId) return;
+    if (!selectedId) return;
     try {
-      const res = await fetch(`/api/forms?userId=${userId}`, {
+      const res = await authFetch('/api/forms', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ formId: selectedId, active }),

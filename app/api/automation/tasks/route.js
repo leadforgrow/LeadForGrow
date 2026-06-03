@@ -1,42 +1,17 @@
-import { dbConnect } from "@/lib/mongodb";
+import { dbConnect } from '@/lib/mongodb';
 import Task from '@/models/automation/Task';
-import User from '@/models/User';
-import Business from '@/models/Business';
 import Lead from '@/models/automation/Lead';
 import { NextResponse } from 'next/server';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
-// Helper to get user and business
-async function getUserAndBusiness(request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  if (!userId) {
-    return { error: `Authentication required: ${new URL(request.url).pathname}`, status: 401 };
-  }
-
-  await dbConnect();
-  const user = await User.findById(userId);
-  if (!user) {
-    return { error: 'User not found', status: 404 };
-  }
-
-  const business = await Business.findById(user.businessId);
-  if (!business) {
-    return { error: 'Business not found', status: 404 };
-  }
-
-  return { user, business };
-}
-
-// GET - Fetch tasks with filters
-export async function GET(request) {
+export const GET = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { user, business } = result;
+    const { user, business } = tenant;
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter'); // 'today', 'overdue', 'upcoming'
     const assignedTo = searchParams.get('assignedTo');
@@ -77,17 +52,16 @@ export async function GET(request) {
     console.error('Error fetching tasks:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch tasks' }, { status: 500 });
   }
-}
+});
 
-// POST - Create new task
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { business } = result;
+    const { business } = tenant;
     const body = await request.json();
     const { leadId, type, title, description, dueDate, assignedTo, autoSend, messageContent } = body;
 
@@ -117,4 +91,4 @@ export async function POST(request) {
     console.error('Error creating task:', error);
     return NextResponse.json({ success: false, error: 'Failed to create task' }, { status: 500 });
   }
-}
+});

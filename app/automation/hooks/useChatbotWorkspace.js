@@ -2,14 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { DEFAULT_CHATBOT_CONFIG } from '@/lib/chatbot/defaults';
-
-const getUserId = () => (typeof window !== 'undefined' ? localStorage.getItem('userid') : null);
-const api = (path, opts = {}) => {
-  const userId = getUserId();
-  const sep = path.includes('?') ? '&' : '?';
-  return fetch(`${path}${sep}userId=${userId}`, { ...opts, credentials: 'include' });
-};
 
 export function useChatbotWorkspace() {
   const [loading, setLoading] = useState(true);
@@ -23,7 +17,7 @@ export function useChatbotWorkspace() {
   const fetchConfig = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api('/api/automation/chatbot');
+      const res = await authFetch('/api/automation/chatbot');
       const json = await res.json();
       if (json.success) {
         setBusinessId(json.data.businessId);
@@ -60,7 +54,7 @@ export function useChatbotWorkspace() {
     try {
       setSaving(true);
       const payload = { config: { ...config, ...overrides } };
-      const res = await api('/api/automation/chatbot', {
+      const res = await authFetch('/api/automation/chatbot', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

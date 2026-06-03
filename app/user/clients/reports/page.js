@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import UserNavbar from "../../Header";
 import toast from "react-hot-toast";
+import { authJson } from "@/lib/apiClient";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -31,9 +32,7 @@ export default function ReportsPage() {
   const fetchIntelligence = async () => {
     try {
       setLoading(true);
-      const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
-      const res = await fetch(`/api/clients?businessId=${bId}`);
-      const { data } = await res.json();
+      const { data } = await authJson("/api/clients");
       
       const mrr = data.reduce((acc, c) => acc + (c.contractValue?.amount || 0), 0);
       

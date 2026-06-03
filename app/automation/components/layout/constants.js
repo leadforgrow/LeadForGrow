@@ -10,6 +10,7 @@ import {
   Bot,
   FileInput,
   PhoneCall,
+  CalendarClock,
   BarChart3,
   CalendarDays,
   UserCog,
@@ -47,6 +48,13 @@ export const NAV_GROUPS = [
     items: [
       { id: 'rules', name: 'Automation Rules', href: '/automation/automation-rules', icon: SlidersHorizontal, badgeKey: 'activeAutomations', dot: 'live' },
       { id: 'sequences', name: 'Sequences', href: '/automation/sequences', icon: GitBranch },
+      {
+        id: 'meetings',
+        name: 'Meetings & Scheduling',
+        href: '/automation/meetings',
+        icon: CalendarClock,
+        matchPrefix: '/automation/meetings'
+      },
       { id: 'templates', name: 'Email Templates', href: '/automation/templates', icon: Mail },
       { id: 'chatbot', name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
       { id: 'forms', name: 'Forms', href: '/automation/forms', icon: FileInput, role: 'owner' },
@@ -67,16 +75,16 @@ export const NAV_GROUPS = [
     label: 'Settings',
     role: 'owner',
     items: [
-      { id: 'team', name: 'Team', href: '/automation/settings/team', icon: UserCog, role: 'owner' },
+      { id: 'team', name: 'Team & Permissions', href: '/automation/settings/team-permissions', icon: UserCog, role: 'owner' },
       { id: 'integrations', name: 'Integrations', href: '/automation/settings/integrations', icon: Plug, role: 'owner' },
       { id: 'crm-settings', name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner', exact: true }
     ]
   }
 ];
 
-export function filterNavGroups(groups, { userRole, permissions }) {
+export function filterNavGroups(groups, { userRole, permissions, navAccess, isOwner }) {
   const role = (userRole || 'member').toLowerCase();
-  const isAdmin = role === 'owner' || role.includes('admin') || role.includes('super');
+  const isAdmin = isOwner || role === 'owner' || role.includes('admin') || role.includes('super');
 
   return groups
     .filter((group) => {
@@ -85,11 +93,29 @@ export function filterNavGroups(groups, { userRole, permissions }) {
     })
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => {
-        if (item.role && !isAdmin && item.role !== role) return false;
-        if (item.permission && !item.permission.every((p) => permissions?.includes(p))) return false;
-        return true;
-      })
+      items: group.items
+        .filter((item) => {
+          if (item.role && !isAdmin && item.role !== role) return false;
+          if (item.permission && !item.permission.every((p) => permissions?.includes(p))) return false;
+          if (navAccess && item.id) {
+            const nav = navAccess[item.id];
+            if (nav?.denied) return false;
+          }
+          return true;
+        })
+        .map((item) => {
+          if (!navAccess || !item.id) return item;
+          const nav = navAccess[item.id];
+          if (nav?.locked) {
+            return {
+              ...item,
+              locked: true,
+              requiredTier: nav.requiredTier || 'growth',
+              href: item.href,
+            };
+          }
+          return item;
+        }),
     }))
     .filter((group) => group.items.length > 0);
 }

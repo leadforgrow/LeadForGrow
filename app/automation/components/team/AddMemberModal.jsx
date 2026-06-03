@@ -82,14 +82,15 @@ export default function AddMemberModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Password (optional)</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Login password</label>
               <input
                 type="text"
                 value={member.password}
                 onChange={(e) => onChange({ ...member, password: e.target.value })}
-                placeholder="Auto-generated if empty"
+                placeholder="Set password for this member (auto-generated if empty)"
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800"
               />
+              <p className="mt-1 text-[10px] text-slate-500">Share this email and password so they can log in at /user/register?mode=login</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Phone</label>

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
 import { buildLeadsQuery } from '../components/leads/utils';
 import { SAVED_VIEWS_KEY } from '../components/leads/constants';
@@ -60,8 +61,7 @@ export function useLeadsWorkspace() {
 
   const fetchTeam = useCallback(async () => {
     try {
-      const uId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/team?userId=${uId}`);
+      const res = await authFetch('/api/automation/team');
       const data = await res.json();
       if (data.success) setTeamMembers(data.data);
     } catch {
@@ -78,21 +78,15 @@ export function useLeadsWorkspace() {
 
   const fetchLeads = useCallback(async (silent = false) => {
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) return;
-
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const qs = buildLeadsQuery(
-        {
-          ...filters,
-          status: filters.status === 'all' ? '' : filters.status
-        },
-        userId
-      );
+      const qs = buildLeadsQuery({
+        ...filters,
+        status: filters.status === 'all' ? '' : filters.status
+      });
 
-      const res = await fetch(`/api/automation/leads?${qs}`);
+      const res = await authFetch(`/api/automation/leads?${qs}`);
       const data = await res.json();
 
       if (!data.success) throw new Error(data.error);
@@ -213,8 +207,8 @@ export function useLeadsWorkspace() {
   const updateLeadStatus = useCallback(
     async (leadId, status) => {
       try {
-        const userId = localStorage.getItem('userid');
-        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        const userId = getUserId();
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status, performedBy: userId })
@@ -234,8 +228,8 @@ export function useLeadsWorkspace() {
   const assignLead = useCallback(
     async (leadId, assigneeId) => {
       try {
-        const userId = localStorage.getItem('userid');
-        const res = await fetch(`/api/automation/leads/${leadId}?userId=${userId}`, {
+        const userId = getUserId();
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ assignedTo: assigneeId, performedBy: userId })
@@ -254,10 +248,10 @@ export function useLeadsWorkspace() {
 
   const bulkAssign = useCallback(
     async (assigneeId) => {
-      const userId = localStorage.getItem('userid');
+      const userId = getUserId();
       let ok = 0;
       for (const id of selectedIds) {
-        const res = await fetch(`/api/automation/leads/${id}?userId=${userId}`, {
+        const res = await authFetch(`/api/automation/leads/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ assignedTo: assigneeId, performedBy: userId })
@@ -273,10 +267,9 @@ export function useLeadsWorkspace() {
 
   const bulkDelete = useCallback(async () => {
     if (!window.confirm(`Delete ${selectedIds.length} leads permanently?`)) return;
-    const userId = localStorage.getItem('userid');
     let ok = 0;
     for (const id of selectedIds) {
-      const res = await fetch(`/api/automation/leads/${id}?userId=${userId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/automation/leads/${id}`, { method: 'DELETE' });
       if (res.ok) ok++;
     }
     toast.success(`Deleted ${ok} lead(s)`);
@@ -286,13 +279,11 @@ export function useLeadsWorkspace() {
 
   const exportLeads = useCallback(
     async (format) => {
-      const userId = localStorage.getItem('userid');
       const endpoint = format === 'pdf' ? '/api/automation/leads/export/pdf' : '/api/automation/leads/export/excel';
-      const res = await fetch(endpoint, {
+      const res = await authFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           leads: selectedIds.length ? sortedLeads.filter((l) => selectedIds.includes(l._id)) : sortedLeads,
           filter: filters.status
         })
@@ -319,14 +310,11 @@ export function useLeadsWorkspace() {
       return;
     }
     try {
-      const res = await fetch('/api/automation/calls/initiate', {
+      const res = await authFetch('/api/automation/calls/initiate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: localStorage.getItem('userid'),
+          userId: getUserId(),
           businessId: localStorage.getItem('businessId'),
           leadId: lead._id,
           leadPhone: lead.phone

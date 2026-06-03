@@ -11,6 +11,7 @@ import {
   Layout
 } from 'lucide-react';
 import UserNavbar from '../../user/Header';
+import { authFetch } from '@/lib/apiClient';
 
 function DetailsContent() {
   const searchParams = useSearchParams();
@@ -40,13 +41,10 @@ function DetailsContent() {
     setIsCreating(true);
     
     try {
-      const userId = localStorage.getItem('userid') || '6778f2e20000000000000001';
-      
-      const res = await fetch('/api/websites', {
+      const res = await authFetch('/api/websites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          owner: userId,
           templateId,
           websiteName: formData.websiteName,
           brandName: formData.brandName,

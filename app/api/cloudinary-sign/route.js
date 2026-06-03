@@ -1,31 +1,37 @@
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
+import { withAuth } from '@/lib/auth';
+import { requireEnv } from '@/lib/env';
 
-cloudinary.config({
-  cloud_name: 'dhveue7bg',
-  api_key: '279161859452692',
-  api_secret: '3DOF_1kZ-0cDIToUws29S2KNsXw',
-});
+function getCloudinaryConfig() {
+  return {
+    cloud_name: requireEnv('CLOUDINARY_CLOUD_NAME'),
+    api_key: requireEnv('CLOUDINARY_API_KEY'),
+    api_secret: requireEnv('CLOUDINARY_API_SECRET'),
+  };
+}
 
-export async function POST(request) {
+export const POST = withAuth()(async () => {
   try {
-    const timestamp = Math.round((new Date).getTime() / 1000);
-    
-    // We can sign specific parameters if needed, or just timestamp for general upload
-    const signature = cloudinary.utils.api_sign_request({
-      timestamp: timestamp,
-      // upload_preset: '...', // If using a specific signed preset, add here
-    }, '3DOF_1kZ-0cDIToUws29S2KNsXw');
-    
-    return NextResponse.json({ 
-      success: true, 
+    const config = getCloudinaryConfig();
+    cloudinary.config(config);
+
+    const timestamp = Math.round(new Date().getTime() / 1000);
+
+    const signature = cloudinary.utils.api_sign_request({ timestamp }, config.api_secret);
+
+    return NextResponse.json({
+      success: true,
       signature,
       timestamp,
-      apiKey: '279161859452692',
-      cloudName: 'dhveue7bg'
+      apiKey: config.api_key,
+      cloudName: config.cloud_name,
     });
   } catch (error) {
     console.error('Cloudinary signature generation failed:', error);
-    return NextResponse.json({ success: false, error: 'Signature generation failed' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message || 'Signature generation failed' },
+      { status: 500 }
+    );
   }
-}
+});

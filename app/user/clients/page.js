@@ -10,6 +10,7 @@ import {
 import UserNavbar from "../Header";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { authFetch } from "@/lib/apiClient";
 
 export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
@@ -31,28 +32,26 @@ export default function ClientsPage() {
   });
 
   useEffect(() => {
-    const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
-    fetchClients(bId);
+    fetchClients();
   }, []);
 
   const handleCreateClient = async (e) => {
     e.preventDefault();
-    const bId = localStorage.getItem("businessId") || "67768a834164b38341065113";
     try {
-      const res = await fetch("/api/clients", {
+      const res = await authFetch("/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, businessId: bId })
+        body: JSON.stringify(formData)
       });
       if (res.ok) {
         toast.success("Client onboarded successfully!");
         setIsModalOpen(false);
-        fetchClients(bId);
-        // Trigger Automation
+        fetchClients();
         const clientData = await res.json();
-        fetch("/api/clients/automation/trigger", {
+        authFetch("/api/clients/automation/trigger", {
           method: "POST",
-          body: JSON.stringify({ triggerType: "CLIENT_ONBOARDED", clientId: clientData.data._id, businessId: bId })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ triggerType: "CLIENT_ONBOARDED", clientId: clientData.data._id })
         });
       }
     } catch (error) {
@@ -60,10 +59,10 @@ export default function ClientsPage() {
     }
   };
 
-  const fetchClients = async (bId) => {
+  const fetchClients = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/clients?businessId=${bId}`);
+      const res = await authFetch("/api/clients");
       if (!res.ok) throw new Error("Failed to fetch clients");
       const { data, meta } = await res.json();
       setClients(data);

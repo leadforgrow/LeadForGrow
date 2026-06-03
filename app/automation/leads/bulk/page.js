@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 import { toast } from 'react-hot-toast';
+import { authFetch, getAuthToken } from '@/lib/apiClient';
 
 export default function BulkUploadPage() {
   const router = useRouter();
@@ -83,9 +84,7 @@ export default function BulkUploadPage() {
 
     setStatus('processing');
     const lead = data[index];
-    const userId = localStorage.getItem('userid');
-
-    if (!userId) {
+    if (!getAuthToken()) {
       toast.error('User ID not found in session. Please log in again.');
       setStatus('idle');
       return;
@@ -111,7 +110,7 @@ export default function BulkUploadPage() {
 
       console.log('Sending lead payload:', leadPayload);
 
-      const res = await fetch(`/api/automation/leads?userId=${userId}`, {
+      const res = await authFetch('/api/automation/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadPayload),

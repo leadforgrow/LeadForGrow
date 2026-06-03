@@ -21,6 +21,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -44,9 +45,7 @@ export default function ClientDetailPage({ params }) {
 
   const fetchTeam = async () => {
     try {
-      const res = await fetch('/api/agency/team', {
-        headers: { 'x-user-id': localStorage.getItem('userid') }
-      });
+      const res = await authFetch('/api/agency/team');
       const data = await res.json();
       if (data.success) setTeam(data.team);
     } catch (err) {
@@ -62,11 +61,10 @@ export default function ClientDetailPage({ params }) {
         ? client.assignedTeam.filter(m => (m._id || m) !== memberId)
         : [...(client.assignedTeam || []), memberId];
       
-      const res = await fetch(`/api/agency/clients/${clientId}`, {
+      const res = await authFetch(`/api/agency/clients/${clientId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': localStorage.getItem('userid')
         },
         body: JSON.stringify({ assignedTeam: newTeam.map(m => m._id || m) })
       });
@@ -85,11 +83,10 @@ export default function ClientDetailPage({ params }) {
 
   const updateClientMode = async (mode) => {
     try {
-      const res = await fetch(`/api/agency/clients/${clientId}`, {
+      const res = await authFetch(`/api/agency/clients/${clientId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': localStorage.getItem('userid')
         },
         body: JSON.stringify({ 
           leadAssignment: { ...client.leadAssignment, mode } 
@@ -108,16 +105,14 @@ export default function ClientDetailPage({ params }) {
 
   const fetchClientData = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const headers = { 'x-user-id': userId };
-      const clientRes = await fetch(`/api/agency/clients/${clientId}`, { headers });
+      const clientRes = await authFetch(`/api/agency/clients/${clientId}`);
       const clientData = await clientRes.json();
       
       if (clientData.success) {
         setClient(clientData.client);
         const [leadsRes, invRes] = await Promise.all([
-           fetch(`/api/agency/leads?clientId=${clientId}`, { headers }),
-           fetch(`/api/agency/invoices?clientId=${clientId}`, { headers })
+           authFetch(`/api/agency/leads?clientId=${clientId}`),
+           authFetch(`/api/agency/invoices?clientId=${clientId}`)
         ]);
         const leadsData = await leadsRes.json();
         const invData = await invRes.json();

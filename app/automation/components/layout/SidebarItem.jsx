@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Lock } from 'lucide-react';
 import NotificationBadge from './NotificationBadge';
 
 export default function SidebarItem({
@@ -8,9 +9,34 @@ export default function SidebarItem({
   active,
   collapsed,
   badgeCount,
-  onNavigate
+  onNavigate,
+  onLockedClick,
 }) {
   const Icon = item.icon;
+  const locked = item.locked;
+
+  if (locked) {
+    return (
+      <button
+        type="button"
+        onClick={() =>
+          onLockedClick?.(item.name, item.requiredTier || 'growth')
+        }
+        title={collapsed ? `${item.name} (Upgrade)` : undefined}
+        className={`group relative flex items-center gap-3 rounded-lg text-[13px] w-full transition-all duration-200 ${
+          collapsed ? 'justify-center px-2 py-2.5' : 'px-2.5 py-2'
+        } text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer`}
+      >
+        <Icon className="w-[18px] h-[18px] opacity-50" strokeWidth={1.75} />
+        {!collapsed && (
+          <>
+            <span className="flex-1 truncate text-left opacity-70">{item.name}</span>
+            <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          </>
+        )}
+      </button>
+    );
+  }
 
   return (
     <Link

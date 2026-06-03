@@ -19,6 +19,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch, getAuthToken } from '@/lib/apiClient';
 
 export default function AgencyFormsPage() {
   const router = useRouter();
@@ -34,14 +35,13 @@ export default function AgencyFormsPage() {
   }, []);
 
   const initPage = async () => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) {
+    if (!getAuthToken()) {
       toast.error('Please login to continue');
       router.push('/user/login');
       return;
     }
     try {
-      await Promise.all([fetchForms(userId), fetchClients(userId)]);
+      await Promise.all([fetchForms(), fetchClients()]);
     } catch (err) {
       console.error('Initialization error:', err);
     } finally {
@@ -49,22 +49,21 @@ export default function AgencyFormsPage() {
     }
   };
 
-  const fetchClients = async (userId) => {
-    const res = await fetch('/api/agency/clients', { headers: { 'x-user-id': userId } });
+  const fetchClients = async () => {
+    const res = await authFetch('/api/agency/clients');
     const data = await res.json();
     if (data.success) setClients(data.clients);
   };
 
-  const fetchForms = async (userId) => {
-    const res = await fetch(`/api/agency/forms?userId=${userId}`);
+  const fetchForms = async () => {
+    const res = await authFetch('/api/agency/forms');
     const data = await res.json();
     if (data.success) setForms(data.data);
   };
 
   const createForm = async (formData) => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/agency/forms?userId=${userId}`, {
+      const res = await authFetch('/api/agency/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

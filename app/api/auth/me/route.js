@@ -1,40 +1,38 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth';
 import mongoose from 'mongoose';
-import { dbConnect } from "@/lib/mongodb";
+import { dbConnect } from '@/lib/mongodb';
 import User from '@/models/User';
+import { resolveTenant } from '@/lib/auth';
 
-export async function GET(request) {
+export const GET = withAuth()(async (req) => {
   try {
-    await dbConnect();
-    
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 });
+    const tenant = await resolveTenant(req);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const user = await User.findById(userId).select('-password');
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
-    }
+    const { user, business } = tenant;
 
-    const Business = mongoose.models.Business || (await import('@/models/Business')).default;
-    const business = await Business.findById(user.businessId);
-    
-    if (!business) {
-      return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
-    }
-
-    const RolePermission = mongoose.models.RolePermission || (await import('@/models/RolePermission')).default;
-    const rolePerm = await RolePermission.findOne({ 
-      role: { $regex: new RegExp(`^${user.role}$`, 'i') } 
+    const RolePermission =
+      mongoose.models.RolePermission || (await import('@/models/RolePermission')).default;
+    const rolePerm = await RolePermission.findOne({
+      role: { $regex: new RegExp(`^${user.role}$`, 'i') },
     });
 
-    const permissions = rolePerm ? rolePerm.permissions : [];
-    // Owners/Supers have all permissions implicitly
+    const permissions = rolePerm ? [...rolePerm.permissions] : [];
     if (['owner', 'super', 'agency_owner'].includes(user.role?.toLowerCase())) {
-       permissions.push('dashboard_access', 'reports_access', 'live_chat_access', 'leads_view', 'leads_edit', 'leads_delete', 'team_manage', 'settings_manage', 'billing_manage');
+      permissions.push(
+        'dashboard_access',
+        'reports_access',
+        'live_chat_access',
+        'leads_view',
+        'leads_edit',
+        'leads_delete',
+        'team_manage',
+        'settings_manage',
+        'billing_manage'
+      );
     }
 
     return NextResponse.json({
@@ -50,12 +48,11 @@ export async function GET(request) {
         usage: business.usage || {},
         onboardingComplete: business.onboardingComplete || false,
         apiKey: business.apiKey,
-        permissions: [...new Set(permissions)]
-      }
+        permissions: [...new Set(permissions)],
+      },
     });
-    
   } catch (error) {
     console.error('Error fetching user data:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+});

@@ -3,8 +3,10 @@ import User from "@/models/User";
 import Business from "@/models/Business";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/rateLimit";
+import { logAuthEvent } from "@/lib/auditLog";
 
-export async function POST(req) {
+async function loginHandler(req) {
   try {
     await dbConnect();
     const { email, password } = await req.json();
@@ -62,6 +64,8 @@ export async function POST(req) {
     const { generateToken } = await import("@/lib/auth");
     const token = generateToken(user, { plan: workspace.plan });
 
+    await logAuthEvent(req, 'login_success', user._id, user.businessId);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -77,3 +81,5 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(10, 60, loginHandler);

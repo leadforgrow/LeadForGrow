@@ -12,11 +12,13 @@ import { NextResponse } from "next/server";
  * This endpoint should be triggered every 1-5 minutes by an external scheduler (e.g. Vercel Cron, GitHub Actions)
  */
 export async function GET(request) {
-  // SECURITY: Optional check for cron secret
   const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    // skipping secret check for now to allow testing, but noting for production hardening
+  if (!process.env.CRON_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ success: false, error: 'CRON_SECRET not configured' }, { status: 503 });
+    }
+  } else if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   try {

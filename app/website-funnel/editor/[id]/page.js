@@ -48,6 +48,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import UserNavbar from '../../../user/Header';
 import PublicWebsite from '../../../s/renderWebsite';
 import { defaultContent } from '../../../components/templates/content/defaultContent';
@@ -75,7 +76,7 @@ export default function WebsiteEditor() {
 
   const fetchWebsite = async () => {
     try {
-      const res = await fetch(`/api/website-funnel/${id}`);
+      const res = await authFetch(`/api/website-funnel/${id}`);
       const data = await res.json();
       if (data.success) {
         let websiteData = data.website;
@@ -103,8 +104,7 @@ export default function WebsiteEditor() {
 
   const fetchForms = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/forms?userId=${userId}`);
+      const res = await authFetch('/api/forms');
       const data = await res.json();
       if (data.success) setForms(data.data);
     } catch (err) {
@@ -115,7 +115,7 @@ export default function WebsiteEditor() {
   const handleSave = async (isPublish = false) => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/website-funnel`, {
+      const res = await authFetch('/api/website-funnel', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

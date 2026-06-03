@@ -58,7 +58,12 @@ export default function EmbedCodeModal({ form, onClose }) {
 
         <div className="flex-1 overflow-y-auto p-5">
           {tab === 'html' && (
-            <CodeBlock label="Recommended embed" code={snippets.html} onCopy={() => copy(snippets.html, 'Embed code copied')} />
+            <>
+              <CodeBlock label="Floating widget (recommended)" code={snippets.html} onCopy={() => copy(snippets.html, 'Embed code copied')} />
+              <div className="mt-4">
+                <CodeBlock label="Inline embed (no floating button)" code={snippets.inline} onCopy={() => copy(snippets.inline, 'Inline embed copied')} />
+              </div>
+            </>
           )}
           {tab === 'iframe' && (
             <CodeBlock label="Iframe embed" code={snippets.iframe} onCopy={() => copy(snippets.iframe)} />

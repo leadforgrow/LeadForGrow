@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, X, MessageCircle, UserPlus, CheckCircle, Info, Clock } from 'lucide-react';
+import { Bell, X, MessageCircle, UserPlus, CheckCircle, Info, Clock, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { authFetch } from '@/lib/apiClient';
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -12,9 +13,7 @@ export default function NotificationCenter() {
 
   const fetchNotifications = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) return;
-      const res = await fetch(`/api/automation/notifications?userId=${userId}`);
+      const res = await authFetch('/api/automation/notifications');
       const data = await res.json();
       if (data.success) {
         setNotifications(data.data);
@@ -44,11 +43,10 @@ export default function NotificationCenter() {
 
   const markAsRead = async (id) => {
     try {
-      const userId = localStorage.getItem('userid');
-      await fetch('/api/automation/notifications', {
+      await authFetch('/api/automation/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, notificationId: id })
+        body: JSON.stringify({ notificationId: id })
       });
       fetchNotifications();
     } catch (error) {
@@ -58,11 +56,10 @@ export default function NotificationCenter() {
 
   const markAllAsRead = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      await fetch('/api/automation/notifications', {
+      await authFetch('/api/automation/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, markAll: true })
+        body: JSON.stringify({ markAll: true })
       });
       fetchNotifications();
     } catch (error) {

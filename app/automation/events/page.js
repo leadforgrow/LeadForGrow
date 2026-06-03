@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { authFetch } from '@/lib/apiClient';
 import {
     Calendar,
     Plus,
@@ -39,24 +40,23 @@ export default function EventsPage() {
     });
 
     const businessId = typeof window !== 'undefined' ? localStorage.getItem('businessId') : null;
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null;
 
     useEffect(() => {
-        if (!businessId || !userId) return;
+        if (!businessId) return;
         fetchData();
-    }, [businessId, userId]);
+    }, [businessId]);
 
     async function fetchData() {
         try {
-            const resp = await fetch(`/api/automation/events?businessId=${businessId}&userId=${userId}`);
+            const resp = await authFetch(`/api/automation/events?businessId=${businessId}`);
             const data = await resp.json();
             if (data.success) setEvents(data.data);
 
-            const fResp = await fetch(`/api/forms?businessId=${businessId}&userId=${userId}`);
+            const fResp = await authFetch(`/api/forms?businessId=${businessId}`);
             const fData = await fResp.json();
             if (fData.success) setForms(fData.data);
 
-            const sResp = await fetch(`/api/automation/sequences?businessId=${businessId}&userId=${userId}`);
+            const sResp = await authFetch(`/api/automation/sequences?businessId=${businessId}`);
             const sData = await sResp.json();
             if (sData.success) setSequences(sData.data);
         } catch (e) {
@@ -70,7 +70,7 @@ export default function EventsPage() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const resp = await fetch(`/api/automation/events?userId=${userId}`, {
+            const resp = await authFetch('/api/automation/events', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...newEvent, businessId })

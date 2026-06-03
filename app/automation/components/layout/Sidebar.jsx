@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { useSidebar } from '../../hooks/useSidebar';
+import { useAccess } from '../../context/AccessContext';
 import { NAV_GROUPS, SIDEBAR_WIDTH, filterNavGroups } from './constants';
 import SidebarHeader from './SidebarHeader';
 import SidebarSection from './SidebarSection';
@@ -13,10 +14,17 @@ export default function Sidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const sidebar = useSidebar();
+  const { access, showUpgrade } = useAccess();
 
   const groups = useMemo(
-    () => filterNavGroups(NAV_GROUPS, { userRole: sidebar.userRole, permissions: sidebar.userData.permissions }),
-    [sidebar.userRole, sidebar.userData.permissions]
+    () =>
+      filterNavGroups(NAV_GROUPS, {
+        userRole: sidebar.userRole,
+        permissions: sidebar.userData.permissions,
+        navAccess: access?.navAccess,
+        isOwner: access?.isOwner,
+      }),
+    [sidebar.userRole, sidebar.userData.permissions, access?.navAccess, access?.isOwner]
   );
 
   const width = sidebar.collapsed && !sidebar.isMobile ? SIDEBAR_WIDTH.collapsed : SIDEBAR_WIDTH.expanded;
@@ -57,6 +65,7 @@ export default function Sidebar() {
               collapsed={showRail}
               stats={sidebar.stats}
               onNavigate={sidebar.closeMobile}
+              onLockedClick={showUpgrade}
             />
           ))}
         </nav>

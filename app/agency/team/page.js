@@ -15,6 +15,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 export default function AgencyTeamPage() {
   const [team, setTeam] = useState([]);
@@ -37,10 +38,9 @@ export default function AgencyTeamPage() {
 
   const fetchData = async () => {
     try {
-      const userId = localStorage.getItem('userid');
       const [teamRes, clientsRes] = await Promise.all([
-        fetch('/api/agency/team', { headers: { 'x-user-id': userId } }),
-        fetch('/api/agency/clients', { headers: { 'x-user-id': userId } })
+        authFetch('/api/agency/team'),
+        authFetch('/api/agency/clients')
       ]);
       
       const teamData = await teamRes.json();
@@ -61,13 +61,9 @@ export default function AgencyTeamPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/team', {
+      const res = await authFetch('/api/agency/team', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-user-id': userId
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       const data = await res.json();

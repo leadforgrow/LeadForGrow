@@ -3,8 +3,9 @@
 
 import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
+import { withTenantAuth } from '@/lib/auth';
 
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
     const { leads, filter } = await request.json();
 
@@ -150,4 +151,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-}
+});

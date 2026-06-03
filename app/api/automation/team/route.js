@@ -1,42 +1,18 @@
 import { NextResponse } from 'next/server';
-import { dbConnect } from "@/lib/mongodb";
+import { dbConnect } from '@/lib/mongodb';
 import TeamMember from '@/models/automation/TeamMember';
 import User from '@/models/User';
-import Business from '@/models/Business';
 import bcrypt from 'bcryptjs';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
-// Helper to get user and business
-async function getUserAndBusiness(request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  if (!userId) {
-    return { error: 'Authentication required', status: 401 };
-  }
-
-  await dbConnect();
-  const user = await User.findById(userId);
-  if (!user) {
-    return { error: 'User not found', status: 404 };
-  }
-
-  const business = await Business.findById(user.businessId);
-  if (!business) {
-    return { error: 'Business not found', status: 404 };
-  }
-
-  return { user, business };
-}
-
-// GET - Fetch all team members for a business
-export async function GET(request) {
+export const GET = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { business } = result;
+    const { business } = tenant;
 
     const members = await TeamMember.find({ businessId: business._id })
       .populate('userId', 'email firstName lastName phone lastActivityAt')
@@ -47,17 +23,16 @@ export async function GET(request) {
     console.error('Error fetching team:', error);
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
   }
-}
+});
 
-// POST - Add a new team member
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
-    const { user, business } = result;
+    const { business } = tenant;
     const body = await request.json();
     const { email, firstName, lastName, phone, role, password } = body;
 
@@ -118,9 +93,11 @@ export async function POST(request) {
       .populate('userId', 'email firstName lastName phone lastActivityAt')
       .lean();
 
-    // Include temp password in response if newly created
+    // Include login credentials in response when a new user account was created
     if (targetUser._tempPassword) {
       populatedMember.temporaryPassword = targetUser._tempPassword;
+    } else if (password) {
+      populatedMember.temporaryPassword = password;
     }
 
     return NextResponse.json({ success: true, data: populatedMember }, { status: 201 });
@@ -128,14 +105,13 @@ export async function POST(request) {
     console.error('Error adding team member:', error);
     return NextResponse.json({ success: false, error: error.message || 'Failed to add member' }, { status: 500 });
   }
-}
+});
 
-// DELETE - Remove a team member
-export async function DELETE(request) {
+export const DELETE = withTenantAuth(async (request) => {
   try {
-    const result = await getUserAndBusiness(request);
-    if (result.error) {
-      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
     }
 
     const { searchParams } = new URL(request.url);
@@ -146,7 +122,7 @@ export async function DELETE(request) {
     }
 
     // Ensure member belongs to this business
-    const member = await TeamMember.findOne({ _id: memberId, businessId: result.business._id });
+    const member = await TeamMember.findOne({ _id: memberId, businessId: tenant.business._id });
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found or unauthorized' }, { status: 404 });
     }
@@ -162,4 +138,4 @@ export async function DELETE(request) {
     console.error('Error removing team member:', error);
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
   }
-}
+});

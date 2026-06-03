@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { authFetch } from '@/lib/apiClient';
 import { ASSISTANT_NAME, ASSISTANT_TAGLINE } from '@/lib/assistant/brand';
 
 const SUGGESTIONS = [
@@ -19,10 +20,8 @@ export function useBusinessAssistantChat() {
   const [initialized, setInitialized] = useState(false);
 
   const loadContext = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
     try {
-      const res = await fetch(`/api/ai/business-assistant?userId=${userId}`);
+      const res = await authFetch('/api/ai/business-assistant');
       const data = await res.json();
       if (data.success) setContext(data.data);
     } catch { /* ignore */ }
@@ -30,12 +29,10 @@ export function useBusinessAssistantChat() {
 
   const initChat = useCallback(async () => {
     if (initialized) return;
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
 
     let bizName = 'your business';
     try {
-      const res = await fetch(`/api/ai/business-assistant?userId=${userId}`);
+      const res = await authFetch('/api/ai/business-assistant');
       const data = await res.json();
       if (data.success) {
         setContext(data.data);
@@ -56,9 +53,6 @@ export function useBusinessAssistantChat() {
     const question = (text || input).trim();
     if (!question || loading) return;
 
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
-
     setInput('');
     const userMsg = { id: `u_${Date.now()}`, role: 'user', content: question };
     setMessages((prev) => [...prev, userMsg]);
@@ -70,7 +64,7 @@ export function useBusinessAssistantChat() {
         .slice(-8)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const res = await fetch(`/api/ai/business-assistant?userId=${userId}`, {
+      const res = await authFetch('/api/ai/business-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, history }),

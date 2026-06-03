@@ -18,6 +18,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import UserNavbar from '../../user/Header';
 
 export default function CreateWebsiteFunnel() {
@@ -64,8 +65,6 @@ export default function CreateWebsiteFunnel() {
   const handleNextStep = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userid');
-      
       if (step === 1) {
         if (!formData.websiteName || !formData.category || !formData.email) {
           toast.error('Please fill required fields');
@@ -73,10 +72,10 @@ export default function CreateWebsiteFunnel() {
           return;
         }
 
-        const res = await fetch('/api/website-funnel', {
+        const res = await authFetch('/api/website-funnel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, ...formData })
+          body: JSON.stringify({ ...formData })
         });
         const data = await res.json();
         if (data.success) {
@@ -86,7 +85,7 @@ export default function CreateWebsiteFunnel() {
           toast.error(data.error);
         }
       } else if (step === 2 || step === 3) {
-        const res = await fetch('/api/website-funnel', {
+        const res = await authFetch('/api/website-funnel', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ websiteId, ...formData })

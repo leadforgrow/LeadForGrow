@@ -221,6 +221,7 @@
     </div>
 
     <script>
+        const API_BASE = window.location.origin;
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
 
@@ -324,7 +325,7 @@
             }
 
             try {
-                const res = await fetch('/api/forms/public?token=' + encodeURIComponent(token));
+                const res = await fetch(API_BASE + '/api/forms/config?token=' + encodeURIComponent(token));
                 const result = await res.json();
 
                 if (!result.success || !result.data) {
@@ -383,7 +384,7 @@
                     fd.forEach((value, key) => { data[key] = value; });
 
                     try {
-                        const subRes = await fetch('/api/forms/submit', {
+                        const subRes = await fetch(API_BASE + '/api/forms/submit', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(data),

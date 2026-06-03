@@ -234,32 +234,47 @@ export function calcConversionRate(form) {
   return Math.min(100, Math.round((form.submissionCount / views) * 100));
 }
 
+export function buildSampleSubmissionBody(form) {
+  const body = { token: form.token };
+  (form.fields || []).forEach((field) => {
+    if (field.type === 'email') body[field.name] = 'john@example.com';
+    else if (field.type === 'phone') body[field.name] = '+919876543210';
+    else if (field.type === 'checkbox') body[field.name] = true;
+    else if (field.type === 'select' || field.type === 'radio') {
+      body[field.name] = (field.options && field.options[0]) || 'Option 1';
+    } else if (field.name === 'name' || field.label?.toLowerCase().includes('name')) {
+      body[field.name] = 'John Doe';
+    } else {
+      body[field.name] = field.placeholder || 'Sample value';
+    }
+  });
+  return body;
+}
+
 export function getEmbedSnippets(form, baseUrl) {
   const token = form.token;
   const submissionUrl = `${baseUrl}/api/forms/submit`;
+  const configUrl = `${baseUrl}/api/forms/config?token=${token}`;
   const hostedLink = `${baseUrl}/test-form.html?token=${token}`;
+  const sampleBody = buildSampleSubmissionBody(form);
 
-  const iframe = `<iframe src="${hostedLink}" width="100%" height="520" frameborder="0" style="border:none;border-radius:12px;"></iframe>`;
+  const iframe = `<iframe src="${hostedLink}" width="100%" height="520" frameborder="0" style="border:none;border-radius:12px;" title="${form.name || 'Contact form'}"></iframe>`;
 
-  const html = `<!-- LeadForGrow Form -->
+  const html = `<!-- LeadForGrow Form: ${form.name || 'Contact form'} -->
 <div data-lfg-token="${token}"></div>
 <script src="${baseUrl}/lfg-widget.js" async></script>`;
 
-  const popup = `<!-- Popup trigger -->
-<button onclick="document.getElementById('lfg-popup-${form._id}').showModal()">Open Form</button>
-<div id="lfg-popup-${form._id}">
-  <div data-lfg-token="${token}"></div>
-  <script src="${baseUrl}/lfg-widget.js" async></script>
-</div>`;
+  const inline = `<!-- Inline form (no floating button) -->
+<div data-lfg-token="${token}" data-lfg-mode="inline"></div>
+<script src="${baseUrl}/lfg-widget.js" async></script>`;
+
+  const popup = `<!-- Popup widget with optional auto-open (ms) -->
+<div data-lfg-token="${token}" data-lfg-popup-delay="30000"></div>
+<script src="${baseUrl}/lfg-widget.js" async></script>`;
 
   const curl = `curl -X POST ${submissionUrl} \\
   -H "Content-Type: application/json" \\
-  -d '{
-    "token": "${token}",
-    "name": "John Doe",
-    "phone": "+919876543210",
-    "email": "john@example.com"
-  }'`;
+  -d '${JSON.stringify(sampleBody, null, 2).replace(/'/g, "'\\''")}'`;
 
-  return { iframe, html, popup, hostedLink, submissionUrl, curl, legacy: form.embedCode };
+  return { iframe, html, inline, popup, hostedLink, submissionUrl, configUrl, curl, sampleBody, legacy: form.embedCode };
 }

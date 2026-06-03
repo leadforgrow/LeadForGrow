@@ -2,15 +2,9 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { SEQUENCE_TEMPLATES } from '@/lib/sequences/templates';
 import { createNode, TRIGGER_TYPES } from '@/lib/sequences/constants';
-
-const getUserId = () => (typeof window !== 'undefined' ? localStorage.getItem('userid') : null);
-const api = (path, opts = {}) => {
-  const userId = getUserId();
-  const sep = path.includes('?') ? '&' : '?';
-  return fetch(`${path}${sep}userId=${userId}`, opts);
-};
 
 export function useSequencesWorkspace() {
   const [loading, setLoading] = useState(true);
@@ -50,11 +44,9 @@ export function useSequencesWorkspace() {
   }, [sequences]);
 
   const fetchSequences = useCallback(async () => {
-    const userId = getUserId();
-    if (!userId) return;
     try {
       setLoading(true);
-      const res = await api('/api/automation/sequences');
+      const res = await authFetch('/api/automation/sequences');
       const data = await res.json();
       if (data.success) setSequences(data.data);
       else toast.error(data.error);
@@ -72,8 +64,8 @@ export function useSequencesWorkspace() {
     try {
       setExecutionsLoading(true);
       const [exRes, anRes] = await Promise.all([
-        api(`/api/automation/sequences/${id}/executions`),
-        api(`/api/automation/sequences/${id}/analytics`),
+        authFetch(`/api/automation/sequences/${id}/executions`),
+        authFetch(`/api/automation/sequences/${id}/analytics`),
       ]);
       const exData = await exRes.json();
       const anData = await anRes.json();
@@ -176,8 +168,6 @@ export function useSequencesWorkspace() {
   };
 
   const saveSequence = async (activate = false) => {
-    const userId = getUserId();
-    if (!userId) return toast.error('Please sign in');
     if (!draftMeta.name?.trim()) return toast.error('Sequence name required');
 
     setSaving(true);
@@ -194,7 +184,7 @@ export function useSequencesWorkspace() {
 
       const isNew = !selectedId;
       const url = isNew ? '/api/automation/sequences' : `/api/automation/sequences/${selectedId}`;
-      const res = await api(url, {
+      const res = await authFetch(url, {
         method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -216,7 +206,7 @@ export function useSequencesWorkspace() {
 
   const deleteSequence = async (id) => {
     try {
-      const res = await api(`/api/automation/sequences/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/automation/sequences/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       toast.success('Sequence deleted');

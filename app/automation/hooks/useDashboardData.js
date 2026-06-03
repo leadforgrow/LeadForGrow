@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { authFetch } from '@/lib/apiClient';
 
 function computeTrend(dailyTrends) {
   if (!dailyTrends?.length || dailyTrends.length < 2) return null;
@@ -47,25 +48,17 @@ export function useDashboardData() {
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const userId = localStorage.getItem('userid');
-      if (!userId) {
-        setError('Not signed in');
-        setLoading(false);
-        return;
-      }
-
-      const qs = `userId=${userId}`;
       const [meRes, reportsRes, tasksTodayRes, tasksOverdueRes, tasksUpcomingRes, activitiesRes, metricsRes, convRes, sidebarRes] =
         await Promise.all([
-          fetch(`/api/auth/me?${qs}`),
-          fetch(`/api/automation/reports?${qs}&period=30`),
-          fetch(`/api/automation/tasks?${qs}&filter=today`),
-          fetch(`/api/automation/tasks?${qs}&filter=overdue`),
-          fetch(`/api/automation/tasks?${qs}&filter=upcoming`),
-          fetch(`/api/automation/activities?${qs}&limit=12`),
-          fetch(`/api/business/revenue-metric?${qs}`, { credentials: 'include' }),
-          fetch('/api/automation/chat/conversations?status=unread&limit=8', { credentials: 'include' }).catch(() => null),
-          fetch('/api/automation/sidebar-stats', { credentials: 'include' }).catch(() => null)
+          authFetch('/api/auth/me'),
+          authFetch('/api/automation/reports?period=30'),
+          authFetch('/api/automation/tasks?filter=today'),
+          authFetch('/api/automation/tasks?filter=overdue'),
+          authFetch('/api/automation/tasks?filter=upcoming'),
+          authFetch('/api/automation/activities?limit=12'),
+          authFetch('/api/business/revenue-metric'),
+          authFetch('/api/automation/chat/conversations?status=unread&limit=8').catch(() => null),
+          authFetch('/api/automation/sidebar-stats').catch(() => null)
         ]);
 
       const [me, reports, tasksToday, tasksOverdue, tasksUpcoming, activities, metrics] = await Promise.all([

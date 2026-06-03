@@ -80,9 +80,10 @@ export default function PublishPanel({ form, styling, onStylingChange, onPublish
 
       {section === 'embed' && (
         <div className="space-y-4">
-          <CodeBlock label="HTML embed (recommended)" code={snippets.html} onCopy={() => copy(snippets.html, 'Embed code copied')} />
+          <CodeBlock label="Floating widget (recommended)" code={snippets.html} onCopy={() => copy(snippets.html, 'Embed code copied')} />
+          <CodeBlock label="Inline embed" code={snippets.inline} onCopy={() => copy(snippets.inline, 'Inline embed copied')} />
           <CodeBlock label="Iframe" code={snippets.iframe} onCopy={() => copy(snippets.iframe)} />
-          <CodeBlock label="Popup widget" code={snippets.popup} onCopy={() => copy(snippets.popup)} />
+          <CodeBlock label="Popup with auto-open" code={snippets.popup} onCopy={() => copy(snippets.popup)} />
         </div>
       )}
 

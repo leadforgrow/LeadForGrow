@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { authFetch } from '@/lib/apiClient';
 import WorkspaceBootLoader from './WorkspaceBootLoader';
 
 export default function AccessControl({ children }) {
@@ -20,7 +21,7 @@ export default function AccessControl({ children }) {
 
       if (userId) {
         try {
-          const res = await fetch(`/api/auth/me?userId=${userId}`);
+          const res = await authFetch('/api/auth/me');
           const data = await res.json();
           if (data.success) {
             plan = data.data.plan || plan;

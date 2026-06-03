@@ -34,7 +34,11 @@ const ActivitySchema = new mongoose.Schema({
       'converted',
       'lost',
       're-engagement',
-      'whatsapp_received'
+      'whatsapp_received',
+      'meeting_booked',
+      'meeting_completed',
+      'meeting_no_show',
+      'meeting_cancelled'
     ],
     required: true
   },
@@ -72,5 +76,10 @@ const ActivitySchema = new mongoose.Schema({
 ActivitySchema.index({ leadId: 1, performedAt: -1 });
 ActivitySchema.index({ businessId: 1, performedAt: -1 });
 
-export default mongoose.models.Activity || mongoose.model('Activity', ActivitySchema);
+// Force recompilation in dev so enum updates apply (prevents stale schema cache)
+if (mongoose.models.Activity) {
+  delete mongoose.models.Activity;
+}
+
+export default mongoose.model('Activity', ActivitySchema);
 

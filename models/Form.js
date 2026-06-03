@@ -166,6 +166,8 @@ FormSchema.pre('save', async function() {
     const formId = this._id.toString();
     const config = JSON.stringify({
       token: this.token,
+      name: this.name,
+      description: this.description || '',
       fields: this.fields,
       styling: this.styling,
       successMessage: this.successMessage,
@@ -232,8 +234,8 @@ FormSchema.pre('save', async function() {
     <div class="lfg-form-card">
       <div class="lfg-close">&times;</div>
       <div id="lfg-body-${formId}">
-        <div class="lfg-form-title">Contact Us</div>
-        <div class="lfg-form-desc">Share your details and we\\'ll get in touch!</div>
+        <div class="lfg-form-title">${this.name || 'Contact us'}</div>
+        <div class="lfg-form-desc">${this.description ? this.description.replace(/'/g, "\\'") : ''}</div>
         <form id="lfg-form-el-${formId}">
           \${fieldsHtml}
           <button type="submit" class="lfg-submit" id="lfg-btn-${formId}">\${config.styling.buttonText || 'Submit'}</button>

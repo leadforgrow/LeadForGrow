@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Users, FileText, TrendingUp, AlertCircle, Lock, BarChart3, Fingerprint, Sparkles, ShieldCheck, Settings } from 'lucide-react';
 import Heading from '@/app/components/ui/Heading';
+import { authFetch } from '@/lib/apiClient';
 
 export default function AgencyLayout({ children }) {
   const router = useRouter();
@@ -17,16 +18,14 @@ export default function AgencyLayout({ children }) {
   
   const checkAccess = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) {
+      const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+      if (!token) {
         setHasAccess(false);
         setLoading(false);
         return;
       }
-      
-      const res = await fetch('/api/agency/check-access', {
-        headers: { 'x-user-id': userId }
-      });
+
+      const res = await authFetch('/api/agency/check-access');
       
       const data = await res.json();
       setHasAccess(data.hasAccess);

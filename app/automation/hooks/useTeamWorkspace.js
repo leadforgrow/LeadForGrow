@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 const EMPTY_MEMBER = { email: '', firstName: '', lastName: '', phone: '', password: '' };
 
@@ -15,10 +16,8 @@ export function useTeamWorkspace() {
   const [maxTeamMembers, setMaxTeamMembers] = useState(1);
 
   const fetchPlanLimits = useCallback(async () => {
-    const userId = localStorage.getItem('userid');
-    if (!userId) return;
     try {
-      const res = await fetch(`/api/auth/me?userId=${userId}`);
+      const res = await authFetch('/api/auth/me');
       const data = await res.json();
       if (data.success) {
         setUserPlan(data.data.plan || 'free');
@@ -35,12 +34,10 @@ export function useTeamWorkspace() {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
-      const userId = localStorage.getItem('userid');
-      if (!userId) return;
 
       const [settingsRes, teamRes] = await Promise.all([
-        fetch(`/api/business/settings?userId=${userId}`),
-        fetch(`/api/automation/team?userId=${userId}`)
+        authFetch('/api/business/settings'),
+        authFetch('/api/automation/team')
       ]);
 
       const settingsData = await settingsRes.json();
@@ -73,8 +70,7 @@ export function useTeamWorkspace() {
   const saveStrategy = useCallback(async () => {
     try {
       setSaving(true);
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/business/settings?userId=${userId}`, {
+      const res = await authFetch('/api/business/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings: { assignmentStrategy } })
@@ -92,8 +88,7 @@ export function useTeamWorkspace() {
   const deleteMember = useCallback(async (memberId) => {
     if (!window.confirm('Remove this team member?')) return;
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/team?userId=${userId}&memberId=${memberId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/automation/team?memberId=${memberId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setTeam((prev) => prev.filter((m) => m._id !== memberId));
@@ -111,8 +106,7 @@ export function useTeamWorkspace() {
     }
     try {
       setSaving(true);
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/automation/team?userId=${userId}`, {
+      const res = await authFetch('/api/automation/team', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMember)

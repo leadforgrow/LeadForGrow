@@ -1,39 +1,29 @@
 import { dbConnect } from '@/lib/mongodb';
 import OnboardingCall from '@/models/OnboardingCall';
-import User from '@/models/User';
 import { NextResponse } from 'next/server';
 import { generateGoogleMeetLink } from '@/lib/googleMeet';
 import { sendUserConfirmationEmail, sendInternalNotification } from '@/lib/onboardingEmail';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
+    }
+
+    const { user } = tenant;
+    const body = await request.json().catch(() => ({}));
+    const { planId } = body;
+
     await dbConnect();
 
-    const { userId, planId } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Fetch user data
-    const user = await User.findById(userId);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    // Generate instant Google Meet link (no API needed)
     const meetLink = generateGoogleMeetLink();
+    const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
-    // Create onboarding call record
     const onboardingCall = new OnboardingCall({
       userId: user._id,
-      userName: user.name || user.email,
+      userName: displayName,
       userEmail: user.email,
       userPhone: user.phone || null,
       meetLink,
@@ -43,18 +33,16 @@ export async function POST(request) {
 
     await onboardingCall.save();
 
-    // Send emails using Resend
     const emailResults = await Promise.allSettled([
-      sendUserConfirmationEmail(user.name, user.email, meetLink),
-      sendInternalNotification(user.name, user.email, user.phone, meetLink, planId),
+      sendUserConfirmationEmail(displayName, user.email, meetLink),
+      sendInternalNotification(displayName, user.email, user.phone, meetLink, planId),
     ]);
 
-    // Log email results
     emailResults.forEach((result, index) => {
       if (result.status === 'fulfilled') {
-        console.log(`Email ${index + 1} sent successfully`);
+        console.log(`[ScheduleCall] Email ${index + 1} sent`);
       } else {
-        console.error(`Email ${index + 1} failed:`, result.reason);
+        console.error(`[ScheduleCall] Email ${index + 1} failed:`, result.reason);
       }
     });
 
@@ -63,7 +51,6 @@ export async function POST(request) {
       meetLink,
       message: 'Setup call scheduled successfully',
     });
-
   } catch (error) {
     console.error('Error scheduling call:', error);
     return NextResponse.json(
@@ -71,4 +58,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-}
+});

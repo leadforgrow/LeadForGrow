@@ -23,6 +23,7 @@ import {
   Shield 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 export default function AgencyReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -52,10 +53,7 @@ export default function AgencyReportsPage() {
 
   const fetchInitialData = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/clients', {
-        headers: { 'x-user-id': userId }
-      });
+      const res = await authFetch('/api/agency/clients');
       const data = await res.json();
       if (data.success) {
         setClients(data.clients);
@@ -68,10 +66,7 @@ export default function AgencyReportsPage() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/agency/reports/stats?clientId=${filterClient}&days=${timeRange}`, {
-        headers: { 'x-user-id': userId }
-      });
+      const res = await authFetch(`/api/agency/reports/stats?clientId=${filterClient}&days=${timeRange}`);
       const data = await res.json();
       if (data.success) {
         setStats(data.stats);

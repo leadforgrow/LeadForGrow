@@ -4,6 +4,7 @@ import Business from '../../../../../models/Business';
 import Lead from '../../../../../models/automation/Lead';
 import { sendAutoWhatsApp } from '../../../../../lib/integrations/whatsapp';
 import { withPermissions } from '../../../../../lib/rbac';
+import { emitChatMessage } from '../../../../../lib/realtime/publish';
 
 /**
  * POST /api/automation/chat/send
@@ -39,9 +40,15 @@ async function handler(req) {
       return NextResponse.json({ success: false, error: result.error || 'Failed to send message' }, { status: 500 });
     }
 
+    await emitChatMessage(user.businessId, {
+      leadId,
+      messageId: result.messageId,
+      direction: 'outbound',
+    });
+
     return NextResponse.json({
       success: true,
-      messageId: result.messageId
+      messageId: result.messageId,
     });
 
   } catch (error) {

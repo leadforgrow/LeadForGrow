@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, TrendingUp, Users, FileText, Shield, Sparkles } from 'lucide-react';
+import { authFetch } from '@/lib/apiClient';
 
 export default function UsagePage() {
   const [usage, setUsage] = useState(null);
@@ -13,10 +14,7 @@ export default function UsagePage() {
 
   const fetchUsage = async () => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/usage', {
-        headers: { 'x-user-id': userId }
-      });
+      const res = await authFetch('/api/agency/usage');
       const data = await res.json();
       if (data.success) setUsage(data);
     } catch (error) {

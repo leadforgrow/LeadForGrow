@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Phone, Mail, MessageSquare, Briefcase, Plus, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch, getAuthToken } from '@/lib/apiClient';
 
 export default function NewLeadPage() {
   const router = useRouter();
@@ -23,14 +24,13 @@ export default function NewLeadPage() {
     setLoading(true);
 
     try {
-      const userId = localStorage.getItem('userid');
-      if (!userId) {
+      if (!getAuthToken()) {
         toast.error('Please login to continue');
         router.push('/user/register');
         return;
       }
 
-      const res = await fetch(`/api/automation/leads?userId=${userId}`, {
+      const res = await authFetch('/api/automation/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

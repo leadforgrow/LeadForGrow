@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useSpring } from 'framer-motion';
-import { MessageCircle, Users, BarChart3, Zap, Sparkles, Bell } from 'lucide-react';
+import { MessageCircle, Users, Zap, Inbox, Bell, TrendingUp } from 'lucide-react';
 import { useMouseParallax } from './useMouseParallax';
 import LiveDemoLoop from './LiveDemoLoop';
 
@@ -29,18 +29,18 @@ export default function CrmCommandCenter() {
 
   return (
     <div ref={ref} className="relative mx-auto aspect-square max-w-[540px] w-full" style={{ perspective: '1200px' }}>
-      {/* AI core orb */}
+      {/* CRM hub */}
       <motion.div
         className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
         animate={{ scale: [1, 1.04, 1] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-500/20 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_0_60px_rgba(59,130,246,0.25)]">
-          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-inner">
-            <Sparkles className="w-8 h-8 text-white/90" strokeWidth={1.5} />
+        <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-blue-500/20 to-sky-500/20 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_0_60px_rgba(37,99,235,0.22)]">
+          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center shadow-inner">
+            <Inbox className="w-8 h-8 text-white/95" strokeWidth={1.75} />
           </div>
           <motion.div
-            className="absolute -inset-4 rounded-full border border-blue-400/20"
+            className="absolute -inset-4 rounded-full border border-blue-400/25"
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
           />
@@ -54,7 +54,7 @@ export default function CrmCommandCenter() {
           style={{ transformOrigin: '200px 200px' }}
         />
         <defs>
-          <linearGradient id="ringGrad"><stop stopColor="#3b82f6" /><stop offset="1" stopColor="#8b5cf6" /></linearGradient>
+          <linearGradient id="ringGrad"><stop stopColor="#2563eb" /><stop offset="1" stopColor="#0ea5e9" /></linearGradient>
         </defs>
       </svg>
 
@@ -62,7 +62,7 @@ export default function CrmCommandCenter() {
       <FloatingCard depth={0.3} mouse={mouse} delay={0.1} className="absolute left-[8%] top-[18%] w-[72%] z-[1]">
         <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] p-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+            <div className="h-2 w-2 rounded-full bg-blue-500" />
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Live CRM</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -86,13 +86,13 @@ export default function CrmCommandCenter() {
 
       {/* WhatsApp chat — front left */}
       <FloatingCard depth={1.2} mouse={mouse} delay={0.25} className="absolute left-0 top-[52%] w-[48%] z-[3]">
-        <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-3">
+        <div className="rounded-xl border border-blue-200/60 dark:border-blue-800/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-3">
           <div className="flex items-center gap-2 mb-2">
-            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+            <MessageCircle className="w-3.5 h-3.5 text-blue-600" />
             <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-200">WhatsApp Inbox</span>
           </div>
           <div className="space-y-1.5">
-            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1.5 text-[10px] text-slate-700 dark:text-slate-300">Hi, I need pricing for your CRM</div>
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 px-2 py-1.5 text-[10px] text-slate-700 dark:text-slate-300">Hi, I need pricing for your CRM</div>
             <div className="rounded-lg bg-blue-600 px-2 py-1.5 text-[10px] text-white ml-4">Sure! Sending details now ✓</div>
           </div>
         </div>
@@ -100,37 +100,35 @@ export default function CrmCommandCenter() {
 
       {/* Lead card — front right */}
       <FloatingCard depth={1.4} mouse={mouse} delay={0.35} className="absolute right-0 top-[8%] w-[44%] z-[4]">
-        <div className="rounded-xl border border-blue-200/60 dark:border-blue-800/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-3">
+        <div className="rounded-xl border border-sky-200/60 dark:border-sky-800/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-blue-600" />
+              <Users className="w-3.5 h-3.5 text-sky-600" />
               <span className="text-[10px] font-bold text-slate-800 dark:text-slate-100">New Lead</span>
             </div>
-            <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">Hot</span>
+            <span className="text-[9px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">Hot</span>
           </div>
           <p className="text-xs font-semibold text-slate-900 dark:text-white">Priya Sharma</p>
           <p className="text-[10px] text-slate-500">Meta Ads · Mumbai</p>
-          <div className="mt-2 flex items-center gap-1 text-[9px] text-blue-600">
+          <div className="mt-2 flex items-center gap-1 text-[9px] text-sky-600">
             <Zap className="w-3 h-3" /> Auto-assigned to Rahul
           </div>
         </div>
       </FloatingCard>
 
-      {/* Analytics — top right */}
+      {/* Performance — bottom right */}
       <FloatingCard depth={0.8} mouse={mouse} delay={0.45} className="absolute right-[5%] bottom-[12%] w-[40%] z-[2]">
-        <div className="rounded-xl border border-violet-200/50 dark:border-violet-800/30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-md p-3">
+        <div className="rounded-xl border border-sky-200/50 dark:border-sky-800/30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-md p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            <BarChart3 className="w-3 h-3 text-violet-600" />
-            <span className="text-[9px] font-semibold text-slate-600 dark:text-slate-400">AI Insight</span>
+            <TrendingUp className="w-3 h-3 text-sky-600" />
+            <span className="text-[9px] font-semibold text-slate-600 dark:text-slate-400">This week</span>
           </div>
-          <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-snug">Response time improved 42% this week</p>
+          <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-snug">Response time improved 42%</p>
         </div>
       </FloatingCard>
 
-      {/* Live demo notifications overlay */}
       <LiveDemoLoop />
 
-      {/* Notification particle */}
       <motion.div
         className="absolute right-[18%] top-[38%] z-[5] flex items-center gap-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 shadow-md"
         animate={{ y: [0, -6, 0], opacity: [0.7, 1, 0.7] }}

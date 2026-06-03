@@ -2,27 +2,38 @@ import { dbConnect } from '@/lib/mongodb';
 import { CMS_Task } from '@/models/cms/ServiceTask';
 import CMS_ActivityLog from '@/models/cms/ActivityLog';
 import { NextResponse } from 'next/server';
+import { withTenantAuth, resolveTenant } from '@/lib/auth';
+import {
+  assertClientInTenant,
+  assertTenantBusinessId,
+  getTenantBusinessId,
+} from '@/lib/cms/assertTenantBusiness';
 
-/**
- * @api {get} /api/clients/tasks GET - List tasks (filters: client, service, business, status)
- * @api {post} /api/clients/tasks POST - Create task
- * @api {put} /api/clients/tasks PUT - Update task (Kanban move)
- */
-
-export async function GET(request) {
+export const GET = withTenantAuth(async (request) => {
   try {
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
+    }
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
     const serviceId = searchParams.get('serviceId');
-    const businessId = searchParams.get('businessId');
+    const businessId = searchParams.get('businessId') || getTenantBusinessId(tenant);
     const status = searchParams.get('status');
 
-    if (!businessId) {
-      return NextResponse.json({ error: 'businessId is required' }, { status: 400 });
+    const denied = assertTenantBusinessId(tenant, businessId);
+    if (denied) {
+      return NextResponse.json({ success: false, error: denied.error }, { status: denied.status });
     }
 
-    let query = { businessId };
+    const clientDenied = await assertClientInTenant(clientId, tenant);
+    if (clientDenied) {
+      return NextResponse.json({ success: false, error: clientDenied.error }, { status: clientDenied.status });
+    }
+
+    const query = { businessId };
     if (clientId) query.clientId = clientId;
     if (serviceId) query.serviceId = serviceId;
     if (status) query.status = status;
@@ -37,28 +48,39 @@ export async function GET(request) {
     console.error('[CMS_TASK_GET]', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});
 
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
+    }
+
     await dbConnect();
     const body = await request.json();
-    const { clientId, businessId, title, userId } = body;
+    const { clientId, title } = body;
+    const businessId = getTenantBusinessId(tenant);
+    const userId = tenant.user._id;
 
-    if (!clientId || !businessId || !title) {
+    if (!clientId || !title) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const task = await CMS_Task.create(body);
+    const clientDenied = await assertClientInTenant(clientId, tenant);
+    if (clientDenied) {
+      return NextResponse.json({ success: false, error: clientDenied.error }, { status: clientDenied.status });
+    }
 
-    // Update Activity Log
+    const task = await CMS_Task.create({ ...body, businessId, userId });
+
     await CMS_ActivityLog.create({
       clientId,
       businessId,
       type: 'Task Update',
       action: `New task created: ${title}`,
       userId,
-      details: { taskId: task._id }
+      details: { taskId: task._id },
     });
 
     return NextResponse.json({ success: true, data: task }, { status: 201 });
@@ -66,24 +88,30 @@ export async function POST(request) {
     console.error('[CMS_TASK_POST]', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});
 
-export async function PUT(request) {
+export const PUT = withTenantAuth(async (request) => {
   try {
+    const tenant = await resolveTenant(request);
+    if (tenant.error) {
+      return NextResponse.json({ success: false, error: tenant.error }, { status: tenant.status });
+    }
+
     await dbConnect();
     const body = await request.json();
-    const { taskId, userId, ...updates } = body;
+    const { taskId, ...updates } = body;
+    const userId = tenant.user._id;
+    const businessId = getTenantBusinessId(tenant);
 
     if (!taskId) {
       return NextResponse.json({ error: 'taskId is required' }, { status: 400 });
     }
 
-    const task = await CMS_Task.findById(taskId);
+    const task = await CMS_Task.findOne({ _id: taskId, businessId });
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    // Track old status for log if it changed
     const oldStatus = task.status;
     const newStatus = updates.status;
 
@@ -91,7 +119,7 @@ export async function PUT(request) {
     task.auditLog.push({
       action: `Updated: ${Object.keys(updates).join(', ')}`,
       userId,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     await task.save();
@@ -103,7 +131,7 @@ export async function PUT(request) {
         type: 'Status Change',
         action: `Task "${task.title}" moved from ${oldStatus} to ${newStatus}`,
         userId,
-        details: { taskId: task._id, oldStatus, newStatus }
+        details: { taskId: task._id, oldStatus, newStatus },
       });
     }
 
@@ -112,4 +140,4 @@ export async function PUT(request) {
     console.error('[CMS_TASK_PUT]', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});

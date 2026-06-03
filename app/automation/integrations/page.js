@@ -21,6 +21,7 @@ import {
   Activity
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import Heading from '@/app/components/ui/Heading';
 
 export default function IntegrationsPage() {
@@ -45,7 +46,7 @@ export default function IntegrationsPage() {
 
   const fetchForms = async (uid) => {
     try {
-      const res = await fetch(`/api/forms?userId=${uid}`);
+      const res = await authFetch('/api/forms');
       const data = await res.json();
       if (data.success) {
         setForms(data.data);
@@ -59,7 +60,7 @@ export default function IntegrationsPage() {
 
   const fetchLeads = async (uid) => {
     try {
-      const res = await fetch(`/api/automation/leads?userId=${uid}`);
+      const res = await authFetch('/api/automation/leads');
       const data = await res.json();
       if (data.success) {
         setLeads(data.data);

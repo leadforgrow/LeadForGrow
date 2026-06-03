@@ -3,77 +3,50 @@ import { dbConnect } from '@/lib/mongodb';
 import User from '@/models/User';
 import Business from '@/models/Business';
 import Agency from '@/models/Agency';
-import { isAgencyPlan } from '@/lib/agency/planResolver';
+import { withAuth } from '@/lib/auth';
 
-/**
- * GET /api/agency/check-access
- * Check if user has access to agency features
- */
-export async function GET(request) {
+export const GET = withAuth()(async (req) => {
   try {
     await dbConnect();
-    
-    const userId = request.headers.get('x-user-id');
-    if (!userId || userId === 'undefined' || userId === 'null') {
-      return NextResponse.json({ 
-        hasAccess: false,
-        reason: 'Not authenticated'
-      });
+
+    const userId = req.user.userId;
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+      return NextResponse.json({ hasAccess: false, reason: 'Invalid authentication format' });
     }
 
-    // Validate ObjectId format
-    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
-      console.warn('[Agency Access Check] Invalid User ID format:', userId);
-      return NextResponse.json({ 
-        hasAccess: false,
-        reason: 'Invalid authentication format'
-      });
-    }
-    
-    // REQUIREMENT 4: Check if Business exists, Agency exists, and Business is PAID
     const user = await User.findById(userId).populate('businessId').populate('agencyId');
-    
+
     if (!user || !user.businessId || !user.agencyId) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         hasAccess: false,
-        reason: 'Agency capability not found or Business not linked'
+        reason: 'Agency capability not found or Business not linked',
       });
     }
 
     const business = user.businessId;
     const agency = user.agencyId;
-
-    // Check if Business plan is paid
     const businessPlan = (business.plan || 'free').toLowerCase();
     const isPaid = businessPlan !== 'free';
 
     if (!isPaid) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         hasAccess: false,
         reason: 'Paid Business account required for Agency access',
-        currentPlan: businessPlan
+        currentPlan: businessPlan,
       });
     }
 
-    // Check if Agency is active
     if (agency.status !== 'active') {
-      return NextResponse.json({ 
-        hasAccess: false,
-        reason: 'Agency account is not active'
-      });
+      return NextResponse.json({ hasAccess: false, reason: 'Agency account is not active' });
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       hasAccess: true,
       planName: agency.planName,
-      businessPlan: businessPlan
+      businessPlan,
     });
-    
   } catch (error) {
     console.error('[Agency Access Check] Error:', error);
-    return NextResponse.json({ 
-      hasAccess: false,
-      reason: 'Server error'
-    }, { status: 500 });
+    return NextResponse.json({ hasAccess: false, reason: 'Server error' }, { status: 500 });
   }
-}
+});

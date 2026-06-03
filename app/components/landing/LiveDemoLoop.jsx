@@ -6,8 +6,8 @@ import { MessageCircle, UserPlus, Zap, BarChart3, CheckCircle2 } from 'lucide-re
 
 const STEPS = [
   { icon: UserPlus, label: 'New lead from Meta Ads', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/50' },
-  { icon: MessageCircle, label: 'WhatsApp auto-reply sent', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50' },
-  { icon: Zap, label: 'AI assigned to top agent', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/50' },
+  { icon: MessageCircle, label: 'WhatsApp auto-reply sent', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/50' },
+  { icon: Zap, label: 'Assigned to top agent', color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/50' },
   { icon: BarChart3, label: 'Pipeline analytics updated', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/50' },
   { icon: CheckCircle2, label: 'Follow-up scheduled', color: 'text-slate-600 bg-slate-100 dark:bg-slate-800' },
 ];
@@ -44,7 +44,7 @@ export default function LiveDemoLoop() {
             <p className="text-xs font-medium text-slate-800 dark:text-slate-100 truncate">{current.label}</p>
           </div>
           <motion.span
-            className="h-1.5 w-1.5 rounded-full bg-emerald-500"
+            className="h-1.5 w-1.5 rounded-full bg-blue-500"
             animate={{ opacity: [1, 0.3, 1] }}
             transition={{ duration: 1.2, repeat: Infinity }}
           />

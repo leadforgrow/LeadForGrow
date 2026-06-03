@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Search, FileText, Check, Clock, AlertCircle, Ban, Loader2, Settings, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { authFetch } from '@/lib/apiClient';
 
 
 
@@ -38,10 +39,9 @@ export default function InvoicesPage() {
 
   const fetchData = async () => {
     try {
-      const userId = localStorage.getItem('userid');
       const [invRes, cliRes] = await Promise.all([
-        fetch('/api/agency/invoices', { headers: { 'x-user-id': userId } }),
-        fetch('/api/agency/clients', { headers: { 'x-user-id': userId } })
+        authFetch('/api/agency/invoices'),
+        authFetch('/api/agency/clients')
       ]);
       const invData = await invRes.json();
       const cliData = await cliRes.json();
@@ -63,10 +63,9 @@ export default function InvoicesPage() {
     setCreating(true);
     setError('');
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch('/api/agency/invoices', {
+      const res = await authFetch('/api/agency/invoices', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       const data = await res.json();
@@ -86,10 +85,9 @@ export default function InvoicesPage() {
 
   const handleStatusChange = async (invoiceId, newStatus) => {
     try {
-      const userId = localStorage.getItem('userid');
-      const res = await fetch(`/api/agency/invoices/${invoiceId}`, {
+      const res = await authFetch(`/api/agency/invoices/${invoiceId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
       const data = await res.json();
