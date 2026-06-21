@@ -5,6 +5,7 @@ import Integration from '@/models/Integration';
 import { decryptCredentials } from '@/lib/integrations/credentials';
 import { resolveMetaAdsCredentials } from '@/lib/meta/credentials';
 import { metaLog, metaError } from '@/lib/meta/logger';
+import { getRecentWebhookIngress } from '@/lib/meta/webhookIngress';
 
 const GRAPH_VERSION = 'v25.0';
 const EXPECTED_APP_ID = '2089887098254828';
@@ -145,7 +146,35 @@ export async function GET(request) {
       errors: [getBefore, postSubscribe, getAfter]
         .filter(Boolean)
         .filter((r) => !r.ok)
-        .map((r) => r.data?.error || r.data)
+        .map((r) => r.data?.error || r.data),
+      webhookIngress: {
+        configuredUrls: {
+          perBusiness: `https://leadforgrow.com/api/webhooks/meta/${businessId}`,
+          generic: 'https://leadforgrow.com/api/webhooks/meta'
+        },
+        metaPostsReceived: ingressForPage.length,
+        metaPostsReceivedGlobal: ingressAll.length,
+        zeroMetaPostsFromLeadgen: ingressForPage.filter((r) => r.parsed?.leadgen_id).length === 0,
+        lastIngress: ingressForPage[0]
+          ? {
+              route: ingressForPage[0].route,
+              url: ingressForPage[0].url,
+              outcome: ingressForPage[0].outcome,
+              createdAt: ingressForPage[0].createdAt,
+              leadgen_id: ingressForPage[0].parsed?.leadgen_id,
+              processingStep: ingressForPage[0].processing?.step,
+              processingError: ingressForPage[0].processing?.error,
+              signatureVerified: ingressForPage[0].signature?.verified
+            }
+          : null,
+        recentIngress: ingressForPage.slice(0, 5).map((row) => ({
+          route: row.route,
+          outcome: row.outcome,
+          createdAt: row.createdAt,
+          leadgen_id: row.parsed?.leadgen_id,
+          processingStep: row.processing?.step
+        }))
+      }
     });
   } catch (error) {
     metaError('Page Subscription', 'Diagnostic failed', error);
