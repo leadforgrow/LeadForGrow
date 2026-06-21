@@ -11,7 +11,7 @@ const CARDS = [
     title: 'About us',
     description:
       'Learn how LeadForGrow helps businesses across India capture, qualify, and convert leads with AI-powered automation.',
-    href: '/resources/about',
+    href: '/about',
     linkText: 'Learn more about LeadForGrow',
   },
   {

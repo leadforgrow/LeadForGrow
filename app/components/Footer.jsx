@@ -20,7 +20,7 @@ export default function Footer({ forceShow = false }) {
       { label: 'Website & Funnel Builder', href: '/product/builder' },
     ],
     company: [
-      { label: 'About Us', href: '/resources/about' },
+      { label: 'About Us', href: '/about' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Case Studies', href: '/resources/case-studies' },
       { label: 'Blog', href: '/blog' },
