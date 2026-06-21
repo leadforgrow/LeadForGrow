@@ -166,7 +166,11 @@ export default function IntegrationDetailPanel({
                       {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Paste this URL in your provider&apos;s webhook settings.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {integration.id === 'meta-ads'
+                      ? 'In Meta Developers → your App → Webhooks → Page: paste this URL, use your Webhook Verify Token, and subscribe to leadgen. Reconnect here to auto-subscribe the page.'
+                      : "Paste this URL in your provider's webhook settings."}
+                  </p>
                 </div>
               )}
 
