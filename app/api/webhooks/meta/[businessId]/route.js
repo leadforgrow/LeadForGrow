@@ -2,24 +2,48 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Business from '@/models/Business';
 import { verifyMetaSignature } from '@/lib/webhookSecurity';
-import { getMetaLeadDetails } from '@/lib/meta/ads';
+import { getMetaLeadDetails, buildMetaLeadGraphUrl } from '@/lib/meta/ads';
 import { resolveMetaAdsCredentials } from '@/lib/meta/credentials';
 import { leadManager } from '@/lib/automation/leadManager';
+import { metaLog, metaWarn, metaError } from '@/lib/meta/logger';
+
+function logStep(step, message, data) {
+  metaLog(`Webhook Step ${step}`, message, data);
+}
+
+function logHeaders(headers) {
+  const safe = {};
+  headers.forEach((value, key) => {
+    safe[key] = key.toLowerCase().includes('signature') ? `${value.slice(0, 12)}…` : value;
+  });
+  return safe;
+}
+
+function respond200(body, step) {
+  logStep(step, 'Returning HTTP 200', body);
+  return NextResponse.json(body, { status: 200 });
+}
 
 function findLeadgenChange(payload) {
   if (payload?.sample?.field === 'leadgen') {
-    return payload.sample;
+    return { change: payload.sample, entry: null, source: 'payload.sample' };
   }
 
   for (const entry of payload.entry || []) {
     for (const change of entry.changes || []) {
       if (change?.field === 'leadgen') {
-        return change;
+        return { change, entry, source: 'entry.changes' };
       }
     }
   }
 
   return null;
+}
+
+function stripGraphDebug(leadData) {
+  if (!leadData) return leadData;
+  const { __graphDebug, ...payload } = leadData;
+  return payload;
 }
 
 /**
@@ -33,14 +57,13 @@ export async function GET(request, { params }) {
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    console.log(`[Meta Webhook] Verification request for business: ${businessId}`);
+    console.log('[Meta][Webhook] Verification request for business:', businessId);
 
     if (mode === 'subscribe' && token) {
         await dbConnect();
         const business = await Business.findById(businessId);
         
         if (!business) {
-            console.log(`[Meta Webhook] GET return: business not found (${businessId})`);
             return new Response('Business not found', { status: 404 });
         }
 
@@ -59,8 +82,6 @@ export async function GET(request, { params }) {
         const resolvedAds = metaCreds.verifyToken;
 
         if (resolvedWA === token || resolvedAds === token) {
-            console.log(`[Meta Webhook] ✅ Verified business: ${businessId}`);
-            
             const isAds = resolvedAds === token;
             const path = isAds ? 'integrationCredentials.facebookAds.enabled' : 'integrationCredentials.whatsapp.enabled';
             if (!business.get(path)) {
@@ -69,17 +90,15 @@ export async function GET(request, { params }) {
                 await business.save();
             }
 
-            console.log(`[Meta Webhook] GET return: hub.challenge for ${businessId}`);
             return new Response(challenge, {
                 status: 200,
                 headers: { 'Content-Type': 'text/plain' }
             });
         }
 
-        console.warn(`[Meta Webhook] ❌ Token mismatch. WA:${resolvedWA} | Ads:${resolvedAds} | Got:${token}`);
+        console.warn('[Meta][Webhook] Token mismatch. WA:', resolvedWA, '| Ads:', resolvedAds, '| Got:', token);
     }
 
-    console.log(`[Meta Webhook] GET return: verification failed (${businessId})`);
     return new Response('Verification failed', { status: 403 });
 }
 
@@ -88,97 +107,173 @@ export async function GET(request, { params }) {
  */
 export async function POST(request, { params }) {
     const { businessId } = await params;
+    const receivedAt = new Date().toISOString();
+
+    logStep(1, `POST request received — businessId=${businessId}, at=${receivedAt}`);
+
+    let rawBody = '';
+    let payload = null;
 
     try {
+        logStep(2, 'Request headers', logHeaders(request.headers));
+
+        rawBody = await request.text();
+        logStep(3, 'Raw request body', rawBody);
+
+        try {
+            payload = JSON.parse(rawBody);
+        } catch (parseError) {
+            logStep(3, 'JSON parse FAILED', parseError.message);
+            metaError('Webhook Step 3', 'JSON parse stack', parseError);
+            return respond200({ success: false, error: 'Invalid JSON body', step: 'parse' }, '3-error');
+        }
+
         await dbConnect();
         const business = await Business.findById(businessId);
 
         if (!business) {
-            console.log(`[Meta Webhook] POST return: business not found (${businessId})`);
-            return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+            logStep(1, `Business not found: ${businessId}`);
+            return respond200({ success: false, error: 'Business not found', businessId }, '1-error');
         }
 
-        const rawBody = await request.text();
         const signature = request.headers.get('x-hub-signature-256');
-        const payload = JSON.parse(rawBody);
-
-        console.log('[Meta Webhook] POST object:', payload.object);
-        console.log('[Meta Webhook] POST entry count:', payload.entry?.length ?? 0);
-        console.log('[Meta Webhook] POST full body:', rawBody);
-
         const metaCreds = await resolveMetaAdsCredentials(business);
-        console.log(`[Meta Ads] Credentials source: ${metaCreds.source}, pageId: ${metaCreds.pageId}, tokenPresent: ${Boolean(metaCreds.accessToken)}`);
-
-        // Signature validation — use Meta Ads app secret (not WhatsApp) for leadgen webhooks
         const appSecret = metaCreds.appSecret;
 
+        let signatureResult = {
+            checked: false,
+            valid: null,
+            reason: null,
+            signaturePresent: Boolean(signature),
+            appSecretPresent: Boolean(appSecret)
+        };
+
         if (appSecret && signature) {
-            if (!verifyMetaSignature(rawBody, signature, appSecret)) {
-                console.warn(`[Meta Webhook] ❌ Invalid signature for business ${businessId}`);
-                console.log('[Meta Webhook] POST return: invalid signature');
-                return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 403 });
-            }
-            console.log(`[Meta Webhook] ✅ Signature verified for ${businessId}`);
+            signatureResult.checked = true;
+            signatureResult.valid = verifyMetaSignature(rawBody, signature, appSecret);
+            signatureResult.reason = signatureResult.valid ? 'verified' : 'invalid_signature';
         } else if (signature && !appSecret) {
-            console.warn(`[Meta Webhook] ⚠️ Signature present but Meta Ads appSecret missing for ${businessId}`);
+            signatureResult.checked = false;
+            signatureResult.valid = null;
+            signatureResult.reason = 'signature_present_but_app_secret_missing';
         } else {
-            console.log(`[Meta Webhook] ⚠️ No signature / appSecret — allowing (Meta test tool) for ${businessId}`);
+            signatureResult.checked = false;
+            signatureResult.valid = null;
+            signatureResult.reason = 'no_signature_or_no_app_secret';
         }
 
-        const leadgenChange = findLeadgenChange(payload);
+        logStep(4, 'Signature verification result', signatureResult);
 
-        if (leadgenChange) {
+        if (signatureResult.checked && signatureResult.valid === false) {
+            return respond200({ success: false, error: 'Invalid signature', signatureResult }, '4-error');
+        }
+
+        logStep(5, 'Parsed entry array', payload.entry ?? null);
+        logStep(5, 'Payload object type', payload.object ?? null);
+
+        const allChanges = (payload.entry || []).flatMap((entry, entryIndex) =>
+            (entry.changes || []).map((change, changeIndex) => ({
+                entryIndex,
+                changeIndex,
+                entryId: entry.id,
+                field: change.field,
+                value: change.value
+            }))
+        );
+        logStep(6, 'Parsed changes (all entries)', allChanges.length ? allChanges : payload.sample ?? 'none');
+
+        const leadgenMatch = findLeadgenChange(payload);
+
+        if (leadgenMatch) {
+            const { change: leadgenChange, entry: leadgenEntry, source } = leadgenMatch;
             const value = leadgenChange.value || {};
+
             const leadgenId = value.leadgen_id != null ? String(value.leadgen_id) : null;
             const pageId = value.page_id != null ? String(value.page_id) : null;
             const formId = value.form_id != null ? String(value.form_id) : null;
 
-            console.log('[Meta Ads] leadgen change detected');
-            console.log('[Meta Ads] leadgen_id:', leadgenId);
-            console.log('[Meta Ads] page_id:', pageId);
-            console.log('[Meta Ads] form_id:', formId);
+            logStep(7, `leadgen_id (from ${source})`, leadgenId);
+            logStep(8, 'page_id', pageId);
+            logStep(9, 'form_id', formId);
+            logStep(9, 'Configured credentials', {
+                credSource: metaCreds.source,
+                configuredPageId: metaCreds.pageId,
+                tokenPresent: Boolean(metaCreds.accessToken),
+                appSecretPresent: Boolean(metaCreds.appSecret)
+            });
 
             if (metaCreds.pageId && pageId && metaCreds.pageId !== pageId) {
-                console.warn(`[Meta Ads] ⚠️ page_id mismatch — webhook page ${pageId}, configured page ${metaCreds.pageId}`);
-                console.log('[Meta Webhook] POST return: page_id mismatch');
-                return NextResponse.json({ success: false, error: 'Page ID mismatch' }, { status: 200 });
+                logStep(8, 'page_id MISMATCH — rejecting', {
+                    webhookPageId: pageId,
+                    configuredPageId: metaCreds.pageId
+                });
+                return respond200({ success: false, error: 'Page ID mismatch', pageId, configuredPageId: metaCreds.pageId }, '8-error');
             }
 
             if (!leadgenId) {
-                console.error('[Meta Ads] ❌ leadgen webhook missing leadgen_id — cannot fetch lead');
-                console.log('[Meta Webhook] POST return: missing leadgen_id');
-                return NextResponse.json({ success: false, error: 'Missing leadgen_id' }, { status: 200 });
+                logStep(7, 'leadgen_id MISSING — cannot fetch lead');
+                return respond200({ success: false, error: 'Missing leadgen_id' }, '7-error');
             }
 
             const accessToken = metaCreds.accessToken;
             if (!accessToken) {
-                console.error(`[Meta Ads] ❌ No Page Access Token for business ${businessId}`);
-                console.log('[Meta Webhook] POST return: missing access token');
-                return NextResponse.json({ success: false, error: 'Page Access Token not configured' }, { status: 200 });
+                logStep(9, 'Page Access Token MISSING');
+                return respond200({ success: false, error: 'Page Access Token not configured' }, '9-error');
             }
+
+            logStep(10, 'Graph API request URL', buildMetaLeadGraphUrl(leadgenId));
 
             let leadData;
             try {
                 leadData = await getMetaLeadDetails(leadgenId, accessToken);
             } catch (graphError) {
-                console.error(`[Meta Ads] ❌ Graph API fetch failed for ${leadgenId}:`, graphError.message);
-                console.log('[Meta Webhook] POST return: Graph API error');
-                return NextResponse.json({ success: false, error: graphError.message }, { status: 200 });
+                const debug = graphError.graphDebug || {};
+                logStep(11, 'Graph API response (error)', debug.graphResponse ?? graphError.message);
+                logStep(11, 'Graph API status (error)', debug.graphStatus ?? 'unknown');
+                metaError('Webhook Step 11', 'Graph API error', graphError);
+                return respond200({
+                    success: false,
+                    error: graphError.message,
+                    graphStatus: debug.graphStatus,
+                    graphResponse: debug.graphResponse
+                }, '11-error');
             }
 
-            const result = await leadManager.processMetaLead(businessId, leadData);
-            console.log(`[Meta Ads] ✅ Lead saved: ${result.leadId} | ${result.status}`);
-            console.log('[Meta Webhook] POST return: lead processed');
-            return NextResponse.json({ success: true, status: result.status, leadId: result.leadId });
+            const { __graphDebug } = leadData;
+            logStep(11, 'Graph API status', __graphDebug?.graphStatus);
+            logStep(11, 'Full Graph API response', __graphDebug?.graphResponse);
+            logStep(12, 'Parsed field_data', __graphDebug?.parsedFieldData);
+
+            const leadPayload = stripGraphDebug(leadData);
+            logStep(13, 'Final object passed to leadManager.processMetaLead', leadPayload);
+
+            let saveResult;
+            try {
+                saveResult = await leadManager.processMetaLead(businessId, leadPayload);
+            } catch (saveError) {
+                logStep(14, 'Database save FAILED', saveError.message);
+                metaError('Webhook Step 14', 'Database save FAILED', saveError);
+                return respond200({ success: false, error: saveError.message, step: 'database_save' }, '14-error');
+            }
+
+            logStep(14, 'Database save result', saveResult);
+
+            return respond200({
+                success: saveResult.status === 'success' || saveResult.status === 'skipped',
+                status: saveResult.status,
+                leadId: saveResult.leadId?.toString?.() ?? saveResult.leadId,
+                reason: saveResult.reason ?? null
+            }, '15-done');
         }
 
-        // ─── WHATSAPP ─────────────────────────────────────────────────
+        logStep(6, 'No leadgen change found — checking WhatsApp');
+
         const { extractWhatsAppPayload } = await import('@/lib/whatsapp/attribution');
         const data = extractWhatsAppPayload(payload);
         
         if (!data) {
-            console.log('[Meta Webhook] POST return: no actionable event');
-            return NextResponse.json({ success: true, message: 'No actionable event' });
+            logStep(6, 'No actionable event in payload');
+            return respond200({ success: true, message: 'No actionable event', object: payload.object }, '6-noop');
         }
 
         const waResult = await leadManager.processIncomingMessage(businessId, {
@@ -192,14 +287,17 @@ export async function POST(request, { params }) {
             raw: data.rawMessage
         });
 
-        console.log(`[Meta Webhook] WhatsApp processed: ${waResult.status}`);
-        console.log('[Meta Webhook] POST return: whatsapp processed');
-        return NextResponse.json({ success: true });
+        logStep(14, 'WhatsApp processing result', waResult);
+        return respond200({ success: true, channel: 'whatsapp', status: waResult.status }, '15-whatsapp');
 
     } catch (error) {
-        console.error('[Meta Webhook] 🔥 Fatal Error:', error.message);
-        console.error('[Meta Webhook] Stack:', error.stack);
-        console.log('[Meta Webhook] POST return: 500 internal error');
-        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+        logStep(15, 'Uncaught exception', error.message);
+        metaError('Webhook Step 15', 'Uncaught exception', error);
+        metaLog('Webhook Step 15', `Context — businessId=${businessId}, rawBodyLength=${rawBody?.length ?? 0}`);
+        return respond200({
+            success: false,
+            error: error.message,
+            step: 'uncaught_exception'
+        }, '15-error');
     }
 }
