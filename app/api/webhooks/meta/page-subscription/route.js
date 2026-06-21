@@ -27,6 +27,12 @@ async function graphPost(path, accessToken, params) {
   return { ok: response.ok, status: response.status, data };
 }
 
+function tokenFingerprint(token) {
+  if (!token || typeof token !== 'string') return null;
+  if (token.length < 12) return 'too_short';
+  return `${token.slice(0, 6)}…${token.slice(-6)} (len=${token.length})`;
+}
+
 function appInSubscriptionList(apps, appId) {
   const list = Array.isArray(apps) ? apps : [];
   return list.find((row) => String(row.id) === String(appId) || String(row.app_id) === String(appId));
@@ -72,6 +78,9 @@ export async function GET(request) {
 
     metaLog('Page Subscription', `GET subscribed_apps for page ${pageId}`, { businessId, crmAppId });
 
+    const pageValidation = await graphGet(`${pageId}?fields=name,id`, pageAccessToken);
+    const pageTokenProbe = await graphGet(`${pageId}?fields=access_token,name,id`, pageAccessToken);
+
     const getBefore = await graphGet(`${pageId}/subscribed_apps`, pageAccessToken);
 
     let postSubscribe = null;
@@ -106,6 +115,26 @@ export async function GET(request) {
       expectedAppId: EXPECTED_APP_ID,
       crmAppIdMatchesExpected: crmAppId ? String(crmAppId) === EXPECTED_APP_ID : null,
       graphVersion: GRAPH_VERSION,
+      credentialSource: metaCreds.source,
+      integrationStatus: integration?.status ?? null,
+      integrationUpdatedAt: integration?.updatedAt ?? integration?.connectedAt ?? null,
+      storedTokenFingerprint: tokenFingerprint(pageAccessToken),
+      pageValidation: {
+        httpStatus: pageValidation.status,
+        ok: pageValidation.ok,
+        response: pageValidation.data
+      },
+      pageTokenProbe: {
+        httpStatus: pageTokenProbe.status,
+        ok: pageTokenProbe.ok,
+        response: pageTokenProbe.ok
+          ? {
+              id: pageTokenProbe.data?.id,
+              name: pageTokenProbe.data?.name,
+              hasAccessToken: Boolean(pageTokenProbe.data?.access_token)
+            }
+          : pageTokenProbe.data
+      },
       step1_get_subscribed_apps: {
         httpStatus: getBefore.status,
         ok: getBefore.ok,
@@ -134,7 +163,9 @@ export async function GET(request) {
           }
         : null,
       summary: {
-        tokenValid: getBefore.ok,
+        tokenValid: pageValidation.ok,
+        pageNameFromGraph: pageValidation.data?.name ?? null,
+        subscribedAppsReadable: getBefore.ok,
         appsBeforeCount: beforeApps.length,
         appsAfterCount: afterApps.length,
         expectedAppPresentBefore: expectedPresent,
@@ -146,7 +177,7 @@ export async function GET(request) {
             ? 'Meta Lead Ads Testing Tool shows "no app associated" when page subscribed_apps is empty or does not include your app ID'
             : 'Page is subscribed to expected app — Testing Tool should list this app if you select the same app in Graph API Explorer / Testing Tool'
       },
-      errors: [getBefore, postSubscribe, getAfter]
+      errors: [pageValidation, pageTokenProbe, getBefore, postSubscribe, getAfter]
         .filter(Boolean)
         .filter((r) => !r.ok)
         .map((r) => r.data?.error || r.data),
