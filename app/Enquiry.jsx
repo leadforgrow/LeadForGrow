@@ -8,8 +8,14 @@ import { getConsentPayloadForForms } from '@/lib/consent/client';
 import BookDemoModal, { openBookDemoPopup } from '@/app/components/landing/BookDemoModal';
 
 const INITIAL_DELAY_MS = 10000;
-const REPEAT_DELAY_MS = 45000;
+const DISMISS_STORAGE_KEY = 'lfg_enquiry_popup_dismissed';
+const SUBMITTED_STORAGE_KEY = 'lfg_enquiry_form_submitted';
 const WHATSAPP_URL = 'https://wa.me/918810873052?text=Hi%20LeadForGrow%2C%20I%20would%20like%20to%20know%20more.';
+
+function readSessionFlag(key) {
+  if (typeof window === 'undefined') return false;
+  return sessionStorage.getItem(key) === '1';
+}
 
 function WhatsAppLogo({ className = 'h-6 w-6' }) {
   return (
@@ -40,11 +46,10 @@ export default function LeadForGrowWidget({ onBookDemo }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [isBookDemoOpen, setIsBookDemoOpen] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(() => readSessionFlag(SUBMITTED_STORAGE_KEY));
   const [isSending, setIsSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const timerRef = useRef(null);
-  const hasAutoOpenedRef = useRef(false);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -54,22 +59,30 @@ export default function LeadForGrowWidget({ onBookDemo }) {
   }, []);
 
   const scheduleFormOpen = useCallback(() => {
-    if (isSubmitted || formOpen || menuOpen) return;
+    if (
+      readSessionFlag(DISMISS_STORAGE_KEY) ||
+      readSessionFlag(SUBMITTED_STORAGE_KEY) ||
+      isSubmitted ||
+      formOpen ||
+      menuOpen
+    ) {
+      return;
+    }
 
     clearTimer();
-    const delay = hasAutoOpenedRef.current ? REPEAT_DELAY_MS : INITIAL_DELAY_MS;
-
     timerRef.current = setTimeout(() => {
       setFormOpen(true);
-      hasAutoOpenedRef.current = true;
-    }, delay);
+    }, INITIAL_DELAY_MS);
   }, [clearTimer, formOpen, isSubmitted, menuOpen]);
 
   const closeForm = useCallback(() => {
     setFormOpen(false);
     setSuccess(false);
-    if (!isSubmitted) scheduleFormOpen();
-  }, [isSubmitted, scheduleFormOpen]);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(DISMISS_STORAGE_KEY, '1');
+    }
+    clearTimer();
+  }, [clearTimer]);
 
   useEffect(() => {
     scheduleFormOpen();
@@ -154,6 +167,9 @@ export default function LeadForGrowWidget({ onBookDemo }) {
       if (res.success) {
         setIsSubmitted(true);
         setSuccess(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(SUBMITTED_STORAGE_KEY, '1');
+        }
         clearTimer();
         e.target.reset();
         setTimeout(() => setFormOpen(false), 3000);
