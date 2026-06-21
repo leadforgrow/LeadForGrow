@@ -108,3 +108,8 @@ export function buildLeadsQuery(filters) {
   if (filters.limit) params.set('limit', String(filters.limit));
   return params.toString();
 }
+
+export function getLeadRowBackgroundStyle(rowColor) {
+  if (!rowColor) return undefined;
+  return { backgroundColor: rowColor };
+}

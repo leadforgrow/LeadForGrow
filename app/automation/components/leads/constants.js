@@ -73,6 +73,20 @@ export const SMART_VIEWS = [
 
 export const SAVED_VIEWS_KEY = 'lfg_leads_saved_views';
 
+/** 10 row highlight colors for the leads table */
+export const LEAD_ROW_COLORS = [
+  { id: 'amber', value: '#fef3c7', dark: 'rgba(254, 243, 199, 0.15)', label: 'Amber' },
+  { id: 'blue', value: '#dbeafe', dark: 'rgba(219, 234, 254, 0.15)', label: 'Blue' },
+  { id: 'green', value: '#dcfce7', dark: 'rgba(220, 252, 231, 0.15)', label: 'Green' },
+  { id: 'pink', value: '#fce7f3', dark: 'rgba(252, 231, 243, 0.15)', label: 'Pink' },
+  { id: 'indigo', value: '#e0e7ff', dark: 'rgba(224, 231, 255, 0.15)', label: 'Indigo' },
+  { id: 'orange', value: '#ffedd5', dark: 'rgba(255, 237, 213, 0.15)', label: 'Orange' },
+  { id: 'purple', value: '#f3e8ff', dark: 'rgba(243, 232, 255, 0.15)', label: 'Purple' },
+  { id: 'teal', value: '#ccfbf1', dark: 'rgba(204, 251, 241, 0.15)', label: 'Teal' },
+  { id: 'rose', value: '#ffe4e6', dark: 'rgba(255, 228, 230, 0.15)', label: 'Rose' },
+  { id: 'slate', value: '#f1f5f9', dark: 'rgba(241, 245, 249, 0.12)', label: 'Slate' }
+];
+
 export const TABLE_COLUMNS = [
   { key: 'name', label: 'Lead Name', sortable: true, minWidth: 160 },
   { key: 'phone', label: 'Phone', sortable: false, minWidth: 120 },

@@ -21,6 +21,7 @@ export default function LeadTable({
   onAssign,
   onStatusChange,
   onCall,
+  onRowColorChange,
   sortField,
   sortDir,
   onSort
@@ -80,6 +81,7 @@ export default function LeadTable({
                   onAssign={onAssign}
                   onStatusChange={onStatusChange}
                   onCall={onCall}
+                  onRowColorChange={onRowColorChange}
                 />
               ))
             )}

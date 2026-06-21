@@ -142,6 +142,10 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       });
     }
 
+    if (body.rowColor !== undefined) {
+      updates.rowColor = body.rowColor || null;
+    }
+
     const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true })
       .populate('assignedTo', 'email firstName lastName')
       .populate('notes.addedBy', 'firstName lastName email');

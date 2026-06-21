@@ -104,6 +104,11 @@ const LeadSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
   },
+  rowColor: {
+    type: String,
+    trim: true,
+    default: null
+  },
 
   // Timestamps
   receivedAt: {

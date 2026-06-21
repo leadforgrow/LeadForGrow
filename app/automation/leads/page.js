@@ -67,6 +67,7 @@ function LeadsWorkspaceContent() {
                 onAssign={ws.assignLead}
                 onStatusChange={ws.updateLeadStatus}
                 onCall={ws.initiateCall}
+                onRowColorChange={ws.updateLeadRowColor}
                 sortField={ws.sortField}
                 sortDir={ws.sortDir}
                 onSort={ws.toggleSort}

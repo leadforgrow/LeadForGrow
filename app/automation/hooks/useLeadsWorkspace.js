@@ -246,6 +246,33 @@ export function useLeadsWorkspace() {
     [fetchLeads]
   );
 
+  const updateLeadRowColor = useCallback(
+    async (leadId, rowColor) => {
+      setLeads((prev) =>
+        prev.map((l) => (l._id === leadId ? { ...l, rowColor: rowColor || null } : l))
+      );
+      try {
+        const userId = getUserId();
+        const res = await authFetch(`/api/automation/leads/${leadId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rowColor: rowColor || null, performedBy: userId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success(rowColor ? 'Row color updated' : 'Row color cleared');
+        } else {
+          toast.error(data.error || 'Color update failed');
+          fetchLeads(true);
+        }
+      } catch {
+        toast.error('Color update failed');
+        fetchLeads(true);
+      }
+    },
+    [fetchLeads]
+  );
+
   const bulkAssign = useCallback(
     async (assigneeId) => {
       const userId = getUserId();
@@ -359,6 +386,7 @@ export function useLeadsWorkspace() {
     refresh: () => fetchLeads(true),
     updateLeadStatus,
     assignLead,
+    updateLeadRowColor,
     bulkAssign,
     bulkDelete,
     exportLeads,
