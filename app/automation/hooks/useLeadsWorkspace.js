@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
-import { buildLeadsQuery } from '../components/leads/utils';
+import { buildLeadsQuery, getStatusRowColor } from '../components/leads/utils';
 import { SAVED_VIEWS_KEY } from '../components/leads/constants';
 
 const DEFAULT_FILTERS = {
@@ -208,6 +208,7 @@ export function useLeadsWorkspace() {
     async (leadId, status) => {
       try {
         const userId = getUserId();
+        const { getStatusRowColor } = await import('../components/leads/utils');
         const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -215,6 +216,12 @@ export function useLeadsWorkspace() {
         });
         const data = await res.json();
         if (data.success) {
+          const statusColor = getStatusRowColor(status);
+          setLeads((prev) =>
+            prev.map((l) =>
+              l._id === leadId ? { ...l, status, rowColor: statusColor || l.rowColor } : l
+            )
+          );
           toast.success('Status updated');
           fetchLeads(true);
         } else toast.error(data.error || 'Update failed');

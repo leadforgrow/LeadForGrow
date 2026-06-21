@@ -7,6 +7,7 @@ import Message from '@/models/automation/Message';
 import User from '@/models/User';
 import { withPlanAccess } from '@/lib/accessControl';
 import { triggerAutomationForLead } from '@/lib/leadProcessor';
+import { LEAD_STATUS_ROW_COLORS } from '@/app/automation/components/leads/constants';
 
 // GET - Fetch single lead with details
 export const GET = withPlanAccess('leads', async (req, { params }) => {
@@ -73,6 +74,7 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
     if (status && status !== lead.status) {
       const oldStatus = lead.status;
       updates.status = status;
+      updates.rowColor = LEAD_STATUS_ROW_COLORS[status] || null;
 
       if (status === 'contacted') {
         updates.lastContactedAt = new Date();

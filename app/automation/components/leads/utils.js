@@ -1,4 +1,4 @@
-import { STATUS_CONFIG } from './constants';
+import { STATUS_CONFIG, LEAD_STATUS_ROW_COLORS } from './constants';
 
 /** Unwrap User from TeamMember { userId: {...} } or return User as-is */
 export function resolveTeamUser(member) {
@@ -109,7 +109,13 @@ export function buildLeadsQuery(filters) {
   return params.toString();
 }
 
-export function getLeadRowBackgroundStyle(rowColor) {
-  if (!rowColor) return undefined;
-  return { backgroundColor: rowColor };
+export function getStatusRowColor(status) {
+  return LEAD_STATUS_ROW_COLORS[status] || null;
+}
+
+/** Manual rowColor overrides automatic status color */
+export function getLeadRowBackgroundStyle(lead) {
+  const color = lead?.rowColor || getStatusRowColor(lead?.status);
+  if (!color) return undefined;
+  return { backgroundColor: color };
 }

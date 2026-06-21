@@ -34,6 +34,16 @@ export const STATUS_CONFIG = {
   }
 };
 
+/** Automatic row background by pipeline status */
+export const LEAD_STATUS_ROW_COLORS = {
+  new: '#dbeafe',
+  contacted: '#cffafe',
+  interested: '#dcfce7',
+  'follow-up': '#fef3c7',
+  converted: '#bbf7d0',
+  lost: '#fee2e2'
+};
+
 export const PRIORITY_CONFIG = {
   urgent: { label: 'Urgent', badge: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400' },
   high: { label: 'High', badge: 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400' },

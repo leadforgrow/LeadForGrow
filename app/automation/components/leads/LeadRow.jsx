@@ -8,7 +8,7 @@ import FollowupChip from './FollowupChip';
 import LeadScoreBadge from './LeadScoreBadge';
 import LeadActionsMenu from './LeadActionsMenu';
 import LeadColorPicker from './LeadColorPicker';
-import { assigneeName, formatRelative, formatSource, formatDate, getLeadTags, getLeadRowBackgroundStyle } from './utils';
+import { assigneeName, formatRelative, formatSource, formatDate, getLeadTags, getLeadRowBackgroundStyle, getStatusRowColor } from './utils';
 import { statusLabel } from './utils';
 
 function LeadRow({
@@ -25,13 +25,14 @@ function LeadRow({
   const tags = getLeadTags(lead);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const paletteRef = useRef(null);
-  const rowBg = getLeadRowBackgroundStyle(lead.rowColor);
+  const rowBg = getLeadRowBackgroundStyle(lead);
+  const statusColor = getStatusRowColor(lead.status);
 
   return (
     <tr
       className={`group border-b border-slate-100 dark:border-slate-800/80 hover:brightness-[0.98] dark:hover:brightness-110 cursor-pointer transition-colors ${
         selected ? 'ring-1 ring-inset ring-blue-400/50' : ''
-      } ${!lead.rowColor ? 'hover:bg-slate-50/80 dark:hover:bg-slate-800/30' : ''}`}
+      } ${!lead.rowColor && !statusColor ? 'hover:bg-slate-50/80 dark:hover:bg-slate-800/30' : ''}`}
       style={rowBg}
       onClick={() => onOpenDrawer(lead._id)}
     >
@@ -42,11 +43,11 @@ function LeadRow({
       </td>
       <td className="py-2.5 px-3 min-w-[160px]">
         <div className="flex items-center gap-2">
-          {lead.rowColor && (
+          {(lead.rowColor || statusColor) && (
             <span
               className="w-2 h-2 rounded-full shrink-0 border border-slate-300/50"
-              style={{ backgroundColor: lead.rowColor }}
-              title="Row color"
+              style={{ backgroundColor: lead.rowColor || statusColor }}
+              title={lead.rowColor ? 'Custom row color' : `${statusLabel(lead.status)} status color`}
             />
           )}
           <div className="min-w-0">
