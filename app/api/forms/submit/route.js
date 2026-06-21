@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Form from '@/models/Form';
 import { ingestLead } from '@/lib/leadProcessor';
+import { linkConsentToLead } from '@/lib/consent/server';
 
 // Utility for CORS headers
 const corsHeaders = {
@@ -20,6 +21,16 @@ export const POST = withRateLimit(5, 60, async function (request) {
   try {
     const body = await request.json();
     const { token, ...formData } = body;
+
+    const {
+      visitorId,
+      cookieConsent,
+      analyticsAllowed,
+      marketingAllowed,
+      consentVersion,
+      consentDecidedAt,
+      ...leadFields
+    } = formData;
 
     if (!token) {
       return NextResponse.json({ success: false, error: 'Form token is required' }, {
@@ -49,7 +60,17 @@ export const POST = withRateLimit(5, 60, async function (request) {
 
     // 3. Hand off to the Unified Ingestion Engine
     const workspaceId = form.businessId || form.clientId;
-    const result = await ingestLead(formData, workspaceId, {
+    const consentMeta = {
+      visitorId: visitorId || null,
+      cookieConsent: cookieConsent || 'unknown',
+      analyticsAllowed: analyticsAllowed === true,
+      marketingAllowed: marketingAllowed === true,
+      consentVersion: consentVersion || null,
+      consentDecidedAt: consentDecidedAt || null,
+      suppressMarketingAutomation: cookieConsent === 'denied' || marketingAllowed === false,
+    };
+
+    const result = await ingestLead(leadFields, workspaceId, {
       source: 'form',
       sourceDetails: `Form: ${form.name}`,
       formId: form._id,
@@ -57,9 +78,20 @@ export const POST = withRateLimit(5, 60, async function (request) {
       sourcePage,
       extra: {
         formName: form.name,
-        formToken: token
-      }
+        formToken: token,
+        ...consentMeta,
+      },
     });
+
+    if (result?.leadId && visitorId) {
+      await linkConsentToLead({
+        token,
+        visitorId,
+        leadId: result.leadId,
+        email: leadFields.email,
+        phone: leadFields.phone,
+      });
+    }
 
     // 4. Update form analytics
     await form.recordSubmission();

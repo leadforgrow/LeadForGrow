@@ -61,6 +61,7 @@ export const PUT = withPlanAccess('revenue-config', async (req) => {
         const f = incoming.facebookAds;
         if (f.accessToken && !isEncrypted(f.accessToken)) f.accessToken = encrypt(f.accessToken);
         if (f.verifyToken && !isEncrypted(f.verifyToken)) f.verifyToken = encrypt(f.verifyToken);
+        if (f.appSecret && !isEncrypted(f.appSecret)) f.appSecret = encrypt(f.appSecret);
       }
 
       // Secure Email credentials

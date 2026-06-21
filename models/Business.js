@@ -215,6 +215,9 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     pageId: { type: String },
     accessToken: { type: String }, // Page Access Token
     verifyToken: { type: String },
+    appId: { type: String },
+    appSecret: { type: String },
+    adAccountId: { type: String },
     lastVerified: { type: Date }
   }
 }, { _id: false });

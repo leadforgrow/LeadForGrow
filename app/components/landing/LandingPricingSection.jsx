@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Minus } from 'lucide-react';
 import { LANDING } from './landingStyles';
-import LandingSectionBg from './LandingSectionBg';
 import {
   PRICING_PLANS,
   TRUST_BADGES,
@@ -33,7 +32,7 @@ export default function LandingPricingSection() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <LandingSectionBg id="pricing" variant="premium" sectionClass={LANDING.section}>
+    <section id="pricing" className={`${LANDING.section} bg-white`}>
       <div className={LANDING.container}>
         {/* Header + toggle */}
         <div className="text-center max-w-2xl mx-auto mb-10">
@@ -254,6 +253,6 @@ export default function LandingPricingSection() {
           <RoiCalculator embedded />
         </div>
       </div>
-    </LandingSectionBg>
+    </section>
   );
 }

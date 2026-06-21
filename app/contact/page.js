@@ -6,6 +6,7 @@ import Heading from '@/app/components/ui/Heading';
 import { Mail, Phone, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { CONTACT_FORM_TOKEN, getFormSubmitUrl } from '@/lib/publicForms';
+import { getConsentPayloadForForms } from '@/lib/consent/client';
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +28,7 @@ export default function ContactPage() {
       company: formData.get('company')?.toString().trim() || '',
       serviceInterest: formData.get('subject')?.toString().trim() || 'General Inquiry',
       message: formData.get('message')?.toString().trim(),
+      ...getConsentPayloadForForms(),
     };
 
     try {

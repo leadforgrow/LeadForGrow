@@ -3,7 +3,24 @@ import { dbConnect } from '@/lib/mongodb';
 import Business from '@/models/Business';
 import { verifyMetaSignature } from '@/lib/webhookSecurity';
 import { getMetaLeadDetails } from '@/lib/meta/ads';
+import { resolveMetaAdsCredentials } from '@/lib/meta/credentials';
 import { leadManager } from '@/lib/automation/leadManager';
+
+function findLeadgenChange(payload) {
+  if (payload?.sample?.field === 'leadgen') {
+    return payload.sample;
+  }
+
+  for (const entry of payload.entry || []) {
+    for (const change of entry.changes || []) {
+      if (change?.field === 'leadgen') {
+        return change;
+      }
+    }
+  }
+
+  return null;
+}
 
 /**
  * GET - Meta Webhook Verification (The Challenge)
@@ -23,11 +40,12 @@ export async function GET(request, { params }) {
         const business = await Business.findById(businessId);
         
         if (!business) {
+            console.log(`[Meta Webhook] GET return: business not found (${businessId})`);
             return new Response('Business not found', { status: 404 });
         }
 
+        const metaCreds = await resolveMetaAdsCredentials(business);
         const storedWAToken = business.integrationCredentials?.whatsapp?.verifyToken;
-        const storedAdsToken = business.integrationCredentials?.facebookAds?.verifyToken;
 
         const { decrypt } = await import('@/lib/encryption');
         const resolveToken = (t) => {
@@ -38,7 +56,7 @@ export async function GET(request, { params }) {
         };
 
         const resolvedWA = resolveToken(storedWAToken);
-        const resolvedAds = resolveToken(storedAdsToken);
+        const resolvedAds = metaCreds.verifyToken;
 
         if (resolvedWA === token || resolvedAds === token) {
             console.log(`[Meta Webhook] ✅ Verified business: ${businessId}`);
@@ -51,6 +69,7 @@ export async function GET(request, { params }) {
                 await business.save();
             }
 
+            console.log(`[Meta Webhook] GET return: hub.challenge for ${businessId}`);
             return new Response(challenge, {
                 status: 200,
                 headers: { 'Content-Type': 'text/plain' }
@@ -60,6 +79,7 @@ export async function GET(request, { params }) {
         console.warn(`[Meta Webhook] ❌ Token mismatch. WA:${resolvedWA} | Ads:${resolvedAds} | Got:${token}`);
     }
 
+    console.log(`[Meta Webhook] GET return: verification failed (${businessId})`);
     return new Response('Verification failed', { status: 403 });
 }
 
@@ -74,75 +94,82 @@ export async function POST(request, { params }) {
         const business = await Business.findById(businessId);
 
         if (!business) {
+            console.log(`[Meta Webhook] POST return: business not found (${businessId})`);
             return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
         }
 
         const rawBody = await request.text();
         const signature = request.headers.get('x-hub-signature-256');
+        const payload = JSON.parse(rawBody);
 
-        // Signature validation — only enforce if App Secret is configured
-        const { decrypt } = await import('@/lib/encryption');
-        let appSecret = business.integrationCredentials?.whatsapp?.appSecret || business.integrationCredentials?.facebookAds?.appSecret;
-        if (appSecret && appSecret.includes(':')) {
-            try { appSecret = decrypt(appSecret); } catch (e) {}
-        }
+        console.log('[Meta Webhook] POST object:', payload.object);
+        console.log('[Meta Webhook] POST entry count:', payload.entry?.length ?? 0);
+        console.log('[Meta Webhook] POST full body:', rawBody);
+
+        const metaCreds = await resolveMetaAdsCredentials(business);
+        console.log(`[Meta Ads] Credentials source: ${metaCreds.source}, pageId: ${metaCreds.pageId}, tokenPresent: ${Boolean(metaCreds.accessToken)}`);
+
+        // Signature validation — use Meta Ads app secret (not WhatsApp) for leadgen webhooks
+        const appSecret = metaCreds.appSecret;
 
         if (appSecret && signature) {
             if (!verifyMetaSignature(rawBody, signature, appSecret)) {
                 console.warn(`[Meta Webhook] ❌ Invalid signature for business ${businessId}`);
+                console.log('[Meta Webhook] POST return: invalid signature');
                 return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 403 });
             }
+            console.log(`[Meta Webhook] ✅ Signature verified for ${businessId}`);
+        } else if (signature && !appSecret) {
+            console.warn(`[Meta Webhook] ⚠️ Signature present but Meta Ads appSecret missing for ${businessId}`);
         } else {
-            // Meta Test Tool does not send a signature — allow through
-            console.log(`[Meta Webhook] ⚠️ No App Secret / skipping signature check for ${businessId}`);
+            console.log(`[Meta Webhook] ⚠️ No signature / appSecret — allowing (Meta test tool) for ${businessId}`);
         }
 
-        const payload = JSON.parse(rawBody);
-        console.log(`[Meta Webhook] Payload received:`, JSON.stringify(payload).substring(0, 400));
+        const leadgenChange = findLeadgenChange(payload);
 
-        // Support both real events (entry.changes) and Meta Test Tool (sample key)
-        const entry = payload.entry?.[0];
-        const change = entry?.changes?.[0] || payload.sample;
+        if (leadgenChange) {
+            const value = leadgenChange.value || {};
+            const leadgenId = value.leadgen_id != null ? String(value.leadgen_id) : null;
+            const pageId = value.page_id != null ? String(value.page_id) : null;
+            const formId = value.form_id != null ? String(value.form_id) : null;
 
-        // ─── LEAD ADS ─────────────────────────────────────────────────
-        if (change?.field === 'leadgen') {
-            const leadgenId = change.value?.leadgen_id;
-            console.log(`[Meta Ads] 🎯 leadgen_id: ${leadgenId}`);
+            console.log('[Meta Ads] leadgen change detected');
+            console.log('[Meta Ads] leadgen_id:', leadgenId);
+            console.log('[Meta Ads] page_id:', pageId);
+            console.log('[Meta Ads] form_id:', formId);
 
-            // Meta Test Tool dummy IDs — create a mock lead so it shows up instantly
-            if (!leadgenId || leadgenId === '444444444444') {
-                console.log('[Meta Ads] 🧪 Test payload detected — creating mock lead');
-                const result = await leadManager.processMetaLead(businessId, {
-                    metaLeadId: `test_${Date.now()}`,
-                    name: 'Meta Test Lead',
-                    email: 'test@meta-example.com',
-                    phone: '919999999999',
-                    campaignName: 'Meta Webhook Test',
-                    adSetName: 'Test Ad Set',
-                    adName: 'Test Ad',
-                    formId: change.value?.form_id || 'test_form',
-                    receivedAt: new Date(),
-                    fields: { is_test: true }
-                });
-                console.log(`[Meta Ads] ✅ Mock lead result: ${result.status}`);
-                return NextResponse.json({ success: true, status: result.status });
+            if (metaCreds.pageId && pageId && metaCreds.pageId !== pageId) {
+                console.warn(`[Meta Ads] ⚠️ page_id mismatch — webhook page ${pageId}, configured page ${metaCreds.pageId}`);
+                console.log('[Meta Webhook] POST return: page_id mismatch');
+                return NextResponse.json({ success: false, error: 'Page ID mismatch' }, { status: 200 });
             }
 
-            // Real lead — fetch full details from Meta Graph API
-            let accessToken = business.integrationCredentials?.facebookAds?.accessToken;
+            if (!leadgenId) {
+                console.error('[Meta Ads] ❌ leadgen webhook missing leadgen_id — cannot fetch lead');
+                console.log('[Meta Webhook] POST return: missing leadgen_id');
+                return NextResponse.json({ success: false, error: 'Missing leadgen_id' }, { status: 200 });
+            }
+
+            const accessToken = metaCreds.accessToken;
             if (!accessToken) {
-                console.error(`[Meta Ads] ❌ No access token configured for business ${businessId}`);
+                console.error(`[Meta Ads] ❌ No Page Access Token for business ${businessId}`);
+                console.log('[Meta Webhook] POST return: missing access token');
                 return NextResponse.json({ success: false, error: 'Page Access Token not configured' }, { status: 200 });
             }
 
-            if (accessToken.includes(':')) {
-                try { accessToken = decrypt(accessToken); } catch (e) {}
+            let leadData;
+            try {
+                leadData = await getMetaLeadDetails(leadgenId, accessToken);
+            } catch (graphError) {
+                console.error(`[Meta Ads] ❌ Graph API fetch failed for ${leadgenId}:`, graphError.message);
+                console.log('[Meta Webhook] POST return: Graph API error');
+                return NextResponse.json({ success: false, error: graphError.message }, { status: 200 });
             }
 
-            const leadData = await getMetaLeadDetails(leadgenId, accessToken);
             const result = await leadManager.processMetaLead(businessId, leadData);
             console.log(`[Meta Ads] ✅ Lead saved: ${result.leadId} | ${result.status}`);
-            return NextResponse.json({ success: true, status: result.status });
+            console.log('[Meta Webhook] POST return: lead processed');
+            return NextResponse.json({ success: true, status: result.status, leadId: result.leadId });
         }
 
         // ─── WHATSAPP ─────────────────────────────────────────────────
@@ -150,6 +177,7 @@ export async function POST(request, { params }) {
         const data = extractWhatsAppPayload(payload);
         
         if (!data) {
+            console.log('[Meta Webhook] POST return: no actionable event');
             return NextResponse.json({ success: true, message: 'No actionable event' });
         }
 
@@ -165,10 +193,13 @@ export async function POST(request, { params }) {
         });
 
         console.log(`[Meta Webhook] WhatsApp processed: ${waResult.status}`);
+        console.log('[Meta Webhook] POST return: whatsapp processed');
         return NextResponse.json({ success: true });
 
     } catch (error) {
         console.error('[Meta Webhook] 🔥 Fatal Error:', error.message);
+        console.error('[Meta Webhook] Stack:', error.stack);
+        console.log('[Meta Webhook] POST return: 500 internal error');
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

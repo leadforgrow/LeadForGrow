@@ -1,90 +1,105 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ChevronDown, Plus, Minus } from 'lucide-react';
-import { LANDING } from './landingStyles';
-import LandingSectionBg from './LandingSectionBg';
+import { Plus, Minus } from 'lucide-react';
 
 const FAQS = [
   {
     q: 'Does LeadForGrow support WhatsApp Business API?',
-    a: 'Yes. We integrate with the official Meta WhatsApp Business API. Connect your number, use approved templates, and manage team conversations from one inbox.',
+    a: 'Yes. We integrate with the official Meta WhatsApp Business API. Connect your number, use approved templates, and manage team conversations from one unified inbox.',
   },
   {
     q: 'How does onboarding work?',
-    a: 'Most teams go live in under 15 minutes. Connect WhatsApp, import leads, set routing rules, and launch your first automation — with free onboarding on Growth and above.',
+    a: 'Most teams go live in under 15 minutes. Connect WhatsApp or Instagram, import leads, set routing rules, and launch your first automation — with guided onboarding on Growth and Enterprise plans.',
   },
   {
-    q: 'Can I migrate from my existing CRM?',
-    a: 'Yes. Import leads via CSV, connect your lead sources, and our team helps map your pipeline stages during onboarding.',
+    q: 'Can I upgrade or downgrade my plan anytime?',
+    a: 'Yes. Start on Starter and upgrade to Growth as your team scales. You can change plans anytime — billing adjusts on your next cycle.',
   },
   {
-    q: 'What integrations are supported?',
-    a: 'Meta Lead Ads, website forms, webhooks, Google Sheets, and custom API integrations on Pro and Agency plans.',
+    q: 'What channels does LeadForGrow support?',
+    a: 'WhatsApp, Instagram DMs, Email, website chat, and lead capture forms — all managed from one CRM with AI-assisted replies and automation workflows.',
   },
   {
     q: 'How does AI automation work?',
-    a: 'AI drafts WhatsApp replies, triggers follow-up sequences, and scores lead intent — always with human approval before sending on sensitive flows.',
+    a: 'AI drafts replies, qualifies leads, and triggers follow-up sequences based on intent. You stay in control with approval rules on sensitive conversations.',
   },
   {
-    q: 'Is my data secure and private?',
-    a: 'All data is encrypted in transit and at rest. We follow enterprise security practices with tenant isolation and role-based access control.',
+    q: 'Is my data secure?',
+    a: 'All data is encrypted in transit and at rest. We use tenant isolation, role-based access, and follow enterprise security best practices.',
   },
 ];
 
-export default function FAQSection() {
+export default function FAQSection({ onBookDemo }) {
   const [open, setOpen] = useState(0);
 
   return (
-    <LandingSectionBg variant="slate" sectionClass={LANDING.section}>
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-8">
-          <p className={LANDING.overline}>FAQ</p>
-          <h2 className={`${LANDING.heading} mt-2`}>Questions before you start</h2>
+    <section id="faq" className="relative overflow-hidden bg-[#FAFDFA] py-14 sm:py-16 lg:py-20">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFDFA] via-white to-[#EEF8ED]/30" />
+
+      <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center sm:mb-12">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">FAQ</p>
+          <h2
+            className="mt-3 text-[1.75rem] font-extrabold leading-[1.12] tracking-[-0.03em] text-[#111827] sm:text-[2.15rem]"
+            style={{ fontFamily: 'var(--font-plus-jakarta)' }}
+          >
+            Questions before you start
+          </h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-[#64748B]">
+            Common questions about LeadForGrow, onboarding, pricing, and security.
+          </p>
         </div>
-        <div className="space-y-2">
+
+        <div className="space-y-3">
           {FAQS.map((faq, i) => {
             const isOpen = open === i;
             return (
-              <div key={faq.q} className={`${LANDING.card} overflow-hidden`}>
+              <div
+                key={faq.q}
+                className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_2px_12px_rgba(15,23,42,0.04)]"
+              >
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? -1 : i)}
-                  className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors"
+                  className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-[#FAFDFA]"
                 >
-                  <span className="text-sm font-semibold text-slate-900 dark:text-white pr-4">{faq.q}</span>
-                  <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                    {isOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span className="pr-4 text-[15px] font-semibold text-[#111827]">{faq.q}</span>
+                  <div
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${isOpen ? 'bg-emerald-700 text-white' : 'bg-[#ECFDF5] text-emerald-800'
+                      }`}
+                  >
+                    {isOpen ? <Minus className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                   </div>
                 </button>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <p className="px-4 pb-4 text-sm text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3">
-                        {faq.a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isOpen && (
+                  <div className="border-t border-[#E2E8F0] px-5 pb-5 pt-4">
+                    <p className="text-[15px] leading-relaxed text-[#4B5563]">{faq.a}</p>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-        <p className="text-center mt-6 text-sm text-slate-500">
+
+        <p className="mt-8 text-center text-[15px] text-[#64748B]">
           Still have questions?{' '}
-          <Link href="/contact" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
-            Book a demo
-          </Link>
+          {onBookDemo ? (
+            <button
+              type="button"
+              onClick={onBookDemo}
+              className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
+            >
+              Book a demo
+            </button>
+          ) : (
+            <Link href="/contact" className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800">
+              Book a demo
+            </Link>
+          )}
         </p>
       </div>
-    </LandingSectionBg>
+    </section>
   );
 }

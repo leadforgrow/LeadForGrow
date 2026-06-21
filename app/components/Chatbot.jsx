@@ -31,10 +31,12 @@ export default function Chatbot({
   isPreview = false,
   previewConfig = null,
   landingPage = false,
+  startOpen = false,
+  embedded = false,
 }) {
   const [widgetConfig, setWidgetConfig] = useState(null);
   const [configLoading, setConfigLoading] = useState(!isPreview);
-  const [isOpen, setIsOpen] = useState(isPreview);
+  const [isOpen, setIsOpen] = useState(isPreview || startOpen);
   const [step, setStep] = useState(0);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -137,6 +139,17 @@ export default function Chatbot({
     }
   };
 
+  useEffect(() => {
+    if (!startOpen || isPreview || startedRef.current) return;
+    startedRef.current = true;
+    notifyParent('open');
+    fetch('/api/public/chatbot/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessId, event: 'conversation_started' }),
+    }).catch(() => {});
+  }, [startOpen, isPreview, businessId]);
+
   const openChat = () => {
     setIsOpen(true);
     notifyParent('open');
@@ -151,6 +164,10 @@ export default function Chatbot({
   };
 
   const closeChat = () => {
+    if (embedded) {
+      notifyParent('close');
+      return;
+    }
     setIsOpen(false);
     notifyParent('close');
   };
@@ -252,14 +269,16 @@ export default function Chatbot({
   if (!isPreview && configLoading) return null;
   if (!isPreview && !landingPage && !cfg?.active) return null;
 
-  const posClass = isPreview
-    ? `absolute bottom-4 ${pos === 'left' ? 'left-4' : 'right-4'}`
-    : `fixed bottom-6 ${pos === 'left' ? 'left-6' : 'right-6'} z-[9999]`;
+  const posClass = embedded
+    ? 'absolute inset-0'
+    : isPreview
+      ? `absolute bottom-4 ${pos === 'left' ? 'left-4' : 'right-4'}`
+      : `fixed bottom-6 ${pos === 'left' ? 'left-6' : 'right-6'} z-[9999]`;
 
   const showQuickReplies = step === supportStep && flow.askSupportType && !submitted;
   const showInput = !submitted && !showQuickReplies;
-  const panelW = isPreview ? 'w-[360px]' : 'w-[400px]';
-  const panelH = isPreview ? 'h-[540px]' : 'h-[620px] max-h-[88vh]';
+  const panelW = embedded ? 'w-full' : isPreview ? 'w-[360px]' : 'w-[400px]';
+  const panelH = embedded ? 'h-full' : isPreview ? 'h-[540px]' : 'h-[620px] max-h-[88vh]';
 
   const inputPlaceholder =
     step === 0 ? 'Type your name…'
@@ -270,7 +289,7 @@ export default function Chatbot({
   return (
     <div className={`${posClass} font-sans antialiased`}>
       {/* Launcher — HubSpot-style pill + icon */}
-      {!isOpen && (
+      {!isOpen && !embedded && (
         <div className="flex flex-col items-end gap-3">
           <button
             type="button"
@@ -292,7 +311,7 @@ export default function Chatbot({
 
       {isOpen && (
         <div
-          className={`${panelW} ${panelH} flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] border border-slate-200/60 animate-in fade-in slide-in-from-bottom-4 duration-300`}
+          className={`${panelW} ${panelH} flex flex-col overflow-hidden ${embedded ? 'rounded-none shadow-none border-0' : 'rounded-[20px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] border border-slate-200/60 animate-in fade-in slide-in-from-bottom-4 duration-300'} bg-white`}
         >
           {/* Header — clean HubSpot-style white bar */}
           <div className="relative flex-shrink-0 border-b border-slate-100 bg-white px-4 py-3.5">

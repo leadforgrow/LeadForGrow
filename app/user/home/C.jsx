@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mail, Phone, Headphones, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { LANDING } from '@/app/components/landing/landingStyles';
-import LandingSectionBg from '@/app/components/landing/LandingSectionBg';
 import {
   CONTACT_FORM_TOKEN,
   getFormConfigUrl,
@@ -39,7 +38,7 @@ const FALLBACK_FIELDS = [
 ];
 
 const inputClass =
-  'w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-colors';
+  'w-full px-4 py-3 rounded-md border border-[#E2E8F0] bg-white text-sm text-[#111827] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-colors';
 
 function fieldInputType(type) {
   if (type === 'phone') return 'tel';
@@ -222,7 +221,7 @@ export default function ContactFormSection() {
   }
 
   return (
-    <LandingSectionBg variant="photo-contact" sectionClass={`${LANDING.section} border-t border-slate-200/80 dark:border-slate-800`}>
+    <section className={`${LANDING.section} bg-white border-t border-[#E2E8F0]`}>
       <div className={LANDING.container}>
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           <div>
@@ -337,6 +336,6 @@ export default function ContactFormSection() {
           </div>
         </div>
       </div>
-    </LandingSectionBg>
+    </section>
   );
 }

@@ -1,45 +1,65 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import LandingSectionBg from './LandingSectionBg';
+import Image from 'next/image';
+import Link from 'next/link';
+import { LANDING } from './landingStyles';
+import { LANDING_IMAGES } from './hubspotLandingImages';
 
 const INTEGRATIONS = [
-  { name: 'Meta Lead Ads', category: 'Lead capture' },
-  { name: 'WhatsApp Business', category: 'Messaging' },
-  { name: 'Google Calendar', category: 'Scheduling' },
-  { name: 'Stripe & Razorpay', category: 'Billing' },
-  { name: 'Cloudinary', category: 'Media' },
-  { name: 'Twilio Voice', category: 'Calling' },
-  { name: 'Excel Export', category: 'Reports' },
-  { name: 'Webhooks & API', category: 'Custom' },
+  'Meta Lead Ads',
+  'WhatsApp',
+  'Google Calendar',
+  'Razorpay',
+  'Stripe',
+  'Twilio',
+  'Zapier',
+  'Webhooks',
 ];
 
 export default function IntegrationsSection() {
   return (
-    <LandingSectionBg variant="photo-workspace">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3">Integrations</p>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
-            Connects with the tools you already use
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {INTEGRATIONS.map((item, i) => (
-            <motion.div
-              key={item.name}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.04 }}
-              className="landing-card p-4 text-center"
+    <section className="py-12 md:py-16 bg-white">
+      <div className={LANDING.containerWide}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="rounded-2xl border border-[#CBD6E2] overflow-hidden grid grid-cols-1 lg:grid-cols-2 min-h-[280px]"
+        >
+          <div className="p-8 md:p-12 flex flex-col justify-center bg-[#F5F8FA]">
+            <h2 className="text-xl md:text-2xl font-bold text-[#33475B] leading-snug">
+              Works with the tools you already use. 50+ integrations.
+            </h2>
+            <Link
+              href="/automation/integrations"
+              className="mt-4 inline-block w-fit text-[#33475B] font-semibold border-b-2 border-[#FF5C35] pb-0.5 hover:text-[#FF5C35] transition-colors"
             >
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.name}</p>
-              <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide">{item.category}</p>
-            </motion.div>
-          ))}
-        </div>
+              See all app integrations
+            </Link>
+            <div className="mt-8 flex flex-wrap gap-2">
+              {INTEGRATIONS.map((name) => (
+                <span
+                  key={name}
+                  className="rounded-md bg-white border border-[#CBD6E2] px-3 py-1.5 text-xs font-semibold text-[#516f90]"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="relative min-h-[220px] lg:min-h-0">
+            <Image
+              src={LANDING_IMAGES.integrations}
+              alt="Team using integrated business tools"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#F5F8FA]/30 lg:to-white/20" />
+          </div>
+        </motion.div>
       </div>
-    </LandingSectionBg>
+    </section>
   );
 }

@@ -3,23 +3,29 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #F7F8FC;
-  --foreground: #0F172A;
-  --primary: #5B5FF6;
+  --background: #F8FAFC;
+  --foreground: #111827;
+  --primary: #2563EB;
   --primary-dark: #0F172A;
   --success: #10B981;
   --warning: #F59E0B;
   --danger: #EF4444;
   --card: #FFFFFF;
-  --card-border: #EAECEF;
-  --text-main: #0F172A;
+  --card-border: #E2E8F0;
+  --text-main: #111827;
   --text-secondary: #64748B;
   --text-muted: #94A3B8;
-  --radius-card: 24px;
+  --radius-card: 8px;
+  --font-inter-tight: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-plus-jakarta: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-barlow: 'Barlow', 'Inter', system-ui, sans-serif;
+  --font-landing-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --hero-bg: #00211f;
+  --hubspot-orange: #FF5C35;
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Geist', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -43,22 +49,16 @@
 @layer base {
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(rgba(0,0,0,0.015) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  .dark body {
-    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
   }
 
   h1 {
-    @apply font-bold tracking-[-0.03em] text-[#0F172A];
-    font-size: 32px;
+    @apply font-bold tracking-[-0.02em] text-[#111827];
+    font-family: var(--font-inter-tight);
   }
 
   h2 {
-    @apply font-semibold text-[#0F172A];
-    font-size: 20px;
+    @apply font-bold text-[#111827];
+    font-family: var(--font-inter-tight);
   }
 
   .metric-value {
@@ -86,39 +86,70 @@
   }
 
   .landing-section {
-    @apply py-14 md:py-20;
+    @apply py-16 md:py-24 lg:py-28;
   }
 
   .landing-section-tight {
-    @apply py-10 md:py-14;
+    
+    @apply py-12 md:py-16;
   }
 
   .landing-card {
-    @apply rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-white/90 dark:bg-slate-900/85 backdrop-blur-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)];
+    @apply rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04),0_4px_12px_rgba(15,23,42,0.03)];
+  }
+
+  .enterprise-heading {
+    font-family: var(--font-inter-tight);
+    @apply text-[2rem] sm:text-[2.5rem] lg:text-[2.75rem] font-bold tracking-[-0.02em] text-[#111827] leading-[1.12];
+  }
+
+  /* NAVEX hero — Barlow, 32px, pure black */
+  .hero-heading {
+    font-family: var(--font-barlow);
+    font-size: 32px;
+    
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: #000000;
+  }
+
+  @media (min-width: 1280px) {
+    .hero-heading {
+      font-size: 36px;
+    }
+  }
+
+  .hero-body {
+    font-family: var(--font-barlow);
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: #4B5563;
+  }
+
+  .enterprise-check {
+    @apply flex h-5 w-5 shrink-0 items-center justify-center text-[#FF5C35];
   }
 
   .landing-bg-dots {
-    background-image: radial-gradient(rgba(37, 99, 235, 0.09) 1px, transparent 1px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 20%, transparent 100%);
-  }
-
-  .dark .landing-bg-dots {
-    background-image: radial-gradient(rgba(96, 165, 250, 0.12) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 
   .landing-bg-grid {
     background-image:
-      linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 15%, transparent 100%);
+      linear-gradient(rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 
-  .dark .landing-bg-grid {
+  .hero-texture {
     background-image:
-      linear-gradient(rgba(96, 165, 250, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(96, 165, 250, 0.06) 1px, transparent 1px);
+      linear-gradient(rgba(226, 232, 240, 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(226, 232, 240, 0.4) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to right, black 40%, transparent 100%);
   }
 }
 
@@ -158,7 +189,159 @@
   @apply transition-transform duration-200;
 }
 
-.hover-lift:hover {
-  transform: translateY(-4px);
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.typing-dot {
+  @apply inline-block h-1.5 w-1.5 rounded-full bg-current opacity-60;
+  animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+.typing-dot-delay-1 {
+  animation-delay: 0.15s;
+}
+
+.typing-dot-delay-2 {
+  animation-delay: 0.3s;
+}
+
+.automation-scroll-wrapper {
+  isolation: isolate;
+}
+
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.landing-float {
+  animation: landing-float 4s ease-in-out infinite;
+}
+
+.landing-logo {
+  font-family: var(--font-plus-jakarta);
+  font-weight: 660;
+  letter-spacing: -0.03em;
+  color: #1a1a1a;
+}
+
+.landing-headline {
+  margin-left: 5.5%;
+  font-family: var(--font-plus-jakarta);
+  font-weight: 650;
+  /* max-width: 3rem; */
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #1a1a1a;
+}
+
+.landing-subhead {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  margin-left: 5.5%;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #5a6b5e;
+  max-width: 30rem;
+}
+
+.landing-stat {
+  font-family: var(--font-plus-jakarta);
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #1a1a1a;
+}
+
+.landing-stat-caption {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #7a8a7e;
+}
+
+.phone-scroll {
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+.phone-scroll:hover,
+.phone-scroll:focus-visible,
+.phone-scroll.phone-scroll-active,
+.phone-scroll.phone-scroll-auto {
+  overflow-y: auto;
+}
+
+.phone-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.phone-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.phone-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.journey-progress-item {
+  transition: color 0.25s ease;
+}
+
+.journey-progress-label {
+  transition: color 0.25s ease, font-weight 0.25s ease;
+}
+
+.journey-progress-dot {
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.journey-progress-active .journey-progress-label {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.journey-progress-active .journey-progress-dot {
+  border-color: #059669;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+}
+
+.journey-progress-active .journey-progress-dot-inner {
+  background-color: #059669;
+}
+
+.journey-progress-done .journey-progress-dot {
+  border-color: #059669;
+  background-color: #059669;
+  box-shadow: none;
+}
+
+.journey-progress-done .journey-progress-dot-inner {
+  background-color: #ffffff;
+}
+
+.journey-progress-done .journey-progress-label {
+  color: #059669;
+}
+
+/* Mobile pill progress */
+.journey-progress-item.journey-progress-active.border {
+  border-color: #a7f3d0;
+  background-color: #ecfdf5;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.journey-progress-item.journey-progress-done.border {
+  border-color: #bbf7d0;
+  background-color: #f0fdf4;
+  color: #059669;
 }
 

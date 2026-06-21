@@ -1,5 +1,6 @@
 import Footer from "./components/Footer";
-import Script from "next/script";
+import CookieConsentManager from "./components/consent/CookieConsentManager";
+import LeadForGrowWidget from "./Enquiry";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -28,13 +29,19 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@700;800&family=Libre+Baskerville:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.classList.toggle('light',t==='light');}catch(e){}})();`
           }}
         />
       </head>
-      <body suppressHydrationWarning className="font-sans antialiased text-slate-900 dark:text-slate-100 bg-[#f8f9fc] dark:bg-slate-950 transition-colors duration-300">
+      <body suppressHydrationWarning className="font-sans antialiased text-[#111827] bg-[#F8FAFC] transition-colors duration-300">
         {/* <Script
   id="interakt-sdk"
   strategy="afterInteractive"
@@ -78,14 +85,10 @@ export default function RootLayout({ children }) {
 /> */}
 
 
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4902724266607481"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <ThemeProvider>
           {children}
+          <CookieConsentManager />
+          <LeadForGrowWidget />
           <Toaster position="top-right" />
           <Footer></Footer>
         </ThemeProvider>

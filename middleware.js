@@ -7,6 +7,8 @@ const PUBLIC_API_PREFIXES = [
   '/api/forms/submit',
   '/api/forms/public',
   '/api/forms/config',
+  '/api/consent/log',
+  '/api/consent/track',
   '/api/meetings/public',
   '/api/meetings/book',
   '/api/webhooks/',

@@ -1,212 +1,100 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Play, Check, Timer, ShieldCheck, Repeat2 } from 'lucide-react';
-import AmbientBackground from './AmbientBackground';
-import CrmCommandCenter from './CrmCommandCenter';
-import MagneticButton from './MagneticButton';
-import { fadeUp } from './motionConfig';
+import { ArrowRight } from 'lucide-react';
+import HeroStepDivider from './HeroStepDivider';
 
-const ROTATING_WORDS = ['deals', 'revenue', 'conversions', 'customers'];
-
-const OUTCOMES = [
-  { icon: Timer, value: '<60s', label: 'First WhatsApp reply', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
-  { icon: ShieldCheck, value: '0', label: 'Leads lost to delay', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/40' },
-  { icon: Repeat2, value: '3×', label: 'More follow-ups sent', color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40' },
+const CUSTOMER_LOGOS = [
+  { src: '/scaledesk_technology_logo.jpg', alt: 'Scaledesk Technology' },
+  { src: '/homie4u.png', alt: 'Homie4U' },
+  { src: '/logo%20(1).webp', alt: 'LeadForGrow partner' },
 ];
 
-const PROOF_POINTS = [
-  'WhatsApp + Meta leads in one inbox',
-  'Auto-assign & instant follow-ups',
-  'Live in 15 minutes, no developer',
-];
-
-function RotatingWord() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % ROTATING_WORDS.length), 2800);
-    return () => clearInterval(id);
-  }, []);
-
+function HeroVisual() {
   return (
-    <span className="relative inline-block min-w-[11ch] text-left align-bottom">
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={ROTATING_WORDS[index]}
-          initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute left-0 bg-gradient-to-r from-blue-600 via-sky-600 to-sky-600 bg-clip-text text-transparent"
-        >
-          {ROTATING_WORDS[index]}
-        </motion.span>
-      </AnimatePresence>
-      <span className="invisible">{ROTATING_WORDS[0]}</span>
-    </span>
+    <div className="relative mx-auto w-full max-w-[600px] lg:max-w-[540px]">
+      <div className="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-indigo-400/20 via-cyan-400/15 to-violet-500/20 blur-3xl" />
+      <img
+        src="/edited-photo.png"
+        alt="LeadForGrow CRM dashboard"
+        className="relative w-full h-auto object-contain drop-shadow-[0_24px_60px_rgba(15,23,42,0.12)]"
+      />
+    </div>
   );
 }
 
-export default function PremiumHero({ onGetStarted, onWatchDemo }) {
+export default function PremiumHero({ onGetStarted, onBookDemo }) {
   return (
-    <section className="relative min-h-[100svh] flex items-center overflow-hidden">
-      <AmbientBackground />
+    <section className="relative overflow-hidden pt-28 sm:pt-32 lg:pt-36">
+      <div className="pointer-events-none absolute inset-x-0 top-0 bottom-[40px] sm:bottom-[48px] bg-[#D2EDD0]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 bottom-[40px] sm:bottom-[48px] overflow-hidden">
+        <div className="absolute -left-[10%] top-[15%] h-[420px] w-[55%] rounded-[100%] bg-[#c5e4c2]/60" />
+        <div className="absolute -right-[5%] top-[5%] h-[380px] w-[50%] rounded-[100%] bg-[#e8f5e6]/80" />
+      </div>
 
-      {/* Headline glow */}
-      <div className="pointer-events-none absolute left-[5%] top-[28%] h-[420px] w-[420px] rounded-full bg-blue-500/[0.06] blur-[100px] dark:bg-blue-600/[0.1]" />
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-24 pb-12 lg:pt-28 lg:pb-16">
-        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-10 xl:gap-14">
-          {/* LEFT */}
-          <div>
-            <motion.h1
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0}
-              className="text-[2.35rem] font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[3.4rem] lg:leading-[1.08]"
-            >
-              Turn Lead enquiries into{' '}
-              <RotatingWord />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-10 sm:px-6 sm:pb-12 lg:px-8 lg:pb-14">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10 xl:gap-16">
+          <div className="max-w-[540px] pl-5 sm:pl-5">
+            <h1 className="landing-headline">
+              Turn Leads Into,
               <br />
-              <span className="text-2xl font-medium text-slate-600 dark:text-slate-400">before your competitor does.</span>
-            </motion.h1>
+              Customers With AI
+            </h1>
 
-            <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0.1}
-              className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg sm:leading-relaxed"
-            >
-              Most teams lose 40% of leads simply because replies are too slow.
-              LeadForGrow captures every message, assigns it instantly, and runs follow-ups on autopilot — so you close more without adding headcount.
-            </motion.p>
+            <p className="landing-subhead mt-5 sm:mt-6">
+              LeadForGrow helps businesses capture leads, automate conversations across
+              WhatsApp, Instagram, Email, and Web Chat, manage sales pipelines, and convert
+              more prospects with AI—all from one intelligent platform.
+            </p>
 
-            {/* Quick wins */}
-            <motion.ul
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0.18}
-              className="mt-7 space-y-2.5"
-            >
-              {PROOF_POINTS.map((point, i) => (
-                <motion.li
-                  key={point}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.35 + i * 0.08, duration: 0.5 }}
-                  className="flex items-center gap-2.5 text-sm font-medium text-slate-700 dark:text-slate-300"
-                >
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
-                  {point}
-                </motion.li>
-              ))}
-            </motion.ul>
+            <div className="mt-8 ml-7 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={onGetStarted}
+                className="inline-flex items-center justify-center  bg-[#1a1a1a] px-7 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-black"
+              >
+                Start Free Trial
+              </button>
+              <button
+                type="button"
+                onClick={onBookDemo}
+                className="group inline-flex items-center gap-2  border-[#D4D4D4] bg-white px-6 py-3.5 text-[15px] font-medium text-[#1a1a1a] transition-colors hover:border-[#BDBDBD]"
+              >
+                Book a Demo
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </div>
 
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0.26}
-              className="mt-9 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3"
-            >
-              <MagneticButton onClick={onGetStarted} className="!px-7 !py-4 !text-[15px]">
-                Start free trial <ArrowRight className="w-4 h-4" />
-              </MagneticButton>
-              <MagneticButton variant="secondary" onClick={onWatchDemo} className="!px-6 !py-4">
-                <Play className="w-4 h-4 fill-current" /> See it in 90 sec
-              </MagneticButton>
-            </motion.div>
-
-            <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0.32}
-              className="mt-3 text-xs text-slate-400 dark:text-slate-500"
-            >
-              Free 14-day trial · Setup in 15 min · Cancel anytime
-            </motion.p>
-
-            {/* Outcome metrics */}
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              custom={0.38}
-              className="mt-10 grid grid-cols-3 gap-3 max-w-lg"
-            >
-              {OUTCOMES.map((m, i) => {
-                const Icon = m.icon;
-                return (
-                  <motion.div
-                    key={m.label}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1, duration: 0.5 }}
-                    className="rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-white/60 dark:bg-slate-900/50 backdrop-blur-md px-3 py-3.5 shadow-sm hover:shadow-md hover:border-blue-200/50 dark:hover:border-blue-800/40 transition-all duration-300"
+            <div className="mt-10 ml-7  flex items-start gap-4">
+              <div className="flex -space-x-2.5 pt-1 shrink-0">
+                {CUSTOMER_LOGOS.map((logo) => (
+                  <div
+                    key={logo.src}
+                    className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-white shadow-sm"
                   >
-                    <div className={`inline-flex h-7 w-7 items-center justify-center rounded-lg mb-2 ${m.color}`}>
-                      <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
-                    </div>
-                    <p className="text-xl font-bold text-slate-900 dark:text-white tabular-nums leading-none">{m.value}</p>
-                    <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 leading-snug">{m.label}</p>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                    <img
+                      src={logo.src}
+                      alt={logo.alt}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="landing-stat">1100+</p>
+                <p className="landing-stat-caption mt-1 max-w-[220px]">
+                  Growing businesses trust LeadForGrow for sales automation.
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* RIGHT */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, rotateY: -8 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="relative lg:pl-2"
-            style={{ perspective: '1400px' }}
-          >
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative"
-            >
-              <div className="absolute -inset-8 bg-gradient-to-tr from-blue-500/10 via-sky-500/5 to-sky-500/10 rounded-full blur-3xl" />
-              <CrmCommandCenter />
-            </motion.div>
-
-            {/* Floating urgency chip */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.2, duration: 0.5 }}
-              className="absolute -left-2 top-[18%] z-20 hidden sm:block"
-            >
-              <div className="rounded-xl border border-blue-200/80 dark:border-blue-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
-                <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">Just now</p>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 mt-0.5">Lead replied in 47s</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.4, duration: 0.5 }}
-              className="absolute -right-1 bottom-[22%] z-20 hidden sm:block"
-            >
-              <div className="rounded-xl border border-sky-200/80 dark:border-sky-800/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 py-2 shadow-lg">
-                <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wide">Auto routed</p>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 mt-0.5">Deal moved to Won</p>
-              </div>
-            </motion.div>
-          </motion.div>
+          <div className="relative lg:pl-2">
+            <HeroVisual />
+          </div>
         </div>
       </div>
+
+      <HeroStepDivider />
     </section>
   );
 }
