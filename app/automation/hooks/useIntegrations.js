@@ -200,7 +200,14 @@ export function useIntegrations() {
       const data = await res.json();
       if (data.success) {
         updateIntegrationInState(data.data.integration);
-        toast.success(data.data.syncResult.message);
+        const sync = data.data.syncResult;
+        if (sync?.success) {
+          toast.success(sync.message);
+        } else if (sync?.tokenExpired) {
+          toast.error(sync.message || 'Meta token expired — reconnect Meta Ads', { duration: 10000 });
+        } else {
+          toast.error(sync?.message || 'Sync failed');
+        }
         fetchLogs(id || selectedId);
       } else toast.error(data.error);
     } catch {

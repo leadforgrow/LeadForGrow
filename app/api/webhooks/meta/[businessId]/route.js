@@ -231,9 +231,24 @@ export async function POST(request, { params }) {
                 logStep(11, 'Graph API response (error)', debug.graphResponse ?? graphError.message);
                 logStep(11, 'Graph API status (error)', debug.graphStatus ?? 'unknown');
                 metaError('Webhook Step 11', 'Graph API error', graphError);
+
+                if (graphError.tokenExpired) {
+                    try {
+                        const Integration = (await import('@/models/Integration')).default;
+                        await Integration.findOneAndUpdate(
+                            { businessId, integrationId: 'meta-ads', status: 'connected' },
+                            { status: 'needs_reauth', health: 'error', 'sync.lastSyncError': graphError.message }
+                        );
+                        logStep(11, 'Integration marked needs_reauth due to expired token');
+                    } catch (markErr) {
+                        metaError('Webhook Step 11', 'Failed to mark needs_reauth', markErr);
+                    }
+                }
+
                 return respond200({
                     success: false,
                     error: graphError.message,
+                    tokenExpired: Boolean(graphError.tokenExpired),
                     graphStatus: debug.graphStatus,
                     graphResponse: debug.graphResponse
                 }, '11-error');
