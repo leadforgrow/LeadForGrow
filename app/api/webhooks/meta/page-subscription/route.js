@@ -94,6 +94,9 @@ export async function GET(request) {
     const afterApps = (getAfter ?? getBefore).data?.data ?? [];
     const afterExpectedPresent = Boolean(appInSubscriptionList(afterApps, EXPECTED_APP_ID));
 
+    const ingressForPage = await getRecentWebhookIngress({ pageId: String(pageId), limit: 20 });
+    const ingressAll = await getRecentWebhookIngress({ limit: 30 });
+
     return NextResponse.json({
       success: true,
       businessId,
