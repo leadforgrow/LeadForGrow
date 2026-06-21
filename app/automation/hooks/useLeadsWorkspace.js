@@ -208,7 +208,6 @@ export function useLeadsWorkspace() {
     async (leadId, status) => {
       try {
         const userId = getUserId();
-        const { getStatusRowColor } = await import('../components/leads/utils');
         const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
