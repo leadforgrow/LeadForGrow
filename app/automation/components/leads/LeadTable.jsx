@@ -59,7 +59,7 @@ export default function LeadTable({
                   )}
                 </th>
               ))}
-              <th className="py-3 px-2 w-24 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+              <th className="py-3 px-2 w-28 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Color</th>
             </tr>
           </thead>
           <tbody>

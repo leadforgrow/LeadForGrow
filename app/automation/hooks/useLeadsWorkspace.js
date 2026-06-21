@@ -273,6 +273,28 @@ export function useLeadsWorkspace() {
     [fetchLeads]
   );
 
+  const bulkUpdateRowColor = useCallback(
+    async (rowColor) => {
+      if (!selectedIds.length) return;
+      setLeads((prev) =>
+        prev.map((l) => (selectedIds.includes(l._id) ? { ...l, rowColor: rowColor || null } : l))
+      );
+      const userId = getUserId();
+      let ok = 0;
+      for (const id of selectedIds) {
+        const res = await authFetch(`/api/automation/leads/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rowColor: rowColor || null, performedBy: userId })
+        });
+        if (res.ok) ok++;
+      }
+      toast.success(rowColor ? `Color applied to ${ok} lead(s)` : `Color cleared on ${ok} lead(s)`);
+      setSelectedIds([]);
+    },
+    [selectedIds]
+  );
+
   const bulkAssign = useCallback(
     async (assigneeId) => {
       const userId = getUserId();
@@ -387,6 +409,7 @@ export function useLeadsWorkspace() {
     updateLeadStatus,
     assignLead,
     updateLeadRowColor,
+    bulkUpdateRowColor,
     bulkAssign,
     bulkDelete,
     exportLeads,

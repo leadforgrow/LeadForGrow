@@ -52,6 +52,7 @@ function LeadsWorkspaceContent() {
           onAssign={ws.bulkAssign}
           onDelete={ws.bulkDelete}
           onExport={() => ws.exportLeads('excel')}
+          onBulkRowColorChange={ws.bulkUpdateRowColor}
         />
 
         {ws.viewMode === 'table' ? (

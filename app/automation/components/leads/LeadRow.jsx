@@ -94,7 +94,7 @@ function LeadRow({
       <td className="py-2.5 px-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
         {formatDate(lead.receivedAt)}
       </td>
-      <td className="py-2.5 px-2 w-24" onClick={(e) => e.stopPropagation()}>
+      <td className="py-2.5 px-2 w-28" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-0.5">
           <div className="relative">
             <button
@@ -102,13 +102,14 @@ function LeadRow({
               type="button"
               title="Choose row color"
               onClick={() => setColorPickerOpen((v) => !v)}
-              className={`p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-opacity ${
+              className={`inline-flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                 colorPickerOpen || lead.rowColor
-                  ? 'text-violet-600 opacity-100'
-                  : 'text-slate-400 hover:text-violet-600 opacity-0 group-hover:opacity-100'
+                  ? 'text-violet-600 bg-violet-50 dark:bg-violet-950/30'
+                  : 'text-violet-600'
               }`}
             >
               <Palette className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-medium hidden xl:inline">Color</span>
             </button>
             <LeadColorPicker
               open={colorPickerOpen}
