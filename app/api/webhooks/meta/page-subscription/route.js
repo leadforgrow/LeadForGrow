@@ -75,13 +75,12 @@ export async function GET(request) {
 
     let postSubscribe = null;
     let getAfter = null;
-    const beforeApps = getBefore.data?.data ?? [];
+    const beforeApps = getBefore.ok ? (getBefore.data?.data ?? []) : [];
     const expectedPresent = Boolean(appInSubscriptionList(beforeApps, EXPECTED_APP_ID));
 
     const shouldSubscribe =
       subscribe &&
-      getBefore.ok &&
-      (!beforeApps.length || !expectedPresent);
+      (!getBefore.ok || !beforeApps.length || !expectedPresent);
 
     if (shouldSubscribe) {
       metaLog('Page Subscription', `POST subscribed_apps for page ${pageId}`);
@@ -110,18 +109,18 @@ export async function GET(request) {
       },
       step2_post_subscribed_apps: postSubscribe
         ? {
-            required: true,
+            required: shouldSubscribe,
             httpStatus: postSubscribe.status,
             ok: postSubscribe.ok,
             response: postSubscribe.data
           }
         : {
             required: false,
-            reason: expectedPresent
-              ? `App ${EXPECTED_APP_ID} already in subscribed_apps`
-              : subscribe
-                ? 'subscribe=1 not set — pass ?subscribe=1 to attempt POST'
-                : 'Page already has subscribed apps but not expected app — pass ?subscribe=1'
+            reason: !subscribe
+              ? 'Pass ?subscribe=1 to attempt POST /subscribed_apps'
+              : getBefore.ok && expectedPresent
+                ? `App ${EXPECTED_APP_ID} already in subscribed_apps`
+                : 'POST not attempted'
           },
       step3_get_subscribed_apps_after: getAfter
         ? {
@@ -131,11 +130,13 @@ export async function GET(request) {
           }
         : null,
       summary: {
+        tokenValid: getBefore.ok,
         appsBeforeCount: beforeApps.length,
         appsAfterCount: afterApps.length,
         expectedAppPresentBefore: expectedPresent,
         expectedAppPresentAfter: afterExpectedPresent,
-        postSubscribeRequired: shouldSubscribe,
+        postSubscribeAttempted: Boolean(postSubscribe),
+        postSubscribeSucceeded: postSubscribe?.ok ?? false,
         testingToolHint:
           !afterExpectedPresent
             ? 'Meta Lead Ads Testing Tool shows "no app associated" when page subscribed_apps is empty or does not include your app ID'
