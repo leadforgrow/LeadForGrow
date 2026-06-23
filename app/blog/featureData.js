@@ -1,9 +1,27 @@
 export const FEATURE_CATEGORIES = ['All', 'Platform', 'Automation'];
 
+export const BLOG_AUTHORS = {
+  'saurabh-singh': {
+    slug: 'saurabh-singh',
+    name: 'Saurabh Singh',
+    role: 'Co-Founder & CTO',
+    bio: 'Leads product and engineering at LeadForGrow — writing about CRM, automation, and AI for revenue teams.',
+    initials: 'SS',
+  },
+  'leadforgrow-team': {
+    slug: 'leadforgrow-team',
+    name: 'LeadForGrow Team',
+    role: 'Product & Customer Success',
+    bio: 'Practical guides from the team building LeadForGrow — helping you capture, qualify, and close more leads.',
+    initials: 'LF',
+  },
+};
+
 export const featureArticles = [
   {
     slug: 'crm-sales-pipeline',
     category: 'Platform',
+    author: 'saurabh-singh',
     title: 'CRM & Sales Pipeline',
     excerpt:
       'Track every lead from first enquiry to closed deal with a visual pipeline built for fast-moving sales teams.',
@@ -34,6 +52,7 @@ export const featureArticles = [
   {
     slug: 'unified-inbox',
     category: 'Platform',
+    author: 'leadforgrow-team',
     title: 'Unified Inbox',
     excerpt:
       'Manage WhatsApp, Instagram, Email, and website chat from one inbox—so no lead slips through the cracks.',
@@ -64,6 +83,7 @@ export const featureArticles = [
   {
     slug: 'ai-reply-assistant',
     category: 'Platform',
+    author: 'saurabh-singh',
     title: 'AI Reply Assistant',
     excerpt:
       'Let AI draft replies, answer FAQs, and keep conversations moving—while your team stays in control.',
@@ -94,6 +114,7 @@ export const featureArticles = [
   {
     slug: 'website-lead-capture',
     category: 'Platform',
+    author: 'leadforgrow-team',
     title: 'Website Lead Capture',
     excerpt:
       'Turn website visitors into CRM leads instantly with forms, chat widgets, and landing page integrations.',
@@ -124,6 +145,7 @@ export const featureArticles = [
   {
     slug: 'analytics-reports',
     category: 'Platform',
+    author: 'saurabh-singh',
     title: 'Analytics & Reports',
     excerpt:
       'Measure response times, conversion rates, and team performance with dashboards built for sales leaders.',
@@ -154,6 +176,7 @@ export const featureArticles = [
   {
     slug: 'team-inbox-assignment',
     category: 'Platform',
+    author: 'leadforgrow-team',
     title: 'Team Inbox & Assignment',
     excerpt:
       'Assign leads, balance workload, and collaborate as a team without stepping on each other.',
@@ -184,6 +207,7 @@ export const featureArticles = [
   {
     slug: 'whatsapp-automation',
     category: 'Automation',
+    author: 'saurabh-singh',
     title: 'WhatsApp Automation',
     excerpt:
       'Connect WhatsApp Business API, send template messages, and automate follow-ups at scale.',
@@ -214,6 +238,7 @@ export const featureArticles = [
   {
     slug: 'instagram-automation',
     category: 'Automation',
+    author: 'leadforgrow-team',
     title: 'Instagram Automation',
     excerpt:
       'Capture and respond to Instagram DMs automatically—turn social engagement into qualified pipeline.',
@@ -244,6 +269,7 @@ export const featureArticles = [
   {
     slug: 'email-automation',
     category: 'Automation',
+    author: 'saurabh-singh',
     title: 'Email Automation',
     excerpt:
       'Send timely email follow-ups, nurture sequences, and notifications tied to your sales pipeline.',
@@ -274,6 +300,7 @@ export const featureArticles = [
   {
     slug: 'ai-automation-workflows',
     category: 'Automation',
+    author: 'leadforgrow-team',
     title: 'AI Automation Workflows',
     excerpt:
       'Build no-code workflows that qualify leads, route conversations, and trigger actions across every channel.',
@@ -305,4 +332,20 @@ export const featureArticles = [
 
 export function getFeatureBySlug(slug) {
   return featureArticles.find((article) => article.slug === slug);
+}
+
+export function getAuthor(slug) {
+  return BLOG_AUTHORS[slug] || BLOG_AUTHORS['leadforgrow-team'];
+}
+
+export function getArticlesByAuthor(authorSlug) {
+  return featureArticles.filter((a) => a.author === authorSlug);
+}
+
+export function getRelatedArticles(slug, limit = 3) {
+  const current = getFeatureBySlug(slug);
+  if (!current) return [];
+  return featureArticles
+    .filter((a) => a.slug !== slug && (a.category === current.category || a.author === current.author))
+    .slice(0, limit);
 }

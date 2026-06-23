@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import { withAuth } from '@/lib/auth';
 import { buildBusinessAssistantContext, generateLocalAnswer } from '@/lib/server/businessAssistantContext';
+import { detectCopilotIntent, executeCopilotTool } from '@/lib/ai/copilotTools';
+import { chatCompletion } from '@/lib/ai/providers';
+import { getAiSettings } from '@/lib/ai/settings';
 
 const AI_BACKEND = process.env.AI_BACKEND_URL || 'https://lfg-v2.onrender.com';
 
@@ -38,6 +41,14 @@ export const POST = withAuth()(async (req) => {
 
     let answer;
     let source = 'local';
+    let toolResult = null;
+
+    const intent = detectCopilotIntent(question.trim());
+    if (intent) {
+      toolResult = await executeCopilotTool(intent.tool, intent.params, user.businessId);
+    }
+
+    const aiSettings = await getAiSettings(user.businessId);
 
     try {
       const aiRes = await fetch(`${AI_BACKEND}/ai/copilot`, {
@@ -68,8 +79,25 @@ export const POST = withAuth()(async (req) => {
       console.warn('[BusinessAssistant] AI backend fallback:', err.message);
     }
 
+    if (!answer && toolResult && !toolResult.error) {
+      const llm = await chatCompletion({
+        messages: [
+          { role: 'system', content: `You are Grovia, CRM copilot for ${ctx.businessName}. Summarize CRM tool results clearly for the sales team. Be concise.` },
+          { role: 'user', content: `Question: ${question}\n\nTool data:\n${JSON.stringify(toolResult, null, 2)}` },
+        ],
+        temperature: 0.3,
+      });
+      if (llm.content) {
+        answer = llm.content.trim();
+        source = 'copilot';
+      }
+    }
+
     if (!answer) {
       answer = generateLocalAnswer(question, ctx);
+      if (toolResult && !toolResult.error) {
+        answer += `\n\n**CRM data:** ${JSON.stringify(toolResult.data || toolResult, null, 2).slice(0, 800)}`;
+      }
       source = 'local';
     }
 
@@ -77,9 +105,11 @@ export const POST = withAuth()(async (req) => {
       success: true,
       answer,
       source,
+      tool: toolResult?.tool || null,
       context: {
         businessName: ctx.businessName,
         metrics: ctx.metrics,
+        aiEnabled: aiSettings.enabled !== false,
       },
     });
   } catch (error) {

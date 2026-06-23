@@ -17,6 +17,7 @@ export default function LeadTable({
   onToggleSelect,
   onToggleSelectAll,
   onOpenDrawer,
+  onConvert,
   teamMembers,
   onAssign,
   onStatusChange,
@@ -77,6 +78,7 @@ export default function LeadTable({
                   selected={selectedIds.includes(lead._id)}
                   onSelect={onToggleSelect}
                   onOpenDrawer={onOpenDrawer}
+                  onConvert={onConvert}
                   teamMembers={teamMembers}
                   onAssign={onAssign}
                   onStatusChange={onStatusChange}

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { dbConnect } from '@/lib/mongodb';
 import AutomationSequence from '@/models/automation/AutomationSequence';
 import { withPlanAccess } from '@/lib/accessControl';
@@ -36,11 +37,17 @@ export const PUT = withPlanAccess('automation', async (req, { params }) => {
 
     const allowed = [
       'name', 'description', 'category', 'status', 'triggerType', 'triggerConfig',
-      'nodes', 'edges', 'steps', 'tags', 'workflowMode',
+      'nodes', 'edges', 'steps', 'tags', 'workflowMode', 'folderId', 'enabled', 'abTest',
     ];
     allowed.forEach((key) => {
       if (body[key] !== undefined) sequence.set(key, body[key]);
     });
+
+    if (body.triggerType === 'webhook' || sequence.triggerType === 'webhook') {
+      if (!sequence.webhookSecret) {
+        sequence.webhookSecret = crypto.randomBytes(24).toString('hex');
+      }
+    }
 
     if (body.nodes?.length) sequence.workflowMode = 'graph';
     sequence.version = (sequence.version || 1) + 1;

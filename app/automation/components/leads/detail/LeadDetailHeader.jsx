@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, Phone, MessageSquare, Trophy, XCircle, Trash2, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, Phone, MessageSquare, ArrowRightLeft, XCircle, Trash2, MoreHorizontal } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import StatusBadge from '../StatusBadge';
 import LeadScoreBadge from '../LeadScoreBadge';
@@ -13,7 +13,7 @@ export default function LeadDetailHeader({
   updating,
   onCall,
   onWhatsApp,
-  onWon,
+  onConvert,
   onLost,
   onDelete
 }) {
@@ -65,14 +65,16 @@ export default function LeadDetailHeader({
           >
             <MessageSquare className="w-4 h-4" /> WhatsApp
           </button>
-          <button
-            type="button"
-            onClick={onWon}
-            disabled={updating}
-            className="hidden sm:inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-lg"
-          >
-            <Trophy className="w-4 h-4" /> Won
-          </button>
+          {lead.status !== 'converted' && (
+            <button
+              type="button"
+              onClick={onConvert}
+              disabled={updating}
+              className="hidden sm:inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-lg hover:bg-emerald-100"
+            >
+              <ArrowRightLeft className="w-4 h-4" /> Convert Lead
+            </button>
+          )}
           <button
             type="button"
             onClick={onLost}
@@ -91,13 +93,15 @@ export default function LeadDetailHeader({
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50">
-                <button
-                  type="button"
-                  onClick={() => { onWon(); setMenuOpen(false); }}
-                  className="sm:hidden w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  Mark won
-                </button>
+                {lead.status !== 'converted' && (
+                  <button
+                    type="button"
+                    onClick={() => { onConvert(); setMenuOpen(false); }}
+                    className="sm:hidden w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Convert lead
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => { onLost(); setMenuOpen(false); }}

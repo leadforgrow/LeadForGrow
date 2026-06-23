@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
-import { buildLeadsQuery, getStatusRowColor } from '../components/leads/utils';
+import { buildLeadsQuery, getStatusRowColor, validateStageTransition } from '../components/leads/utils';
 import { SAVED_VIEWS_KEY } from '../components/leads/constants';
 
 const DEFAULT_FILTERS = {
@@ -37,6 +37,16 @@ export function useLeadsWorkspace() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [drawerLeadId, setDrawerLeadId] = useState(null);
+  const [convertLeadId, setConvertLeadId] = useState(null);
+  const [convertLeadMeta, setConvertLeadMeta] = useState(null);
+  const [converting, setConverting] = useState(false);
+  const [qualifiedPrompt, setQualifiedPrompt] = useState(null);
+  const [qualifying, setQualifying] = useState(false);
+  const [demoPrompt, setDemoPrompt] = useState(null);
+  const [demoSaving, setDemoSaving] = useState(false);
+  const [quotationPrompt, setQuotationPrompt] = useState(null);
+  const [quotationSaving, setQuotationSaving] = useState(false);
+  const router = useRouter();
   const [viewMode, setViewMode] = useState(() =>
     searchParams.get('view') === 'kanban' ? 'kanban' : 'table'
   );
@@ -204,31 +214,228 @@ export function useLeadsWorkspace() {
     toast.success(`Applied "${view.name}"`);
   }, []);
 
-  const updateLeadStatus = useCallback(
-    async (leadId, status) => {
+  const beginLeadConvert = useCallback(
+    async (leadId) => {
+      setConvertLeadId(leadId);
+      const fromList = leads.find((l) => l._id === leadId);
+      if (fromList) {
+        setConvertLeadMeta(fromList);
+        return;
+      }
+      try {
+        const res = await authFetch(`/api/automation/leads/${leadId}`);
+        const data = await res.json();
+        if (data.success) setConvertLeadMeta(data.data);
+        else setConvertLeadMeta(null);
+      } catch {
+        setConvertLeadMeta(null);
+      }
+    },
+    [leads]
+  );
+
+  const applyLeadStatusUpdate = useCallback(
+    async (leadId, status, extra = {}) => {
+      let lostReason = extra.lostReason;
+      if (status === 'lost' || status === 'closed_lost') {
+        if (!lostReason) {
+          lostReason = window.prompt(
+            'Lost reason (required): price, competitor, budget, no_response, timing, not_interested, other'
+          );
+          if (!lostReason?.trim()) {
+            toast.error('Lost reason is required');
+            return null;
+          }
+        }
+      }
       try {
         const userId = getUserId();
+        const payload = {
+          status,
+          performedBy: userId,
+          lostReason: lostReason?.trim(),
+        };
+        if (extra.dealAmount != null) payload.dealAmount = extra.dealAmount;
+        if (extra.meetingDate) {
+          payload.meetingDate = extra.meetingDate;
+          payload.meetingTime = extra.meetingTime;
+          payload.meetingDuration = extra.meetingDuration;
+          payload.meetingPlatform = extra.meetingPlatform;
+          payload.meetingLink = extra.meetingLink;
+        }
+        if (extra.quotationUrl) {
+          payload.quotationUrl = extra.quotationUrl;
+          payload.quotationMessage = extra.quotationMessage;
+        }
         const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status, performedBy: userId })
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success) {
+          const updated = data.data;
           const statusColor = getStatusRowColor(status);
           setLeads((prev) =>
             prev.map((l) =>
-              l._id === leadId ? { ...l, status, rowColor: statusColor || l.rowColor } : l
+              l._id === leadId
+                ? {
+                    ...l,
+                    ...updated,
+                    status: updated.status || status,
+                    rowColor: statusColor || l.rowColor,
+                    dealAmount: extra.dealAmount ?? l.dealAmount,
+                    dealCurrency: l.dealCurrency || 'INR',
+                  }
+                : l
             )
           );
-          toast.success('Status updated');
+          toast.success('Stage updated');
           fetchLeads(true);
-        } else toast.error(data.error || 'Update failed');
+          return updated;
+        }
+        if (data.code === 'LOST_REASON_REQUIRED') toast.error('Lost reason is required');
+        else toast.error(data.error || 'Update failed');
+        return null;
       } catch {
         toast.error('Update failed');
+        return null;
       }
     },
     [fetchLeads]
+  );
+
+  const updateLeadStatus = useCallback(
+    async (leadId, status, options = {}) => {
+      if (status === 'converted') {
+        await beginLeadConvert(leadId);
+        return null;
+      }
+      const lead = leads.find((l) => l._id === leadId);
+      const validation = validateStageTransition(lead?.status, status);
+      if (!validation.ok) {
+        toast.error(validation.message);
+        return null;
+      }
+      if (status === 'qualified' && options.dealAmount == null) {
+        setQualifiedPrompt({ leadId, status, leadName: lead?.name });
+        return null;
+      }
+      if (status === 'demo_scheduled' && !options.meetingDate) {
+        setDemoPrompt({ leadId, status, leadName: lead?.name });
+        return null;
+      }
+      if (status === 'quotation_sent' && !options.quotationUrl) {
+        setQuotationPrompt({ leadId, status, leadName: lead?.name });
+        return null;
+      }
+      return applyLeadStatusUpdate(leadId, status, options);
+    },
+    [leads, beginLeadConvert, applyLeadStatusUpdate]
+  );
+
+  const cancelQualifiedPrompt = useCallback(() => {
+    setQualifiedPrompt(null);
+  }, []);
+
+  const confirmQualifiedAmount = useCallback(
+    async (amount) => {
+      if (!qualifiedPrompt) return null;
+      setQualifying(true);
+      try {
+        const updated = await applyLeadStatusUpdate(qualifiedPrompt.leadId, 'qualified', {
+          dealAmount: amount,
+        });
+        if (updated) setQualifiedPrompt(null);
+        return updated;
+      } finally {
+        setQualifying(false);
+      }
+    },
+    [qualifiedPrompt, applyLeadStatusUpdate]
+  );
+
+  const cancelDemoPrompt = useCallback(() => setDemoPrompt(null), []);
+  const confirmDemoScheduled = useCallback(
+    async (meeting) => {
+      if (!demoPrompt) return null;
+      setDemoSaving(true);
+      try {
+        const updated = await applyLeadStatusUpdate(demoPrompt.leadId, 'demo_scheduled', meeting);
+        if (updated) setDemoPrompt(null);
+        return updated;
+      } finally {
+        setDemoSaving(false);
+      }
+    },
+    [demoPrompt, applyLeadStatusUpdate]
+  );
+
+  const cancelQuotationPrompt = useCallback(() => setQuotationPrompt(null), []);
+  const confirmQuotationSent = useCallback(
+    async (data) => {
+      if (!quotationPrompt) return null;
+      setQuotationSaving(true);
+      try {
+        const updated = await applyLeadStatusUpdate(quotationPrompt.leadId, 'quotation_sent', data);
+        if (updated) setQuotationPrompt(null);
+        return updated;
+      } finally {
+        setQuotationSaving(false);
+      }
+    },
+    [quotationPrompt, applyLeadStatusUpdate]
+  );
+
+  const requestLeadConvert = beginLeadConvert;
+
+  const cancelLeadConvert = useCallback(() => {
+    setConvertLeadId(null);
+    setConvertLeadMeta(null);
+  }, []);
+
+  const convertLead = useCallback(
+    async (form, targetLeadId) => {
+      const id = targetLeadId || convertLeadId;
+      if (!id) return false;
+      setConverting(true);
+      try {
+        const res = await authFetch('/api/automation/leads/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            leadId: id,
+            dealTitle: form.dealTitle,
+            dealAmount: form.dealAmount ? Number(form.dealAmount) : 0,
+            pipelineId: form.pipelineId,
+            dealStage: form.dealStage,
+            expectedCloseDate: form.expectedCloseDate || undefined,
+            assignedTo: form.assignedTo,
+            createDeal: true,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success('Lead converted — contact and deal created');
+          window.dispatchEvent(new CustomEvent('lfg-crm-refresh'));
+          setConvertLeadId(null);
+          setConvertLeadMeta(null);
+          setDrawerLeadId(null);
+          await fetchLeads(true);
+          const dealId = data.data?.dealId || data.data?.deal?._id;
+          if (dealId) router.push(`/automation/deals/${dealId}`);
+          return true;
+        }
+        toast.error(data.error || 'Conversion failed');
+        return false;
+      } catch {
+        toast.error('Conversion failed');
+        return false;
+      } finally {
+        setConverting(false);
+      }
+    },
+    [convertLeadId, fetchLeads, router]
   );
 
   const assignLead = useCallback(
@@ -242,11 +449,19 @@ export function useLeadsWorkspace() {
         });
         const data = await res.json();
         if (data.success) {
+          const updated = data.data;
+          setLeads((prev) =>
+            prev.map((l) => (l._id === leadId ? { ...l, ...updated, assignedTo: updated.assignedTo } : l))
+          );
           toast.success('Lead assigned');
           fetchLeads(true);
-        } else toast.error('Assign failed');
+          return updated;
+        }
+        toast.error('Assign failed');
+        return null;
       } catch {
         toast.error('Assign failed');
+        return null;
       }
     },
     [fetchLeads]
@@ -400,6 +615,12 @@ export function useLeadsWorkspace() {
     toggleSelectAll,
     drawerLeadId,
     setDrawerLeadId,
+    convertLeadId,
+    convertLeadMeta,
+    converting,
+    requestLeadConvert,
+    cancelLeadConvert,
+    convertLead,
     viewMode,
     setViewMode,
     sortField,
@@ -414,6 +635,18 @@ export function useLeadsWorkspace() {
     refresh: () => fetchLeads(true),
     updateLeadStatus,
     assignLead,
+    qualifiedPrompt,
+    qualifying,
+    confirmQualifiedAmount,
+    cancelQualifiedPrompt,
+    demoPrompt,
+    demoSaving,
+    confirmDemoScheduled,
+    cancelDemoPrompt,
+    quotationPrompt,
+    quotationSaving,
+    confirmQuotationSent,
+    cancelQuotationPrompt,
     updateLeadRowColor,
     bulkUpdateRowColor,
     bulkAssign,

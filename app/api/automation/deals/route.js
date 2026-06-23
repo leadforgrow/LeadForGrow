@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Deal from '@/models/automation/Deal';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
+import { ensureDefaultPipeline } from '@/lib/crm/pipelines';
+import { logTimelineEvent } from '@/lib/crm/timeline';
 
 export const GET = withTenantAuth(async (req) => {
   try {
@@ -68,19 +70,51 @@ export const POST = withTenantAuth(async (req) => {
 
     await dbConnect();
 
+    const pipeline = body.pipelineId
+      ? null
+      : await ensureDefaultPipeline(tenant.business._id);
+
     const deal = await Deal.create({
       businessId: tenant.business._id,
       title: body.title,
       amount: body.amount || 0,
       currency: body.currency || 'INR',
       probability: body.probability ?? 10,
-      stage: body.stage || 'qualification',
+      stage: body.stage || 'qualified',
+      pipelineId: body.pipelineId || pipeline?._id,
       expectedCloseDate: body.expectedCloseDate ? new Date(body.expectedCloseDate) : undefined,
       assignedTo: body.assignedTo || tenant.user._id,
+      ownerId: tenant.user._id,
       leadId: body.leadId || undefined,
-      notes: body.notes,
+      contactId: body.contactId || undefined,
+      companyId: body.companyId || undefined,
+      products: body.products || [],
+      tags: body.tags || [],
       source: body.source,
+      createdBy: tenant.user._id,
     });
+
+    await logTimelineEvent({
+      businessId: tenant.business._id,
+      entityType: 'deal',
+      entityId: deal._id,
+      leadId: body.leadId,
+      type: 'deal_created',
+      description: `Deal "${deal.title}" created`,
+      performedBy: tenant.user._id,
+    });
+
+    if (body.companyId) {
+      await logTimelineEvent({
+        businessId: tenant.business._id,
+        entityType: 'company',
+        entityId: body.companyId,
+        type: 'company_updated',
+        description: `Deal "${deal.title}" linked to company`,
+        performedBy: tenant.user._id,
+        metadata: { dealId: deal._id },
+      });
+    }
 
     return NextResponse.json({ success: true, data: deal }, { status: 201 });
   } catch (error) {

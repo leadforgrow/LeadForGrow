@@ -17,6 +17,16 @@ export const GET = withTenantAuth(async (request) => {
     const skip = (page - 1) * limit;
 
     const query = { businessId: tenant.business._id };
+    const entityType = searchParams.get('entityType');
+    const entityId = searchParams.get('entityId');
+    const leadId = searchParams.get('leadId');
+
+    if (entityType && entityId) {
+      query.entityType = entityType;
+      query.entityId = entityId;
+    } else if (leadId) {
+      query.leadId = leadId;
+    }
 
     const [activities, total] = await Promise.all([
       Activity.find(query)

@@ -23,7 +23,8 @@ export default function LeadActionsMenu({
   onAssign,
   onStatusChange,
   onCall,
-  onOpenDrawer
+  onOpenDrawer,
+  onConvert
 }) {
   const [open, setOpen] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -106,10 +107,14 @@ export default function LeadActionsMenu({
           <hr className="my-1 border-slate-100 dark:border-slate-800" />
           <button
             type="button"
-            onClick={() => { onStatusChange(lead._id, 'converted'); setOpen(false); }}
+            onClick={() => {
+              if (onConvert) onConvert(lead._id);
+              else onOpenDrawer(lead._id);
+              setOpen(false);
+            }}
             className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
           >
-            <Trophy className="w-3.5 h-3.5" /> Mark won
+            <Trophy className="w-3.5 h-3.5" /> Convert to deal
           </button>
           <button
             type="button"

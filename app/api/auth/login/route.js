@@ -61,8 +61,14 @@ async function loginHandler(req) {
       return NextResponse.json({ success: false, error: "Business account not found. Please contact support." }, { status: 500 });
     }
 
-    const { generateToken } = await import("@/lib/auth");
-    const token = generateToken(user, { plan: workspace.plan });
+    const { generateTokenPair } = await import("@/lib/security/refreshToken");
+    const RefreshToken = (await import("@/models/access/RefreshToken")).default;
+    const { accessToken, refreshToken, expiresIn } = generateTokenPair(user, { plan: workspace.plan });
+
+    await RefreshToken.store(user._id, refreshToken, {
+      userAgent: req.headers.get('user-agent'),
+      ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+    });
 
     await logAuthEvent(req, 'login_success', user._id, user.businessId);
 
@@ -72,8 +78,10 @@ async function loginHandler(req) {
         userId: user._id,
         email: user.email,
         role: user.role,
-        business: workspace, // Keeping 'business' key for frontend compatibility
-        token
+        business: workspace,
+        token: accessToken,
+        refreshToken,
+        expiresIn,
       }
     });
   } catch (error) {

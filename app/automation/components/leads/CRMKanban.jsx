@@ -13,17 +13,16 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react';
 import { PIPELINE_STAGES } from './constants';
 import { formatSource } from './utils';
+import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
 
-const STAGE_DOTS = {
-  new: 'bg-blue-500',
-  contacted: 'bg-cyan-500',
-  interested: 'bg-emerald-500',
-  'follow-up': 'bg-amber-500',
-  converted: 'bg-emerald-600',
-  lost: 'bg-red-400'
-};
+const STAGE_DOTS = Object.fromEntries(
+  PIPELINE_STAGES.map((s) => [s.key, 'bg-emerald-500'])
+);
+STAGE_DOTS.new_lead = 'bg-slate-400';
+STAGE_DOTS.won = 'bg-emerald-600';
+STAGE_DOTS.lost = 'bg-red-400';
 
 export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
   const [activeId, setActiveId] = useState(null);
@@ -36,8 +35,9 @@ export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
     const map = {};
     PIPELINE_STAGES.forEach((s) => { map[s.key] = []; });
     leads.forEach((lead) => {
-      const key = map[lead.status] ? lead.status : 'new';
-      map[key].push(lead);
+      const key = normalizeLeadStatus(lead.status);
+      if (map[key]) map[key].push(lead);
+      else map.new_lead.push(lead);
     });
     return map;
   }, [leads]);

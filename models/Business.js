@@ -176,6 +176,23 @@ const BusinessSettingsSchema = new mongoose.Schema({
       twimlAppSid: { type: String },
       apiSecret: { type: String, select: false }
     }
+  },
+
+  // Phase 4 — AI Platform settings
+  ai: {
+    enabled: { type: Boolean, default: true },
+    tone: { type: String, enum: ['professional', 'friendly', 'formal', 'casual'], default: 'professional' },
+    personality: { type: String, default: 'helpful sales advisor' },
+    languages: { type: [String], default: ['en', 'hi'] },
+    customInstructions: { type: String, default: '' },
+    confidenceThreshold: { type: Number, default: 0.6, min: 0, max: 1 },
+    handoffEnabled: { type: Boolean, default: true },
+    handoffKeywords: { type: [String], default: ['human', 'agent', 'call me', 'speak to someone'] },
+    workingHoursOnly: { type: Boolean, default: false },
+    escalationRules: { type: String, default: '' },
+    model: { type: String, default: 'llama-3.1-8b-instant' },
+    agentEnabled: { type: Boolean, default: false },
+    replyAssistEnabled: { type: Boolean, default: true },
   }
 }, { _id: false });
 
@@ -219,6 +236,18 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     appSecret: { type: String },
     adAccountId: { type: String },
     lastVerified: { type: Date }
+  },
+
+  instagram: {
+    enabled: { type: Boolean, default: false },
+    pageId: { type: String },
+    igUserId: { type: String },
+    username: { type: String },
+    accessToken: { type: String },
+    profilePicture: { type: String },
+    lastSyncAt: { type: Date },
+    lastVerified: { type: Date },
+    webhookStatus: { type: String, enum: ['active', 'pending', 'error'], default: 'pending' },
   }
 }, { _id: false });
 
@@ -362,6 +391,12 @@ const BusinessSchema = new mongoose.Schema({
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
+  },
+
+  /** Admin overrides — boolean flags per feature (omit = plan default) */
+  featureFlags: {
+    type: mongoose.Schema.Types.Mixed,
+    default: () => ({})
   }
 }, {
   timestamps: true

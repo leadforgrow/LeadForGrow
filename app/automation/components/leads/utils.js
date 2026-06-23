@@ -1,4 +1,5 @@
-import { STATUS_CONFIG, LEAD_STATUS_ROW_COLORS } from './constants';
+import { STATUS_CONFIG, LEAD_STATUS_ROW_COLORS, PIPELINE_STAGES } from './constants';
+import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 
 /** Unwrap User from TeamMember { userId: {...} } or return User as-is */
 export function resolveTeamUser(member) {
@@ -27,7 +28,8 @@ export function assigneeName(userOrMember) {
 
 /** User._id for assignment (not TeamMember._id) */
 export function teamMemberUserId(member) {
-  return resolveTeamUser(member)?._id || '';
+  const id = resolveTeamUser(member)?._id;
+  return id != null ? String(id) : '';
 }
 
 /** Consistent { id, label } pairs for assignment dropdowns */
@@ -68,7 +70,8 @@ export function formatSource(source) {
 }
 
 export function statusLabel(status) {
-  return STATUS_CONFIG[status]?.label || status || 'Unknown';
+  const key = normalizeLeadStatus(status);
+  return STATUS_CONFIG[key]?.label || STATUS_CONFIG[status]?.label || status || 'Unknown';
 }
 
 export function getWhatsAppStatus(lead) {
@@ -78,10 +81,10 @@ export function getWhatsAppStatus(lead) {
   if (!lead.isRead) {
     return { key: 'unread', label: 'Unread', dot: 'bg-blue-500' };
   }
-  if (lead.status === 'contacted' || lead.status === 'interested' || lead.status === 'converted') {
+  if (lead.status === 'contacted' || lead.status === 'interested' || lead.status === 'converted' || lead.status === 'first_contact' || lead.status === 'won') {
     return { key: 'replied', label: 'Replied', dot: 'bg-emerald-500' };
   }
-  if (lead.status === 'new' || lead.status === 'follow-up') {
+  if (lead.status === 'new' || lead.status === 'new_lead' || lead.status === 'follow-up' || lead.status === 'follow_up') {
     return { key: 'pending', label: 'Pending', dot: 'bg-orange-400' };
   }
   return { key: 'no-response', label: 'No reply', dot: 'bg-slate-400' };
@@ -110,7 +113,8 @@ export function buildLeadsQuery(filters) {
 }
 
 export function getStatusRowColor(status) {
-  return LEAD_STATUS_ROW_COLORS[status] || null;
+  const key = normalizeLeadStatus(status);
+  return LEAD_STATUS_ROW_COLORS[key] || LEAD_STATUS_ROW_COLORS[status] || null;
 }
 
 /** Manual rowColor overrides automatic status color */
@@ -118,4 +122,75 @@ export function getLeadRowBackgroundStyle(lead) {
   const color = lead?.rowColor || getStatusRowColor(lead?.status);
   if (!color) return undefined;
   return { backgroundColor: color };
+}
+
+function readMeta(lead, key) {
+  const meta = lead?.metadata;
+  if (!meta) return undefined;
+  if (typeof meta.get === 'function') return meta.get(key);
+  return meta[key];
+}
+
+function readCustom(lead, key) {
+  const custom = lead?.customFields;
+  if (!custom) return undefined;
+  if (typeof custom.get === 'function') return custom.get(key);
+  return custom[key];
+}
+
+/** Resolve display amount from deal, metadata, or custom fields */
+export function getLeadAmount(lead) {
+  const candidates = [
+    lead?.dealAmount,
+    lead?.amount,
+    readMeta(lead, 'amount'),
+    readMeta(lead, 'dealValue'),
+    readMeta(lead, 'revisedAmount'),
+    readCustom(lead, 'amount'),
+    readCustom(lead, 'dealValue'),
+  ];
+  for (const v of candidates) {
+    const n = Number(v);
+    if (!Number.isNaN(n) && n > 0) {
+      return {
+        amount: n,
+        currency: lead.dealCurrency || readMeta(lead, 'currency') || 'INR',
+      };
+    }
+  }
+  return null;
+}
+
+/** User id for assignment dropdowns */
+export function resolveAssignedToId(lead) {
+  if (!lead?.assignedTo) return '';
+  const a = lead.assignedTo;
+  if (typeof a === 'string') return a;
+  if (a._id != null) return String(a._id);
+  if (typeof a.toString === 'function') return a.toString();
+  return '';
+}
+
+/** Stage value for &lt;select&gt; — includes converted and legacy keys */
+export function resolveStageSelectValue(status) {
+  const key = normalizeLeadStatus(status);
+  const known = [...PIPELINE_STAGES.map((s) => s.key), 'converted', 'won', 'lost'];
+  if (known.includes(key)) return key;
+  if (status && known.includes(status)) return status;
+  return 'new_lead';
+}
+
+export const STAGE_SELECT_OPTIONS = [
+  ...PIPELINE_STAGES,
+  { key: 'converted', label: 'Converted' },
+];
+
+export { validateStageTransition } from '@/lib/crm/leadStages';
+
+export function formatLeadAmount(amount, currency = 'INR') {
+  const sym = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : '$';
+  const n = Number(amount) || 0;
+  if (n >= 100000) return `${sym}${(n / 100000).toFixed(1)}L`;
+  if (n >= 1000) return `${sym}${(n / 1000).toFixed(1)}K`;
+  return `${sym}${n.toLocaleString('en-IN')}`;
 }

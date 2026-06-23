@@ -16,6 +16,7 @@ function LeadRow({
   selected,
   onSelect,
   onOpenDrawer,
+  onConvert,
   teamMembers,
   onAssign,
   onStatusChange,
@@ -144,6 +145,7 @@ function LeadRow({
             onStatusChange={onStatusChange}
             onCall={onCall}
             onOpenDrawer={onOpenDrawer}
+            onConvert={onConvert}
           />
         </div>
       </td>

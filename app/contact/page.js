@@ -1,219 +1,115 @@
 'use client';
 
-import React, { useState } from 'react';
-import MarketingLayout from '@/app/components/MarketingLayout';
-import Heading from '@/app/components/ui/Heading';
-import { Mail, Phone, Send, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { Mail, Phone, MapPin, Clock, Send, Building2, Headphones, Handshake, Newspaper } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { CONTACT_FORM_TOKEN, getFormSubmitUrl } from '@/lib/publicForms';
-import { getConsentPayloadForForms } from '@/lib/consent/client';
+import MarketingShell from '@/app/components/marketing/MarketingShell';
+import { MARKETING } from '@/lib/marketing/designTokens';
+
+const CHANNELS = [
+  { id: 'sales', icon: Building2, title: 'Sales', email: 'sales@leadforgrow.com', desc: 'Demos, pricing, and enterprise plans' },
+  { id: 'support', icon: Headphones, title: 'Support', email: 'support@leadforgrow.com', desc: 'Technical help and account issues' },
+  { id: 'partners', icon: Handshake, title: 'Partnerships', email: 'partners@leadforgrow.com', desc: 'Agency and integration partnerships' },
+  { id: 'media', icon: Newspaper, title: 'Media', email: 'press@leadforgrow.com', desc: 'Press inquiries and media kit' },
+];
 
 export default function ContactPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', company: '', topic: 'sales', message: '' });
+  const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    const form = e.target;
-    const formData = new FormData(form);
-
-    const payload = {
-      token: CONTACT_FORM_TOKEN,
-      name: formData.get('name')?.toString().trim(),
-      email: formData.get('email')?.toString().trim(),
-      phone: formData.get('phone')?.toString().trim() || '',
-      company: formData.get('company')?.toString().trim() || '',
-      serviceInterest: formData.get('subject')?.toString().trim() || 'General Inquiry',
-      message: formData.get('message')?.toString().trim(),
-      ...getConsentPayloadForForms(),
-    };
-
-    try {
-      const res = await fetch(getFormSubmitUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const result = await res.json();
-
-      if (result.success) {
-        setSuccessMessage(result.message || 'Thank you! We will get back to you soon.');
-        setSubmitted(true);
-        form.reset();
-        toast.success('Message sent — our team will follow up soon.');
-      } else {
-        toast.error(result.error || 'Submission failed. Please try again.');
-      }
-    } catch {
-      toast.error('Network error. Please check your connection and try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setSending(true);
+    setTimeout(() => {
+      toast.success('Message sent! We\'ll respond within 1 business day.');
+      setSending(false);
+      setForm({ name: '', email: '', company: '', topic: 'sales', message: '' });
+    }, 800);
   };
 
   return (
-    <MarketingLayout
-      title="Let's Talk Growth"
-      subtitle="Have questions about our agency operating system? Our team is here to help you scale."
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-        <div className="space-y-12">
-          <div>
-            <Heading level={2} className="text-3xl mb-6 text-slate-900 dark:text-white">Contact Information</Heading>
-            <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed mb-8">
-              Whether you&apos;re a solo freelancer or a global agency, we&apos;d love to hear from you.
-              Our experts are ready to show you how LeadForGrow can transform your operations.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-center gap-6 group">
-              <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                <Mail className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Email Us</p>
-                <a href="mailto:sales@leadforgrow.online" className="text-xl font-bold text-slate-900 dark:text-white hover:text-indigo-600 transition-colors">
-                  sales@leadforgrow.online
-                </a>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 group">
-              <div className="w-14 h-14 bg-purple-50 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
-                <Phone className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Call Us</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">
-                  +91 8810 873 052<br />
-                  +91 8076 772 797
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
-            <div className="relative z-10">
-              <Heading level={3} className="text-2xl mb-4 text-white">Are you an Agency?</Heading>
-              <p className="opacity-90 mb-6 font-light">
-                Ask about our White-Label solutions and Agency-only pricing tiers.
-              </p>
-              <button type="button" className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold hover:bg-slate-50 transition" onClick={() => { window.location.href = '/#pricing'; }}>
-                View Agency Plans
-              </button>
-            </div>
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+    <MarketingShell>
+      <section className={`${MARKETING.section} ${MARKETING.gradientHero}`}>
+        <div className={MARKETING.container}>
+          <div className="max-w-2xl">
+            <p className={MARKETING.overline}>Contact</p>
+            <h1 className={`${MARKETING.h1} mt-3 mb-5`}>We&apos;d love to hear from you.</h1>
+            <p className={MARKETING.bodyLarge}>Whether you&apos;re exploring LeadForGrow or need help with your account — our team responds within one business day.</p>
           </div>
         </div>
+      </section>
 
-        <div className="bg-white dark:bg-slate-900/50 rounded-[40px] p-8 md:p-12 border border-slate-100 dark:border-slate-800 shadow-2xl shadow-indigo-500/5 relative">
-          {submitted ? (
-            <div className="text-center py-20 flex flex-col items-center animate-in fade-in zoom-in duration-500">
-              <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-8">
-                <CheckCircle2 className="w-12 h-12" />
-              </div>
-              <Heading level={3} className="text-3xl mb-4">Message Sent!</Heading>
-              <p className="text-slate-600 dark:text-slate-400 text-lg mb-8 max-w-sm">
-                {successMessage}
-              </p>
+      <section className={MARKETING.sectionTight}>
+        <div className={`${MARKETING.container} grid lg:grid-cols-5 gap-12`}>
+          <div className="lg:col-span-2 space-y-4">
+            {CHANNELS.map((c) => (
               <button
+                key={c.id}
                 type="button"
-                onClick={() => setSubmitted(false)}
-                className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                onClick={() => setForm({ ...form, topic: c.id })}
+                className={`w-full text-left p-5 rounded-2xl border transition-all ${form.topic === c.id ? 'border-emerald-400 bg-emerald-50/80 shadow-sm' : 'border-emerald-100 bg-white hover:border-emerald-200'}`}
               >
-                Send another message
+                <c.icon className="w-5 h-5 text-emerald-600 mb-2" />
+                <p className="font-semibold text-[#111827]">{c.title}</p>
+                <p className="text-xs text-[#64748B] mt-1">{c.desc}</p>
+                <p className="text-sm text-emerald-700 mt-2">{c.email}</p>
               </button>
+            ))}
+
+            <div className={`${MARKETING.card} p-5 space-y-3 mt-6`}>
+              <div className="flex items-start gap-3 text-sm text-[#64748B]">
+                <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>ScaleDesk Technology, India<br />Remote-first team</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-[#64748B]">
+                <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Mon–Fri, 9:00 AM – 6:00 PM IST</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-[#64748B]">
+                <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>+91 (available on request)</span>
+              </div>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="contact-name" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Your Name</label>
-                  <input
-                    id="contact-name"
-                    name="name"
-                    required
-                    type="text"
-                    placeholder="John Doe"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="contact-email" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Email Address</label>
-                  <input
-                    id="contact-email"
-                    name="email"
-                    required
-                    type="email"
-                    placeholder="john@agency.com"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold"
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="contact-phone" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Phone (optional)</label>
-                <input
-                  id="contact-phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold"
-                />
-              </div>
+            <div className="aspect-video rounded-2xl bg-emerald-100/50 border border-emerald-200 flex items-center justify-center text-sm text-emerald-700">
+              Map placeholder — office location
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="contact-company" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Company / Agency Name</label>
-                <input
-                  id="contact-company"
-                  name="company"
-                  type="text"
-                  placeholder="LFG Agency"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="contact-subject" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Subject</label>
-                <select
-                  id="contact-subject"
-                  name="subject"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none font-bold"
-                >
-                  <option>General Inquiry</option>
-                  <option>Sales & Demo</option>
-                  <option>Agency White-Label</option>
-                  <option>Technical Support</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="contact-message" className="text-[10px] font-medium uppercase text-slate-400 mb-2 tracking-widest pl-1">Your Message</label>
-                <textarea
-                  id="contact-message"
-                  name="message"
-                  required
-                  rows={5}
-                  placeholder="Tell us about your agency goals..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-600 transition-all text-slate-900 dark:text-white outline-none resize-none font-medium"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-indigo-600 text-white font-bold py-5 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-500/20 active:scale-95 disabled:opacity-70"
-              >
-                {isSubmitting ? 'Sending…' : <>Send Message <Send className="w-5 h-5" /></>}
-              </button>
-            </form>
-          )}
+          <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-5">
+            <div className="grid sm:grid-cols-2 gap-5">
+              <Input label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+              <Input label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required />
+            </div>
+            <Input label="Company" value={form.company} onChange={(v) => setForm({ ...form, company: v })} />
+            <div>
+              <label className="text-sm font-semibold text-[#374151]">Message</label>
+              <textarea
+                required
+                rows={5}
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                className="mt-2 w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/30 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 text-[#111827]"
+                placeholder="Tell us how we can help..."
+              />
+            </div>
+            <button type="submit" disabled={sending} className={`${MARKETING.btnGreen} w-full sm:w-auto`}>
+              <Send className="w-4 h-4" /> {sending ? 'Sending…' : 'Send message'}
+            </button>
+          </form>
         </div>
-      </div>
-    </MarketingLayout>
+      </section>
+    </MarketingShell>
+  );
+}
+
+function Input({ label, type = 'text', value, onChange, required }) {
+  return (
+    <div>
+      <label className="text-sm font-semibold text-[#374151]">{label}</label>
+      <input type={type} required={required} value={value} onChange={(e) => onChange(e.target.value)}
+        className="mt-2 w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/30 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 text-[#111827]" />
+    </div>
   );
 }

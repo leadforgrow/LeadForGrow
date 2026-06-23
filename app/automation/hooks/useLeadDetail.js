@@ -272,6 +272,47 @@ export function useLeadDetail(leadId) {
     }
   }, [leadId, router]);
 
+  const convertLead = useCallback(
+    async (form) => {
+      setUpdating(true);
+      try {
+        const res = await authFetch('/api/automation/leads/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            leadId,
+            dealTitle: form.dealTitle,
+            dealAmount: form.dealAmount ? Number(form.dealAmount) : 0,
+            pipelineId: form.pipelineId,
+            dealStage: form.dealStage,
+            expectedCloseDate: form.expectedCloseDate || undefined,
+            assignedTo: form.assignedTo,
+            createDeal: true,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast.success('Lead converted — contact and deal created');
+          window.dispatchEvent(new CustomEvent('lfg-crm-refresh'));
+          await refresh();
+          const dealId = data.data?.dealId || data.data?.deal?._id;
+          if (dealId) {
+            router.push(`/automation/deals/${dealId}`);
+          }
+          return true;
+        }
+        toast.error(data.error || 'Conversion failed');
+        return false;
+      } catch {
+        toast.error('Conversion failed');
+        return false;
+      } finally {
+        setUpdating(false);
+      }
+    },
+    [leadId, refresh, router]
+  );
+
   return {
     lead,
     tasks,
@@ -292,6 +333,7 @@ export function useLeadDetail(leadId) {
     initiateCall,
     openWhatsApp,
     renderTemplate,
-    deleteLead
+    deleteLead,
+    convertLead,
   };
 }

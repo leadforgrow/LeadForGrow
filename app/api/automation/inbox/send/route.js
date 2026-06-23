@@ -1,0 +1,194 @@
+import { NextResponse } from 'next/server';
+import { dbConnect } from '@/lib/mongodb';
+import Business from '@/models/Business';
+import Lead from '@/models/automation/Lead';
+import Conversation from '@/models/omnichannel/Conversation';
+import EmailDraft from '@/models/omnichannel/EmailDraft';
+import { withPermissions } from '@/lib/rbac';
+import { sendAutoWhatsApp } from '@/lib/integrations/whatsapp';
+import { sendMetaMediaMessage } from '@/lib/integrations/whatsappMedia';
+import { recordChannelMessage } from '@/lib/omnichannel/conversationService';
+import { sendChannelEmail } from '@/lib/omnichannel/emailService';
+import { mimeToMessageType } from '@/lib/omnichannel/mediaTypes';
+
+async function handler(req) {
+  try {
+    const { user } = req;
+    const body = await req.json();
+    const {
+      conversationId,
+      leadId,
+      channel = 'whatsapp',
+      message = '',
+      isInternal = false,
+      subject,
+      replyToMessageId,
+      replyAll = false,
+      cc,
+      bcc,
+      mediaUrl,
+      mimeType,
+      fileName,
+      messageType,
+      scheduledAt,
+      draftId,
+      bodyHtml,
+      attachments = [],
+    } = body;
+
+    const hasMedia = !!mediaUrl;
+    if (!message?.trim() && !hasMedia && !isInternal) {
+      return NextResponse.json({ success: false, error: 'Message or media required' }, { status: 400 });
+    }
+
+    await dbConnect();
+    const business = await Business.findById(user.businessId);
+    if (!business) {
+      return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
+    }
+
+    let conversation = conversationId
+      ? await Conversation.findOne({ _id: conversationId, businessId: user.businessId })
+      : null;
+
+    const resolvedLeadId = leadId || conversation?.leadId;
+    const lead = resolvedLeadId
+      ? await Lead.findOne({ _id: resolvedLeadId, businessId: user.businessId })
+      : null;
+
+    if (!lead && !isInternal) {
+      return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 });
+    }
+
+    const activeChannel = conversation?.channel || channel;
+    const resolvedType = messageType || mimeToMessageType(mimeType, fileName);
+
+    if (scheduledAt && activeChannel === 'email') {
+      const draft = await EmailDraft.create({
+        businessId: user.businessId,
+        conversationId: conversation?._id,
+        leadId: lead._id,
+        to: [{ email: lead.email, name: lead.name }],
+        cc: cc || [],
+        subject,
+        bodyHtml: bodyHtml || message,
+        bodyText: message,
+        attachments,
+        replyToMessageId,
+        scheduledAt: new Date(scheduledAt),
+        createdBy: user.userId,
+      });
+      return NextResponse.json({ success: true, data: draft, scheduled: true });
+    }
+
+    if (isInternal) {
+      const result = await recordChannelMessage({
+        businessId: user.businessId,
+        channel: activeChannel,
+        leadId: lead._id,
+        conversationId: conversation?._id,
+        messageId: `internal_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        direction: 'outgoing',
+        type: 'text',
+        content: { body: message.trim() },
+        isInternal: true,
+        performedBy: user.userId,
+      });
+      return NextResponse.json({ success: true, data: result.message });
+    }
+
+    let externalMessageId;
+
+    if (activeChannel === 'whatsapp') {
+      if (hasMedia) {
+        const result = await sendMetaMediaMessage(lead, business, {
+          mediaUrl,
+          mimeType,
+          fileName,
+          caption: message.trim() || undefined,
+          messageType: resolvedType,
+        });
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error || 'Media send failed' }, { status: 500 });
+        }
+        externalMessageId = result.messageId;
+      } else {
+        const result = await sendAutoWhatsApp(lead, business, message.trim());
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error || 'Send failed' }, { status: 500 });
+        }
+        externalMessageId = result.messageId;
+      }
+    } else if (activeChannel === 'email') {
+      const emailResult = await sendChannelEmail({
+        business,
+        lead,
+        conversation,
+        subject: subject || conversation?.lastMessagePreview || 'Follow up',
+        body: bodyHtml || message.trim(),
+        replyToMessageId,
+        cc,
+        bcc,
+        attachments,
+        isHtml: !!bodyHtml,
+      });
+      if (!emailResult.success) {
+        return NextResponse.json({ success: false, error: emailResult.error }, { status: 500 });
+      }
+      externalMessageId = emailResult.messageId;
+    } else if (activeChannel === 'instagram') {
+      const { sendInstagramMessage, sendInstagramMedia } = await import('@/lib/instagram/send');
+      const igResult = hasMedia
+        ? await sendInstagramMedia(business, conversation?.participantId, { mediaUrl, messageType: resolvedType })
+        : await sendInstagramMessage(business, conversation?.participantId, message.trim());
+      if (!igResult.success) {
+        return NextResponse.json({ success: false, error: igResult.error }, { status: 500 });
+      }
+      externalMessageId = igResult.messageId;
+    } else {
+      return NextResponse.json({ success: false, error: 'Unsupported channel' }, { status: 400 });
+    }
+
+    const result = await recordChannelMessage({
+      businessId: user.businessId,
+      channel: activeChannel,
+      leadId: lead._id,
+      contactId: lead.contactId,
+      companyId: lead.companyId,
+      conversationId: conversation?._id,
+      messageId: externalMessageId || `out_${Date.now()}`,
+      direction: 'outgoing',
+      type: hasMedia ? resolvedType : (activeChannel === 'email' ? 'email' : 'text'),
+      content: {
+        body: message.trim() || fileName || '',
+        mediaUrl,
+        mimeType,
+        fileName,
+        caption: message.trim() || undefined,
+        participantId: conversation?.participantId,
+      },
+      status: 'sent',
+      performedBy: user.userId,
+      subject,
+      replyToMessageId,
+      folder: activeChannel === 'email' ? 'sent' : undefined,
+    });
+
+    if (conversation) {
+      await Conversation.findByIdAndUpdate(conversation._id, {
+        $set: { inboxStatus: 'intervened' },
+      });
+    }
+
+    if (draftId) {
+      await EmailDraft.findOneAndDelete({ _id: draftId, businessId: user.businessId });
+    }
+
+    return NextResponse.json({ success: true, data: result.message, messageId: externalMessageId });
+  } catch (error) {
+    console.error('[Inbox API] send:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Send failed' }, { status: 500 });
+  }
+}
+
+export const POST = withPermissions(['dashboard_access', 'reports_access'], handler);

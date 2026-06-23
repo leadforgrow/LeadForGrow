@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { Send } from 'lucide-react';
 import { formatRelative } from '../utils';
 import ActivityItem from '../../dashboard/primitives/ActivityItem';
+import { WorkflowGroupItem } from '../../dashboard/primitives/WorkflowGroupItem';
+import { formatTimelineItems } from '@/lib/crm/timelinePresentation';
 
-export default function LeadActivityTab({ activities = [] }) {
-  const sorted = [...activities].sort(
-    (a, b) => new Date(b.performedAt || b.createdAt) - new Date(a.performedAt || a.createdAt)
-  );
+export default function LeadActivityTab({ activities = [], expandWorkflows = true }) {
+  const sorted = formatTimelineItems(activities, { expandWorkflows });
 
   if (!sorted.length) {
     return <p className="text-sm text-slate-500 text-center py-12">No activity recorded yet.</p>;
@@ -16,13 +16,21 @@ export default function LeadActivityTab({ activities = [] }) {
 
   return (
     <div className="max-h-[560px] overflow-y-auto pr-1">
-      {sorted.map((activity, i) => (
-        <ActivityItem
-          key={activity._id || i}
-          activity={activity}
-          showConnector={i < sorted.length - 1}
-        />
-      ))}
+      {sorted.map((activity, i) =>
+        activity.isWorkflowGroup ? (
+          <WorkflowGroupItem
+            key={activity._id || activity.metadata?.groupId || i}
+            activity={activity}
+            showConnector={i < sorted.length - 1}
+          />
+        ) : (
+          <ActivityItem
+            key={activity._id || i}
+            activity={activity}
+            showConnector={i < sorted.length - 1}
+          />
+        )
+      )}
     </div>
   );
 }

@@ -2,114 +2,39 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { authFetch } from '@/lib/apiClient';
-
-function computeTrend(dailyTrends) {
-  if (!dailyTrends?.length || dailyTrends.length < 2) return null;
-  const sorted = [...dailyTrends].sort((a, b) => a._id.localeCompare(b._id));
-  const half = Math.max(1, Math.floor(sorted.length / 2));
-  const recent = sorted.slice(-half).reduce((s, d) => s + (d.leads || 0), 0);
-  const prior = sorted.slice(0, half).reduce((s, d) => s + (d.leads || 0), 0);
-  if (prior === 0) return recent > 0 ? 100 : 0;
-  return Math.round(((recent - prior) / prior) * 100);
-}
-
-function todayLeadCount(dailyTrends) {
-  if (!dailyTrends?.length) return 0;
-  const today = new Date().toISOString().slice(0, 10);
-  const row = dailyTrends.find((d) => d._id === today);
-  return row?.leads || 0;
-}
-
-function formatCurrency(value, currency = 'INR') {
-  const symbol = currency === 'INR' ? '₹' : '$';
-  const n = Number(value) || 0;
-  if (n >= 100000) return `${symbol}${(n / 100000).toFixed(1)}L`;
-  if (n >= 1000) return `${symbol}${(n / 1000).toFixed(1)}K`;
-  return `${symbol}${n.toLocaleString()}`;
-}
+import { formatCurrency } from '@/lib/crm/formatCurrency';
 
 export function useDashboardData() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [data, setData] = useState({
-    businessName: '',
-    userEmail: '',
-    reports: null,
-    tasks: [],
-    activities: [],
-    conversations: [],
-    metrics: null,
-    notContacted: 0
-  });
+  const [businessName, setBusinessName] = useState('');
+  const [dash, setDash] = useState(null);
 
   const fetchAll = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const [meRes, reportsRes, tasksTodayRes, tasksOverdueRes, tasksUpcomingRes, activitiesRes, metricsRes, convRes, sidebarRes] =
-        await Promise.all([
-          authFetch('/api/auth/me'),
-          authFetch('/api/automation/reports?period=30'),
-          authFetch('/api/automation/tasks?filter=today'),
-          authFetch('/api/automation/tasks?filter=overdue'),
-          authFetch('/api/automation/tasks?filter=upcoming'),
-          authFetch('/api/automation/activities?limit=12'),
-          authFetch('/api/business/revenue-metric'),
-          authFetch('/api/automation/chat/conversations?status=unread&limit=8').catch(() => null),
-          authFetch('/api/automation/sidebar-stats').catch(() => null)
-        ]);
-
-      const [me, reports, tasksToday, tasksOverdue, tasksUpcoming, activities, metrics] = await Promise.all([
-        meRes.json(),
-        reportsRes.json(),
-        tasksTodayRes.json(),
-        tasksOverdueRes.json(),
-        tasksUpcomingRes.json(),
-        activitiesRes.json(),
-        metricsRes.json()
+      const [meRes, dashRes] = await Promise.all([
+        authFetch('/api/auth/me'),
+        authFetch('/api/automation/dashboard'),
       ]);
 
-      let conversations = [];
-      if (convRes?.ok) {
-        const convJson = await convRes.json();
-        if (convJson.success) conversations = convJson.data || [];
-      }
+      const me = await meRes.json();
+      if (me.success) setBusinessName(me.data.companyName || 'Workspace');
 
-      const reportData = reports.success ? reports.data : null;
-      const trend = computeTrend(reportData?.dailyTrends);
-
-      const todayList = tasksToday.success ? tasksToday.data : [];
-      const overdueList = tasksOverdue.success ? tasksOverdue.data : [];
-      const upcomingList = tasksUpcoming.success ? tasksUpcoming.data : [];
-      const mergedTasks = [...overdueList, ...todayList, ...upcomingList].slice(0, 12);
-
-      let overdueTasks = overdueList.length;
-      if (sidebarRes?.ok) {
-        const sidebarJson = await sidebarRes.json();
-        if (sidebarJson.success) overdueTasks = sidebarJson.data?.overdueTasks ?? overdueTasks;
-      }
-
-      setData({
-        businessName: me.success ? me.data.companyName : 'Workspace',
-        userEmail: me.success ? me.data.email : '',
-        reports: reportData,
-        tasks: mergedTasks,
-        overdueTasks,
-        activities: activities.success ? activities.data : [],
-        conversations,
-        metrics: metrics.success ? metrics.data : null,
-        notContacted: reportData?.notContactedCount ?? 0,
-        trend,
-        newLeadsToday: todayLeadCount(reportData?.dailyTrends),
-        formatPipeline: () => {
-          const val = metrics.success ? metrics.data?.totalPipelineValue : 0;
-          const cur = metrics.success ? metrics.data?.currency : 'INR';
-          return formatCurrency(val, cur);
+      if (dashRes.ok) {
+        const dashJson = await dashRes.json();
+        if (dashJson.success) {
+          setDash(dashJson.data);
+          setError(null);
+        } else {
+          setError(dashJson.error || 'Failed to load dashboard');
         }
-      });
-      setError(null);
+      } else {
+        setError('Failed to load dashboard');
+      }
     } catch (err) {
       console.error('[Dashboard]', err);
       setError('Failed to load dashboard');
@@ -122,7 +47,12 @@ export function useDashboardData() {
   useEffect(() => {
     fetchAll();
     const interval = setInterval(() => fetchAll(true), 60000);
-    return () => clearInterval(interval);
+    const onCrmRefresh = () => fetchAll(true);
+    window.addEventListener('lfg-crm-refresh', onCrmRefresh);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('lfg-crm-refresh', onCrmRefresh);
+    };
   }, [fetchAll]);
 
   return {
@@ -130,9 +60,11 @@ export function useDashboardData() {
     refreshing,
     error,
     refresh: () => fetchAll(true),
-    ...data,
-    formatCurrency
+    businessName,
+    dash,
+    currency: dash?.currency || 'INR',
+    formatCurrency,
   };
 }
 
-export { formatCurrency, computeTrend };
+export { formatCurrency };

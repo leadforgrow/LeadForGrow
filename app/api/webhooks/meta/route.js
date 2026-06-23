@@ -143,11 +143,47 @@ export async function POST(req) {
       }
     }
 
+    // Instagram messaging
+    if (payload.object === 'instagram') {
+      const { parseInstagramMessaging, processInstagramEvent } = await import('@/lib/instagram/handler');
+      const entry = payload.entry?.[0];
+      const pageId = entry?.id;
+      const business = await Business.findOne({
+        $or: [
+          { 'integrationCredentials.instagram.pageId': pageId },
+          { 'integrationCredentials.facebookAds.pageId': pageId },
+        ],
+      });
+      if (!business) {
+        await finalizeMetaWebhookIngress(ingressId, { outcome: 'failed', processing: { step: 'instagram_business_not_found' } });
+        return NextResponse.json({ status: 'business_not_found' }, { status: 200 });
+      }
+      const events = parseInstagramMessaging(entry);
+      for (const event of events) {
+        await processInstagramEvent(business._id, event);
+      }
+      await finalizeMetaWebhookIngress(ingressId, { outcome: 'success', processing: { step: 'instagram_processed', count: events.length } });
+      return NextResponse.json({ status: 'success' }, { status: 200 });
+    }
+
     // WhatsApp messages
     const value = payload.entry?.[0]?.changes?.[0]?.value;
     if (value?.statuses) {
-      await finalizeMetaWebhookIngress(ingressId, { outcome: 'noop', processing: { step: 'whatsapp_status_ignored' } });
-      return NextResponse.json({ status: 'ignored_status_update' }, { status: 200 });
+      const phoneNumberId = value.metadata?.phone_number_id;
+      const business = phoneNumberId
+        ? await Business.findOne({ 'integrationCredentials.whatsapp.phoneNumberId': phoneNumberId })
+        : null;
+      if (business) {
+        const { processWhatsAppStatuses } = await import('@/lib/omnichannel/messageStatus');
+        const statusResults = await processWhatsAppStatuses(business._id, value.statuses);
+        await finalizeMetaWebhookIngress(ingressId, {
+          outcome: 'success',
+          processing: { step: 'whatsapp_status_processed', count: statusResults.length },
+        });
+        return NextResponse.json({ status: 'success', processed: statusResults.length }, { status: 200 });
+      }
+      await finalizeMetaWebhookIngress(ingressId, { outcome: 'noop', processing: { step: 'whatsapp_status_no_business' } });
+      return NextResponse.json({ status: 'business_not_found' }, { status: 200 });
     }
 
     const parsedData = parseMetaWebhook(payload);

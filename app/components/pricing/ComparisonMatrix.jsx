@@ -2,6 +2,7 @@
 
 import { Check, Minus } from 'lucide-react';
 import { COMPARISON_ROWS } from './pricingData';
+import { MARKETING } from '@/lib/marketing/designTokens';
 
 function Cell({ value }) {
   if (value === true) {
@@ -19,16 +20,16 @@ function Cell({ value }) {
 
 export default function ComparisonMatrix() {
   return (
-    <section className="py-16 lg:py-20 bg-white border-y border-slate-200/80">
-      <div className="max-w-5xl mx-auto px-6">
+    <section className={`${MARKETING.sectionTight} bg-white border-y border-emerald-100/80`}>
+      <div className={`${MARKETING.container} max-w-5xl`}>
         <div className="text-center mb-10">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 mb-2">Compare</p>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+          <p className={MARKETING.overline}>Compare</p>
+          <h2 className={`${MARKETING.h2} mt-2`}>
             Built for revenue, not record-keeping
           </h2>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+        <div className="overflow-x-auto rounded-2xl border border-emerald-100 shadow-sm">
           <table className="w-full min-w-[640px] text-left">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/80">

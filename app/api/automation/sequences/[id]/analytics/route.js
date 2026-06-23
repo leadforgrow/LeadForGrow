@@ -3,6 +3,8 @@ import { dbConnect } from '@/lib/mongodb';
 import AutomationSequence from '@/models/automation/AutomationSequence';
 import SequenceExecution from '@/models/sequences/SequenceExecution';
 import { withPlanAccess } from '@/lib/accessControl';
+import { getRevenueMetrics } from '@/lib/automation/revenueAttribution';
+import { compareAbVariants } from '@/lib/automation/approvalGate';
 
 export const GET = withPlanAccess('automation', async (req, { params }) => {
   try {
@@ -15,7 +17,7 @@ export const GET = withPlanAccess('automation', async (req, { params }) => {
       return NextResponse.json({ success: false, error: 'Sequence not found' }, { status: 404 });
     }
 
-    const [statusCounts, recentLogs] = await Promise.all([
+    const [statusCounts, recentLogs, revenue, variantStats] = await Promise.all([
       SequenceExecution.aggregate([
         { $match: { sequenceId: sequence._id } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
@@ -25,6 +27,20 @@ export const GET = withPlanAccess('automation', async (req, { params }) => {
         .limit(20)
         .select('logs status updatedAt leadId')
         .lean(),
+      getRevenueMetrics(businessId, sequence._id),
+      SequenceExecution.aggregate([
+        { $match: { sequenceId: sequence._id, variantId: { $exists: true, $ne: null } } },
+        {
+          $group: {
+            _id: '$variantId',
+            enrolled: { $sum: 1 },
+            sent: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ['$logs', []] } }, 0] }, 1, 0] } },
+            replies: { $sum: { $cond: [{ $eq: ['$context.replied', true] }, 1, 0] } },
+            conversions: { $sum: { $cond: [{ $gt: ['$revenueAttributed', 0] }, 1, 0] } },
+            revenue: { $sum: { $ifNull: ['$revenueAttributed', 0] } },
+          },
+        },
+      ]),
     ]);
 
     const byStatus = Object.fromEntries(statusCounts.map((s) => [s._id, s.count]));
@@ -47,6 +63,20 @@ export const GET = withPlanAccess('automation', async (req, { params }) => {
       }))
     ).sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt)).slice(0, 30);
 
+    const abVariants = (sequence.abTest?.variants || []).map((v) => {
+      const stats = variantStats.find((s) => s._id === v.id) || {};
+      return {
+        variantId: v.id,
+        name: v.name,
+        enrolled: stats.enrolled || 0,
+        sent: stats.sent || 0,
+        replies: stats.replies || 0,
+        conversions: stats.conversions || 0,
+        revenue: stats.revenue || 0,
+      };
+    });
+    const abComparison = abVariants.length >= 2 ? compareAbVariants(abVariants) : null;
+
     return NextResponse.json({
       success: true,
       data: {
@@ -58,10 +88,25 @@ export const GET = withPlanAccess('automation', async (req, { params }) => {
         responseRate,
         byStatus,
         timeline,
+        revenue: {
+          generated: revenue.revenueGenerated,
+          dealsWon: revenue.dealsWon,
+          avgDealValue: revenue.avgDealValue,
+          conversionRate: revenue.conversionRate,
+          roi: revenue.roi,
+        },
+        abTest: sequence.abTest?.enabled ? {
+          enabled: true,
+          variants: abVariants,
+          comparison: abComparison,
+          winnerVariantId: sequence.abTest.winnerVariantId,
+        } : null,
         sequence: {
           name: sequence.name,
           status: sequence.status,
           version: sequence.version,
+          webhookSecret: sequence.webhookSecret,
+          triggerType: sequence.triggerType,
         },
       },
     });

@@ -1,6 +1,18 @@
-import { computeTrend, formatCurrency } from '../../hooks/useDashboardData';
+import { formatCurrency } from '@/lib/crm/formatCurrency';
 
-export { formatCurrency, computeTrend };
+export { formatCurrency };
+
+export function computeTrend(dailyTrends = []) {
+  if (!dailyTrends?.length) return 0;
+  const sorted = [...dailyTrends].sort((a, b) => String(a._id).localeCompare(String(b._id)));
+  const mid = Math.max(1, Math.floor(sorted.length / 2));
+  const firstHalf = sorted.slice(0, mid);
+  const secondHalf = sorted.slice(mid);
+  const sumFirst = firstHalf.reduce((s, d) => s + (d.leads || 0), 0);
+  const sumSecond = secondHalf.reduce((s, d) => s + (d.leads || 0), 0);
+  if (sumFirst === 0) return sumSecond > 0 ? 100 : 0;
+  return Math.round(((sumSecond - sumFirst) / sumFirst) * 100);
+}
 
 export function formatSource(source) {
   if (!source) return 'Unknown';

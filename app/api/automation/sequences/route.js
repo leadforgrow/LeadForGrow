@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { dbConnect } from '@/lib/mongodb';
 import AutomationSequence from '@/models/automation/AutomationSequence';
 import { withPlanAccess } from '@/lib/accessControl';
@@ -8,7 +9,23 @@ export const GET = withPlanAccess('automation', async (req) => {
   try {
     await dbConnect();
     const businessId = req.user.businessId;
-    const sequences = await AutomationSequence.find({ businessId })
+    const { searchParams } = new URL(req.url);
+    const q = searchParams.get('q')?.trim();
+    const folderId = searchParams.get('folderId');
+    const status = searchParams.get('status');
+
+    const query = { businessId };
+    if (folderId) query.folderId = folderId === 'none' ? null : folderId;
+    if (status) query.status = status;
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $regex: q, $options: 'i' } },
+      ];
+    }
+
+    const sequences = await AutomationSequence.find(query)
       .sort({ updatedAt: -1 })
       .lean();
     return NextResponse.json({ success: true, data: sequences });
@@ -42,6 +59,7 @@ export const POST = withPlanAccess('automation', async (req) => {
     }
 
     const workflowMode = nodes.length > 0 ? 'graph' : 'linear';
+    const webhookSecret = triggerType === 'webhook' ? crypto.randomBytes(24).toString('hex') : undefined;
 
     const sequence = await AutomationSequence.create({
       businessId,
@@ -57,6 +75,9 @@ export const POST = withPlanAccess('automation', async (req) => {
       status,
       createdBy: userId,
       tags: body.tags || [],
+      folderId: body.folderId || null,
+      abTest: body.abTest,
+      ...(webhookSecret ? { webhookSecret } : {}),
     });
 
     await syncSequenceRule(sequence, userId);

@@ -13,6 +13,27 @@ process.env.IS_WORKER = 'true';
 console.log('[Worker] IS_WORKER=true — worker will initialize when lib/queue is loaded.');
 console.log('[Worker] Start with: npm run worker');
 
+let shuttingDown = false;
+
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[Worker] Received ${signal}, shutting down gracefully...`);
+  try {
+    const { automationQueue } = await import('../lib/queue.js');
+    if (automationQueue) {
+      await automationQueue.close();
+      console.log('[Worker] Queue closed.');
+    }
+  } catch (err) {
+    console.error('[Worker] Shutdown error:', err.message);
+  }
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
 import('../lib/queue.js').catch((err) => {
   console.error('[Worker] Failed to load queue module:', err.message);
   process.exit(1);

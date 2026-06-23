@@ -4,7 +4,6 @@ import Link from 'next/link';
 import {
   ArrowRight,
   Building2,
-  Linkedin,
   Sparkles,
   Target,
   Users,
@@ -13,36 +12,9 @@ import {
   BarChart3,
 } from 'lucide-react';
 import LandingNavbar from './LandingNavbar';
-import Footer from '../Footer';
 import HeroStepDivider from './HeroStepDivider';
-
-const FOUNDERS = [
-  {
-    name: 'Saurabh Singh',
-    role: 'Co-Founder & CTO',
-    company: 'LeadForGrow · Scaledesk Technology',
-    bio: 'Leads product and engineering — building the AI-powered CRM, automation stack, and integrations that turn leads into revenue for growing businesses.',
-    linkedin: 'https://www.linkedin.com/in/saurabh-2708-singh/',
-    initials: 'SS',
-    highlight: true,
-  },
-  {
-    name: 'Himanshu Singh',
-    role: 'Co-Founder',
-    company: 'LeadForGrow',
-    bio: 'Drives growth strategy, partnerships, and go-to-market — helping agencies and SMBs scale with unified lead capture and sales automation.',
-    linkedin: 'https://www.linkedin.com/in/himanshu-singh-7b28931a7/',
-    initials: 'HS',
-  },
-  {
-    name: 'Shashank Singh Chauhan',
-    role: 'Co-Founder',
-    company: 'LeadForGrow',
-    bio: 'Focuses on operations, customer success, and delivery — ensuring every business on LeadForGrow gets measurable results from day one.',
-    linkedin: 'https://www.linkedin.com/in/shashank-s81/',
-    initials: 'SC',
-  },
-];
+import FounderCard from './FounderCard';
+import { FOUNDERS } from '@/lib/founders/data';
 
 const STATS = [
   { icon: Users, value: '1100+', label: 'Businesses trust LeadForGrow' },
@@ -68,51 +40,6 @@ const VALUES = [
     text: 'From solo founders to agencies — one platform for CRM, pipeline, inbox, and follow-ups.',
   },
 ];
-
-function FounderCard({ founder }) {
-  return (
-    <article
-      className={`group relative flex flex-col rounded-2xl border bg-white p-8 shadow-[0_4px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(16,185,129,0.12)] ${
-        founder.highlight
-          ? 'border-emerald-300 ring-1 ring-emerald-200/80'
-          : 'border-emerald-100/80'
-      }`}
-    >
-      {founder.highlight && (
-        <span className="absolute -top-3 left-6 rounded-full bg-[#111827] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-          CTO
-        </span>
-      )}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D2EDD0] to-[#86EFAC] text-lg font-bold text-[#14532D] shadow-inner">
-          {founder.initials}
-        </div>
-        <a
-          href={founder.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E2E8F0] text-[#64748B] transition-colors hover:border-emerald-300 hover:bg-[#ECFDF5] hover:text-emerald-700"
-          aria-label={`${founder.name} on LinkedIn`}
-        >
-          <Linkedin className="h-5 w-5" />
-        </a>
-      </div>
-      <h3 className="text-xl font-bold text-[#111827]">{founder.name}</h3>
-      <p className="mt-1 text-sm font-semibold text-emerald-700">{founder.role}</p>
-      <p className="mt-0.5 text-xs font-medium text-[#64748B]">{founder.company}</p>
-      <p className="mt-4 flex-grow text-[15px] leading-relaxed text-[#4B5563]">{founder.bio}</p>
-      <a
-        href={founder.linkedin}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#111827] transition-colors group-hover:text-emerald-700"
-      >
-        Connect on LinkedIn
-        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-      </a>
-    </article>
-  );
-}
 
 export default function AboutUsPage() {
   return (
@@ -246,6 +173,13 @@ export default function AboutUsPage() {
               Three operators building the future of lead management and sales automation for India
               and beyond.
             </p>
+            <Link
+              href="/founders"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              View full founders page
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
           <div className="mt-14 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -318,8 +252,6 @@ export default function AboutUsPage() {
           </div>
         </div>
       </section>
-
-      <Footer forceShow />
     </div>
   );
 }

@@ -1,107 +1,201 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { SettingsTabs, SettingsCard, SettingsField, SettingsInput, SettingsToggle, SettingsTagList } from '../../components/settings/SettingsCard';
-import CustomFieldBuilder from '../../components/settings/CustomFieldBuilder';
-import { MOCK_STAGES, MOCK_SOURCES, MOCK_TAGS, MOCK_PIPELINES, MOCK_CUSTOM_FIELDS } from '../../hooks/useSettings';
-import { Plus } from 'lucide-react';
+import { authFetch } from '@/lib/apiClient';
+import { SettingsTabs, SettingsCard, SettingsField, SettingsInput, SettingsToggle, SettingsSelect } from '../../components/settings/SettingsCard';
+import { DEFAULT_DEAL_STAGES } from '@/lib/crm/pipelineStages';
+import { PAYMENT_ON_CONFIRM_MODES } from '@/lib/crm/crmSettings';
 
 const TABS = [
+  { id: 'pipeline', label: 'Pipeline Behavior' },
   { id: 'stages', label: 'Lead Stages' },
-  { id: 'sources', label: 'Sources' },
-  { id: 'fields', label: 'Custom Fields' },
-  { id: 'tags', label: 'Tags' },
-  { id: 'pipelines', label: 'Pipelines' },
   { id: 'tasks', label: 'Tasks' },
-  { id: 'notifications', label: 'Notifications' }
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'templates', label: 'Templates' },
+  { id: 'reminders', label: 'Reminders' },
 ];
 
 export default function CRMSettingsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const tab = searchParams.get('tab') || 'stages';
-  const [stages, setStages] = useState(MOCK_STAGES);
-  const [sources, setSources] = useState(MOCK_SOURCES);
-  const [tags, setTags] = useState(MOCK_TAGS);
-  const [pipelines, setPipelines] = useState(MOCK_PIPELINES);
-  const [taskSettings, setTaskSettings] = useState({ autoCreate: true, defaultDueHours: 24, remindBefore: 30 });
-  const [notifications, setNotifications] = useState({ newLead: true, taskDue: true, whatsappMessage: true, dealWon: true, dailyDigest: false });
+  const tab = searchParams.get('tab') || 'pipeline';
+  const [config, setConfig] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const setTab = (id) => router.replace(`/automation/settings/crm?tab=${id}`);
 
+  useEffect(() => {
+    authFetch('/api/automation/settings/crm')
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setConfig(d.data); })
+      .catch(() => toast.error('Failed to load CRM settings'));
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await authFetch('/api/automation/settings/crm', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success('CRM settings saved');
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!config) {
+    return <div className="p-8 text-center text-slate-500">Loading CRM settings…</div>;
+  }
+
   return (
     <div className="space-y-5">
+      <div className="flex justify-end">
+        <button type="button" onClick={save} disabled={saving} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium disabled:opacity-50">
+          {saving ? 'Saving…' : 'Save settings'}
+        </button>
+      </div>
       <SettingsTabs tabs={TABS} active={tab} onChange={setTab} />
 
+      {tab === 'pipeline' && (
+        <SettingsCard title="Pipeline control" description="Salespeople control stages. LeadForGrow automates everything around each stage.">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            Stages are never changed automatically by workflows. Only your team (or payment confirmation, if enabled below) can move a lead forward.
+          </p>
+          <SettingsField label="When payment gateway confirms payment">
+            <SettingsSelect
+              value={config.paymentOnConfirm || PAYMENT_ON_CONFIRM_MODES.NOTIFY_SALES}
+              onChange={(e) => setConfig({ ...config, paymentOnConfirm: e.target.value })}
+            >
+              <option value={PAYMENT_ON_CONFIRM_MODES.NOTIFY_SALES}>Notify salesperson to manually confirm Won</option>
+              <option value={PAYMENT_ON_CONFIRM_MODES.AUTO_MOVE_WON}>Automatically move to Won</option>
+            </SettingsSelect>
+          </SettingsField>
+          <SettingsToggle
+            enabled={config.requireLostReason !== false}
+            onChange={(v) => setConfig({ ...config, requireLostReason: v })}
+            label="Require lost reason when marking Lost"
+          />
+          <SettingsToggle
+            enabled={config.runAiQualificationOnNewLead !== false}
+            onChange={(v) => setConfig({ ...config, runAiQualificationOnNewLead: v })}
+            label="Run AI qualification on new leads"
+          />
+        </SettingsCard>
+      )}
+
       {tab === 'stages' && (
-        <SettingsCard title="Lead stages" description="Define your sales pipeline stages in order">
-          <SettingsTagList items={stages} colorClass="bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400" />
-          <button type="button" onClick={() => { setStages([...stages, 'New Stage']); toast.success('Stage added (demo)'); }} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600">
-            <Plus className="w-3.5 h-3.5" /> Add stage
-          </button>
-        </SettingsCard>
-      )}
-
-      {tab === 'sources' && (
-        <SettingsCard title="Lead sources" description="Track where your leads originate">
-          <SettingsTagList items={sources} colorClass="bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400" />
-          <button type="button" onClick={() => { setSources([...sources, 'New Source']); toast.success('Source added (demo)'); }} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600">
-            <Plus className="w-3.5 h-3.5" /> Add source
-          </button>
-        </SettingsCard>
-      )}
-
-      {tab === 'fields' && <CustomFieldBuilder fields={MOCK_CUSTOM_FIELDS} />}
-
-      {tab === 'tags' && (
-        <SettingsCard title="Tags" description="Organize leads with flexible tags">
-          <SettingsTagList items={tags} onRemove={(i) => setTags(tags.filter((_, idx) => idx !== i))} />
-          <button type="button" onClick={() => setTags([...tags, 'New Tag'])} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600">
-            <Plus className="w-3.5 h-3.5" /> Add tag
-          </button>
-        </SettingsCard>
-      )}
-
-      {tab === 'pipelines' && (
-        <SettingsCard title="Pipelines" description="Manage multiple sales pipelines">
-          <div className="space-y-2">
-            {pipelines.map((p) => (
-              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{p.name}</p>
-                  <p className="text-xs text-slate-500">{p.stages} stages{p.default ? ' · Default' : ''}</p>
-                </div>
-                <button type="button" className="text-xs font-medium text-blue-600">Edit</button>
-              </div>
+        <SettingsCard title="Pipeline stages" description="12-stage enterprise sales pipeline (read-only)">
+          <ol className="space-y-2">
+            {DEFAULT_DEAL_STAGES.map((s) => (
+              <li key={s.key} className="flex items-center gap-3 text-sm">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                <span className="font-medium text-slate-800 dark:text-slate-200">{s.label}</span>
+                <span className="text-xs text-slate-400">{s.probability}% probability</span>
+              </li>
             ))}
-          </div>
-          <button type="button" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600"><Plus className="w-3.5 h-3.5" /> Add pipeline</button>
+          </ol>
+          <p className="text-xs text-slate-500 mt-4">
+            Customize deal pipeline labels in <a href="/automation/pipelines" className="text-blue-600 hover:underline">Deal Pipeline settings</a>.
+          </p>
         </SettingsCard>
       )}
 
       {tab === 'tasks' && (
-        <SettingsCard title="Task settings" description="Defaults for task creation and reminders">
-          <div className="space-y-4">
-            <SettingsToggle enabled={taskSettings.autoCreate} onChange={(v) => setTaskSettings({ ...taskSettings, autoCreate: v })} label="Auto-create follow-up task on new lead" />
-            <SettingsField label="Default due time (hours)">
-              <SettingsInput type="number" value={taskSettings.defaultDueHours} onChange={(e) => setTaskSettings({ ...taskSettings, defaultDueHours: +e.target.value })} />
-            </SettingsField>
-            <SettingsField label="Reminder before due (minutes)">
-              <SettingsInput type="number" value={taskSettings.remindBefore} onChange={(e) => setTaskSettings({ ...taskSettings, remindBefore: +e.target.value })} />
-            </SettingsField>
-          </div>
+        <SettingsCard title="New lead automation" description="Tasks and messages created around stages — not stage changes">
+          <SettingsToggle
+            enabled={config.autoCreateFollowUpTask !== false}
+            onChange={(v) => setConfig({ ...config, autoCreateFollowUpTask: v })}
+            label="Auto-create first follow-up task on new lead"
+          />
+          <SettingsField label="Default follow-up due (hours)">
+            <SettingsInput
+              type="number"
+              value={config.defaultFollowUpHours ?? 24}
+              onChange={(e) => setConfig({ ...config, defaultFollowUpHours: +e.target.value })}
+            />
+          </SettingsField>
+          <SettingsToggle
+            enabled={config.sendWelcomeWhatsApp !== false}
+            onChange={(v) => setConfig({ ...config, sendWelcomeWhatsApp: v })}
+            label="Send welcome WhatsApp on new lead"
+          />
+          <SettingsToggle
+            enabled={config.sendWelcomeEmail !== false}
+            onChange={(v) => setConfig({ ...config, sendWelcomeEmail: v })}
+            label="Send welcome email on new lead"
+          />
         </SettingsCard>
       )}
 
       {tab === 'notifications' && (
-        <SettingsCard title="Notification rules" description="Control when your team gets notified">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {Object.entries({ newLead: 'New lead assigned', taskDue: 'Task due soon', whatsappMessage: 'New WhatsApp message', dealWon: 'Deal marked won', dailyDigest: 'Daily digest email' }).map(([key, label]) => (
-              <SettingsToggle key={key} enabled={notifications[key]} onChange={(v) => setNotifications({ ...notifications, [key]: v })} label={label} />
-            ))}
-          </div>
+        <SettingsCard title="Team notifications">
+          <SettingsToggle
+            enabled={config.notifyTeamOnNewLead !== false}
+            onChange={(v) => setConfig({ ...config, notifyTeamOnNewLead: v })}
+            label="Notify team on new lead"
+          />
+        </SettingsCard>
+      )}
+
+      {tab === 'templates' && (
+        <SettingsCard title="Message templates" description="Variables: {{customer_name}}, {{meeting_date}}, {{meeting_time}}, {{meeting_link}}, {{salesperson}}, {{company}}">
+          {[
+            ['welcomeEmail', 'Welcome email'],
+            ['welcomeWhatsApp', 'Welcome WhatsApp'],
+            ['meetingEmail', 'Meeting invitation email'],
+            ['meetingWhatsApp', 'Meeting WhatsApp'],
+            ['quotationEmail', 'Quotation email'],
+            ['quotationWhatsApp', 'Quotation WhatsApp'],
+            ['paymentReminderEmail', 'Payment reminder email'],
+            ['paymentReminderWhatsApp', 'Payment reminder WhatsApp'],
+          ].map(([key, label]) => (
+            <SettingsField key={key} label={label}>
+              <textarea
+                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 min-h-[80px]"
+                value={config.templates?.[key] || ''}
+                onChange={(e) => setConfig({
+                  ...config,
+                  templates: { ...(config.templates || {}), [key]: e.target.value },
+                })}
+                placeholder="Leave blank to use default template"
+              />
+            </SettingsField>
+          ))}
+        </SettingsCard>
+      )}
+
+      {tab === 'reminders' && (
+        <SettingsCard title="Meeting & payment reminders">
+          <SettingsToggle
+            enabled={config.meetingReminders?.hours24 !== false}
+            onChange={(v) => setConfig({ ...config, meetingReminders: { ...config.meetingReminders, hours24: v } })}
+            label="24 hours before meeting"
+          />
+          <SettingsToggle
+            enabled={config.meetingReminders?.hours1 !== false}
+            onChange={(v) => setConfig({ ...config, meetingReminders: { ...config.meetingReminders, hours1: v } })}
+            label="1 hour before meeting"
+          />
+          <SettingsToggle
+            enabled={config.meetingReminders?.minutes10 !== false}
+            onChange={(v) => setConfig({ ...config, meetingReminders: { ...config.meetingReminders, minutes10: v } })}
+            label="10 minutes before meeting"
+          />
+          <SettingsField label="Payment reminder interval (days)">
+            <SettingsInput
+              type="number"
+              value={config.paymentReminderDays ?? 3}
+              onChange={(e) => setConfig({ ...config, paymentReminderDays: +e.target.value })}
+            />
+          </SettingsField>
         </SettingsCard>
       )}
     </div>

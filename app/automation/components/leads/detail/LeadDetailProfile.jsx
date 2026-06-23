@@ -4,6 +4,7 @@ import { Phone, Mail, Tag, Clock, User, Sparkles, ChevronDown, MessageSquare } f
 import { useState } from 'react';
 import { PIPELINE_STAGES } from '../constants';
 import { assigneeName, formatSource, formatDate, formatRelative, mapTeamMemberOptions } from '../utils';
+import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 import FollowupChip from '../FollowupChip';
 
 export default function LeadDetailProfile({
@@ -62,7 +63,7 @@ export default function LeadDetailProfile({
         <div>
           <label className="text-[11px] font-medium uppercase tracking-wide text-slate-500 mb-1.5 block">Pipeline stage</label>
           <select
-            value={lead.status}
+            value={normalizeLeadStatus(lead.status)}
             onChange={(e) => onStatusChange(e.target.value)}
             className="w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
           >

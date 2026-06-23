@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+  turbopack: {
+    root: import.meta.dirname,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
@@ -12,6 +16,17 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+  },
+  async redirects() {
+    return [
+      { source: '/product/:slug', destination: '/products/:slug', permanent: true },
+      { source: '/resources/help', destination: '/help-center', permanent: true },
+      { source: '/resources/blog', destination: '/blog', permanent: true },
+      { source: '/resources/blog/:slug', destination: '/blog/:slug', permanent: true },
+      { source: '/industry/:slug', destination: '/solutions/:slug', permanent: false },
+      { source: '/user/register', destination: '/register', permanent: false },
+      { source: '/user/login', destination: '/login', permanent: false },
+    ];
   },
   async headers() {
     return [

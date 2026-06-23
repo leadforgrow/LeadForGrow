@@ -1,7 +1,8 @@
 'use client';
 
-import { X, Save, RefreshCw, LayoutTemplate, Code } from 'lucide-react';
+import { X, Save, RefreshCw, LayoutTemplate, Code, ToggleLeft } from 'lucide-react';
 import { HARDCODED_ENUMS } from '../constants';
+import BusinessFeatureEditor from './BusinessFeatureEditor';
 
 export default function AdminRecordModal({
   open, modelName, editingDoc, viewMode, setViewMode,
@@ -9,6 +10,8 @@ export default function AdminRecordModal({
   onClose, onSave, onFieldChange, onJsonChange,
 }) {
   if (!open) return null;
+
+  const isBusiness = modelName === 'Business';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -38,6 +41,15 @@ export default function AdminRecordModal({
               >
                 <Code className="w-3.5 h-3.5" /> JSON
               </button>
+              {isBusiness && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode('features')}
+                  className={`px-2.5 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1 ${viewMode === 'features' ? 'bg-white dark:bg-slate-900 text-emerald-600 shadow-sm' : 'text-slate-500'}`}
+                >
+                  <ToggleLeft className="w-3.5 h-3.5" /> Features
+                </button>
+              )}
             </div>
             <button type="button" onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600">
               <X className="w-5 h-5" />
@@ -46,7 +58,9 @@ export default function AdminRecordModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
-          {viewMode === 'form' ? (
+          {viewMode === 'features' && isBusiness ? (
+            <BusinessFeatureEditor formData={formData} onFieldChange={onFieldChange} />
+          ) : viewMode === 'form' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Object.keys(formData).map((key) => {
                 if (key === '__v') return null;

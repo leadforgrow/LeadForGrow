@@ -7,11 +7,9 @@ import { Check, MessageCircle, BarChart3, Users, Zap } from 'lucide-react';
 const MESSAGES = [
   'Preparing your workspace',
   'Syncing conversations',
-  'Loading sales dashboard',
+  'Loading your pipeline',
   'Connecting automations',
-  'Fetching lead intelligence',
-  'Initializing CRM engine',
-  'Preparing analytics',
+  'Fetching lead data',
 ];
 
 const STAGES = [
@@ -20,155 +18,109 @@ const STAGES = [
   { id: 'dashboard', label: 'Dashboard ready', icon: BarChart3 },
 ];
 
-const spring = { type: 'spring', stiffness: 80, damping: 22, mass: 0.9 };
-const exitSpring = { type: 'spring', stiffness: 120, damping: 28 };
-
-function FloatingCard({ className, children, delay = 0, floatY = 8 }) {
-  return (
-    <motion.div
-      className={`absolute rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-lg shadow-blue-500/5 ${className}`}
-      initial={{ opacity: 0, scale: 0.92, y: 16 }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-        y: [0, -floatY, 0],
-      }}
-      transition={{
-        opacity: { ...spring, delay },
-        scale: { ...spring, delay },
-        y: { duration: 4 + delay, repeat: Infinity, ease: 'easeInOut', delay },
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-}
+const ease = [0.22, 1, 0.36, 1];
 
 function AmbientBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0 bg-[#f8f9fc] dark:bg-[#070b14]" />
-      <motion.div
-        className="absolute -top-[30%] -left-[20%] w-[70%] h-[70%] rounded-full bg-blue-400/20 dark:bg-blue-600/15 blur-[120px]"
-        animate={{ x: [0, 40, 0], y: [0, 30, 0], scale: [1, 1.05, 1] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute -bottom-[25%] -right-[15%] w-[65%] h-[65%] rounded-full bg-violet-400/15 dark:bg-violet-600/10 blur-[120px]"
-        animate={{ x: [0, -35, 0], y: [0, -25, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] rounded-full bg-cyan-300/10 dark:bg-cyan-500/5 blur-[100px]"
-        animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      <div className="absolute inset-0 bg-[#FAFDFA]" />
       <div
-        className="absolute inset-0 opacity-[0.35] dark:opacity-[0.12]"
+        className="absolute inset-0 opacity-[0.45]"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: '48px 48px',
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(134, 239, 172, 0.22) 0%, transparent 65%)',
         }}
       />
-      {Array.from({ length: 12 }).map((_, i) => (
-        <motion.span
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-blue-400/30 dark:bg-blue-300/20"
-          style={{ left: `${8 + (i * 7.5) % 85}%`, top: `${12 + (i * 11) % 75}%` }}
-          animate={{ opacity: [0.15, 0.5, 0.15], y: [0, -12 - (i % 3) * 4, 0] }}
-          transition={{ duration: 3 + (i % 4), repeat: Infinity, delay: i * 0.25, ease: 'easeInOut' }}
-        />
-      ))}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background:
+            'radial-gradient(ellipse 50% 40% at 80% 90%, rgba(16, 185, 129, 0.12) 0%, transparent 55%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.22]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
     </div>
   );
 }
 
-function CrmVisualization() {
+function BrandLoader() {
   return (
-    <div className="relative w-full max-w-[320px] sm:max-w-[380px] aspect-square mx-auto">
+    <div className="relative mx-auto flex h-[148px] w-[148px] items-center justify-center sm:h-[168px] sm:w-[168px]">
+      {/* Outer orbit */}
       <motion.div
-        className="absolute inset-[18%] rounded-full border border-blue-200/30 dark:border-blue-500/20"
+        className="absolute inset-0 rounded-[28px] border border-emerald-200/70"
         animate={{ rotate: 360 }}
-        transition={{ duration: 48, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute inset-[28%] rounded-full border border-dashed border-violet-200/40 dark:border-violet-500/20"
-        animate={{ rotate: -360 }}
-        transition={{ duration: 36, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
       />
 
+      {/* Spinning arc */}
+      <svg className="absolute inset-[-6px] h-[calc(100%+12px)] w-[calc(100%+12px)]" viewBox="0 0 180 180">
+        <motion.circle
+          cx="90"
+          cy="90"
+          r="84"
+          fill="none"
+          stroke="url(#lfgArc)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray="120 410"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+          style={{ transformOrigin: '90px 90px' }}
+        />
+        <defs>
+          <linearGradient id="lfgArc" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#059669" />
+            <stop offset="50%" stopColor="#10B981" />
+            <stop offset="100%" stopColor="#6EE7B7" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Soft glow */}
       <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-xl shadow-blue-500/25"
-        animate={{ scale: [1, 1.04, 1], boxShadow: ['0 0 40px rgba(59,130,246,0.2)', '0 0 60px rgba(99,102,241,0.35)', '0 0 40px rgba(59,130,246,0.2)'] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute inset-[14%] rounded-[22px] bg-emerald-400/10 blur-xl"
+        animate={{ opacity: [0.35, 0.65, 0.35], scale: [0.96, 1.04, 0.96] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Logo tile */}
+      <motion.div
+        className="relative flex h-[88px] w-[88px] items-center justify-center rounded-[22px] border border-emerald-100 bg-white shadow-[0_8px_32px_rgba(5,150,105,0.12),0_2px_8px_rgba(15,23,42,0.04)] sm:h-[96px] sm:w-[96px]"
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <span className="text-white font-bold text-lg sm:text-xl tracking-tight">LFG</span>
-        <motion.div
-          className="absolute inset-0 rounded-2xl ring-2 ring-white/20"
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity }}
+        <img
+          src="/image.png"
+          alt="LeadForGrow"
+          className="h-11 w-11 object-contain sm:h-12 sm:w-12"
         />
       </motion.div>
 
-      <FloatingCard className="top-[8%] left-[4%] px-3 py-2 hidden sm:block" delay={0.2}>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-            <MessageCircle className="w-3 h-3 text-emerald-500" />
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 dark:text-slate-400">WhatsApp</p>
-            <p className="text-[10px] font-semibold text-slate-800 dark:text-slate-200">3 new leads</p>
-          </div>
-        </div>
-      </FloatingCard>
-
-      <FloatingCard className="top-[12%] right-[2%] px-3 py-2.5" delay={0.5} floatY={6}>
-        <div className="flex items-end gap-1 h-8">
-          {[40, 65, 45, 80, 55].map((h, i) => (
-            <motion.div
-              key={i}
-              className="w-2 rounded-sm bg-gradient-to-t from-blue-600/60 to-blue-400/80"
-              initial={{ height: 4 }}
-              animate={{ height: `${h}%` }}
-              transition={{ duration: 1.2, delay: 0.8 + i * 0.15, repeat: Infinity, repeatType: 'reverse', repeatDelay: 1.5 }}
-            />
-          ))}
-        </div>
-        <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1">Revenue pulse</p>
-      </FloatingCard>
-
-      <FloatingCard className="bottom-[18%] left-[0%] px-3 py-2" delay={0.35} floatY={10}>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-blue-500 flex items-center justify-center text-[9px] font-bold text-white">AK</div>
-          <div>
-            <p className="text-[10px] font-semibold text-slate-800 dark:text-slate-200">Aisha K.</p>
-            <p className="text-[9px] text-emerald-600 dark:text-emerald-400">Hot lead · ₹2.4L</p>
-          </div>
-        </div>
-      </FloatingCard>
-
-      <FloatingCard className="bottom-[10%] right-[6%] px-3 py-2 hidden sm:block" delay={0.65}>
-        <div className="flex items-center gap-1.5">
-          <Users className="w-3 h-3 text-blue-500" />
-          <p className="text-[10px] font-medium text-slate-700 dark:text-slate-300">Team synced</p>
-        </div>
-      </FloatingCard>
-
-      {[0, 1, 2, 3].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1.5 h-1.5 rounded-full bg-blue-500/60"
-          style={{
-            top: `${25 + i * 18}%`,
-            left: `${20 + i * 15}%`,
-          }}
-          animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
-        />
-      ))}
+      {/* Corner accents */}
+      <motion.span
+        className="absolute -right-1 top-6 flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-100 bg-white shadow-sm"
+        animate={{ y: [0, -4, 0] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+      >
+        <MessageCircle className="h-3.5 w-3.5 text-emerald-600" strokeWidth={2} />
+      </motion.span>
+      <motion.span
+        className="absolute -left-2 bottom-8 flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-100 bg-white shadow-sm"
+        animate={{ y: [0, 3, 0] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      >
+        <BarChart3 className="h-3 w-3 text-emerald-700" strokeWidth={2} />
+      </motion.span>
     </div>
   );
 }
@@ -183,7 +135,7 @@ export default function WorkspaceBootLoader({ complete = false, onFinished }) {
   useEffect(() => {
     const id = setInterval(() => {
       setMessageIndex((i) => (i + 1) % MESSAGES.length);
-    }, 2200);
+    }, 2400);
     return () => clearInterval(id);
   }, []);
 
@@ -196,8 +148,7 @@ export default function WorkspaceBootLoader({ complete = false, onFinished }) {
       setProgress((p) => {
         const cap = complete ? 100 : 88;
         const speed = complete ? 0.35 : 0.045;
-        const next = Math.min(cap, p + delta * speed * 0.08);
-        return next;
+        return Math.min(cap, p + delta * speed * 0.08);
       });
       raf = requestAnimationFrame(tick);
     };
@@ -217,78 +168,95 @@ export default function WorkspaceBootLoader({ complete = false, onFinished }) {
     if (finishedRef.current) return;
     finishedRef.current = true;
     setExiting(true);
-    setTimeout(() => onFinished?.(), 520);
+    setTimeout(() => onFinished?.(), 480);
   }, [onFinished]);
 
   useEffect(() => {
-    if (complete && progress >= 99) {
-      finish();
-    }
+    if (complete && progress >= 99) finish();
   }, [complete, progress, finish]);
 
   return (
-    <AnimatePresence onExitComplete={() => {}}>
+    <AnimatePresence>
       {!exiting && (
         <motion.div
           key="boot-loader"
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, filter: 'blur(12px)', scale: 1.02 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          exit={{ opacity: 0, filter: 'blur(8px)' }}
+          transition={{ duration: 0.5, ease }}
         >
           <AmbientBackground />
 
-          <div className="relative z-10 w-full max-w-lg px-6 flex flex-col items-center">
-            <CrmVisualization />
+          <div className="relative z-10 flex w-full max-w-md flex-col items-center px-6">
+            <BrandLoader />
 
-            <div className="mt-6 sm:mt-8 w-full max-w-sm text-center">
-              <div className="h-6 overflow-hidden relative">
+            <motion.div
+              className="mt-10 text-center"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.5, ease }}
+            >
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-800/70"
+                style={{ fontFamily: 'var(--font-plus-jakarta)' }}
+              >
+                LeadForGrow
+              </p>
+              <div className="mt-3 h-5 overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={messageIndex}
-                    className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200"
-                    initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-[15px] font-medium text-[#374151]"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.35, ease }}
                   >
                     {MESSAGES[messageIndex]}
-                    <motion.span
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{ duration: 1.2, repeat: Infinity }}
-                    >
-                      …
-                    </motion.span>
                   </motion.p>
                 </AnimatePresence>
               </div>
+            </motion.div>
 
-              <div className="mt-5 h-1 w-full rounded-full bg-slate-200/80 dark:bg-slate-800 overflow-hidden">
+            <div className="mt-6 w-full max-w-[260px]">
+              <div className="h-[3px] w-full overflow-hidden rounded-full bg-emerald-100">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-600 via-violet-500 to-blue-500"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-emerald-400"
                   style={{ width: `${progress}%` }}
-                  transition={exitSpring}
+                  transition={{ type: 'spring', stiffness: 90, damping: 22 }}
                 />
               </div>
 
-              <div className="mt-5 space-y-2">
+              <div className="mt-5 space-y-2.5">
                 {STAGES.map((stage, i) => {
                   const done = completedStages.includes(stage.id);
                   const Icon = stage.icon;
                   return (
                     <motion.div
                       key={stage.id}
-                      className="flex items-center gap-2.5 text-left"
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: done ? 1 : 0.35, x: 0 }}
-                      transition={{ ...spring, delay: i * 0.08 }}
+                      className="flex items-center gap-2.5"
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: done ? 1 : 0.4, x: 0 }}
+                      transition={{ duration: 0.4, delay: i * 0.06, ease }}
                     >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
-                        done ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200/80 dark:bg-slate-800 text-slate-400'
-                      }`}>
-                        {done ? <Check className="w-3 h-3" strokeWidth={2.5} /> : <Icon className="w-2.5 h-2.5" />}
+                      <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
+                          done
+                            ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/25'
+                            : 'bg-emerald-50 text-emerald-300'
+                        }`}
+                      >
+                        {done ? (
+                          <Check className="h-3 w-3" strokeWidth={2.5} />
+                        ) : (
+                          <Icon className="h-2.5 w-2.5" />
+                        )}
                       </div>
-                      <span className={`text-xs font-medium ${done ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400 dark:text-slate-600'}`}>
+                      <span
+                        className={`text-xs font-medium ${
+                          done ? 'text-[#374151]' : 'text-[#9CA3AF]'
+                        }`}
+                      >
                         {stage.label}
                       </span>
                     </motion.div>
@@ -296,15 +264,6 @@ export default function WorkspaceBootLoader({ complete = false, onFinished }) {
                 })}
               </div>
             </div>
-
-            <motion.p
-              className="mt-8 text-[10px] uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              LeadForGrow
-            </motion.p>
           </div>
         </motion.div>
       )}

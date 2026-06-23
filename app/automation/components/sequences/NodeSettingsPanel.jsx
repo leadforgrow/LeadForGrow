@@ -58,6 +58,75 @@ export default function NodeSettingsPanel({ node, onUpdate }) {
           </>
         )}
 
+        {node.type === 'send_instagram_dm' && (
+          <>
+            <div>
+              <label className="text-xs font-medium text-slate-500">Instagram message</label>
+              <textarea
+                rows={4}
+                value={data.message || ''}
+                onChange={(e) => set({ message: e.target.value })}
+                placeholder="Hi {{name}}, …"
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500">Media URL (optional)</label>
+              <input
+                value={data.mediaUrl || ''}
+                onChange={(e) => set({ mediaUrl: e.target.value })}
+                placeholder="https://…"
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
+              />
+            </div>
+          </>
+        )}
+
+        {node.type === 'wait_reply' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-500">Wait days</label>
+              <input type="number" min={0} value={data.waitDays ?? 0} onChange={(e) => set({ waitDays: +e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500">Wait hours</label>
+              <input type="number" min={0} value={data.waitHours ?? 48} onChange={(e) => set({ waitHours: +e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" />
+            </div>
+          </div>
+        )}
+
+        {(node.type === 'loop' || node.type === 'for_each') && (
+          <div>
+            <label className="text-xs font-medium text-slate-500">Max iterations</label>
+            <input type="number" min={1} value={data.maxIterations ?? 10} onChange={(e) => set({ maxIterations: +e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" />
+          </div>
+        )}
+
+        {node.type === 'goto' && (
+          <div>
+            <label className="text-xs font-medium text-slate-500">Target node ID</label>
+            <input value={data.targetNodeId || ''} onChange={(e) => set({ targetNodeId: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-mono text-xs" />
+          </div>
+        )}
+
+        {node.type === 'sub_workflow' && (
+          <div>
+            <label className="text-xs font-medium text-slate-500">Sub-workflow sequence ID</label>
+            <input value={data.sequenceId || ''} onChange={(e) => set({ sequenceId: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-mono text-xs" />
+          </div>
+        )}
+
+        {node.type === 'approval' && (
+          <div>
+            <label className="text-xs font-medium text-slate-500">Approver role</label>
+            <select value={data.approverRole || 'manager'} onChange={(e) => set({ approverRole: e.target.value })} className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+              <option value="manager">Manager</option>
+              <option value="finance">Finance</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        )}
+
         {node.type === 'send_email' && (
           <>
             <div>

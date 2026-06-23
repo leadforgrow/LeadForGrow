@@ -5,9 +5,14 @@ import Activity from '@/models/automation/Activity';
 import Task from '@/models/automation/Task';
 import Message from '@/models/automation/Message';
 import User from '@/models/User';
+import Business from '@/models/Business';
 import { withPlanAccess } from '@/lib/accessControl';
-import { triggerAutomationForLead } from '@/lib/leadProcessor';
 import { LEAD_STATUS_ROW_COLORS } from '@/app/automation/components/leads/constants';
+import { normalizeLeadStatus, validateStageTransition } from '@/lib/crm/leadStages';
+import { enrichLeadsWithNextFollowUp } from '@/lib/crm/followUpSync';
+import { leadActivityFields } from '@/lib/crm/activityHelpers';
+import { runLeadStagePipelineActions } from '@/lib/crm/pipelineAutomation';
+import { formatTimelineItems } from '@/lib/crm/timelinePresentation';
 
 // GET - Fetch single lead with details
 export const GET = withPlanAccess('leads', async (req, { params }) => {
@@ -34,6 +39,27 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
       .sort({ performedAt: -1 })
       .lean();
 
+    const timeline = formatTimelineItems(activities);
+
+    let dealAmount;
+    let dealCurrency = 'INR';
+    const meta = lead.metadata;
+    const metaAmount = meta?.amount ?? meta?.dealAmount ?? (typeof meta?.get === 'function' ? meta.get('amount') || meta.get('dealAmount') : null);
+    if (metaAmount) {
+      dealAmount = Number(metaAmount);
+      dealCurrency = meta?.currency || (typeof meta?.get === 'function' ? meta.get('currency') : null) || 'INR';
+    } else {
+      const Deal = (await import('@/models/automation/Deal')).default;
+      const deal = await Deal.findOne({ businessId, leadId: id, deletedAt: null })
+        .sort({ updatedAt: -1 })
+        .select('amount currency')
+        .lean();
+      if (deal?.amount) {
+        dealAmount = deal.amount;
+        dealCurrency = deal.currency || 'INR';
+      }
+    }
+
     const messageQuery = { leadId: id, businessId };
     
     // Role-based history filtering
@@ -46,7 +72,17 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
       .sort({ timestamp: 1 })
       .lean();
 
-    return NextResponse.json({ success: true, data: { ...lead, activities, messages } });
+    const [enrichedLead] = await enrichLeadsWithNextFollowUp([lead], businessId);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...enrichedLead,
+        activities: timeline,
+        messages,
+        ...(dealAmount ? { dealAmount, dealCurrency } : {}),
+      },
+    });
   } catch (error) {
     console.error('Fetch lead error:', error);
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });
@@ -60,7 +96,7 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
     const user = req.user;
     const businessId = user.businessId;
     const body = await req.json();
-    const { performedBy, status, assignedTo, priority, nextFollowUpAt, note } = body;
+    const { performedBy, status, assignedTo, priority, nextFollowUpAt, note, lostReason, dealAmount } = body;
 
     const lead = await Lead.findOne({ _id: id, businessId });
     if (!lead) {
@@ -70,32 +106,41 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
     const updates = {};
     const activities = [];
 
-    // Status change
+    if (status && status !== lead.status) {
+      const newStatus = normalizeLeadStatus(status);
+      const transition = validateStageTransition(lead.status, newStatus);
+      if (!transition.ok) {
+        return NextResponse.json({ success: false, error: transition.message, code: 'INVALID_STAGE_TRANSITION' }, { status: 400 });
+      }
+      if (newStatus === 'lost' && !lostReason && !lead.metadata?.lostReason) {
+        return NextResponse.json({
+          success: false,
+          error: 'Lost reason is required',
+          code: 'LOST_REASON_REQUIRED',
+        }, { status: 400 });
+      }
+    }
+
+    // Status change — user-controlled; automations run around the stage, never change it
     if (status && status !== lead.status) {
       const oldStatus = lead.status;
-      updates.status = status;
-      updates.rowColor = LEAD_STATUS_ROW_COLORS[status] || null;
+      const newStatus = normalizeLeadStatus(status);
+      updates.status = newStatus;
+      updates.rowColor = LEAD_STATUS_ROW_COLORS[newStatus] || null;
 
-      if (status === 'contacted') {
-        updates.lastContactedAt = new Date();
-        // HUMAN ACTION FLOW: Auto-close pending automation tasks
-        await Task.updateMany(
-          { leadId: id, status: 'pending' },
-          { status: 'completed', completedAt: new Date() }
-        );
-      } else if (status === 'converted') {
+      if (newStatus === 'converted' || newStatus === 'won') {
         updates.convertedAt = new Date();
-      } else if (status === 'lost') {
+      } else if (newStatus === 'lost') {
         updates.lostAt = new Date();
       }
 
-      activities.push({
-        leadId: id, businessId,
+      // lastContactedAt only updated by stage automation for first_contact+, not auto on every change
+      activities.push(leadActivityFields({ businessId }, id, {
         type: 'status_changed',
-        description: `Status changed from ${oldStatus} to ${status}`,
+        description: `Stage changed from ${oldStatus} to ${newStatus}`,
         performedBy: performedBy || user.userId,
-        metadata: { oldValue: oldStatus, newValue: status }
-      });
+        metadata: { oldValue: oldStatus, newValue: newStatus, userInitiated: true },
+      }));
     }
 
     if (assignedTo !== undefined && assignedTo !== lead.assignedTo?.toString()) {
@@ -112,46 +157,77 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
         }
       }
 
-      activities.push({
-        leadId: id, businessId,
+      activities.push(leadActivityFields({ businessId }, id, {
         type: 'assigned',
         description: assignedTo ? 'Lead assigned to team member' : 'Lead unassigned',
-        performedBy: performedBy || user.userId
-      });
+        performedBy: performedBy || user.userId,
+      }));
     }
 
     if (priority) updates.priority = priority;
 
     if (nextFollowUpAt) {
       updates.nextFollowUpAt = new Date(nextFollowUpAt);
-      activities.push({
-        leadId: id, businessId,
+      activities.push(leadActivityFields({ businessId }, id, {
         type: 'follow_up_scheduled',
         description: `Follow-up scheduled for ${new Date(nextFollowUpAt).toLocaleString()}`,
-        performedBy: performedBy || user.userId
-      });
+        performedBy: performedBy || user.userId,
+      }));
     }
 
     if (note) {
       updates.$push = {
         notes: { text: note, addedBy: performedBy || user.userId, addedAt: new Date() }
       };
-      activities.push({
-        leadId: id, businessId,
+      activities.push(leadActivityFields({ businessId }, id, {
         type: 'note_added',
         description: 'Note added to lead',
-        performedBy: performedBy || user.userId
-      });
+        performedBy: performedBy || user.userId,
+      }));
     }
 
     if (body.rowColor !== undefined) {
       updates.rowColor = body.rowColor || null;
     }
 
+    if (dealAmount != null) {
+      const amount = Number(dealAmount);
+      if (!Number.isNaN(amount) && amount > 0) {
+        const metaObj = lead.metadata
+          ? (lead.metadata instanceof Map ? Object.fromEntries(lead.metadata) : { ...lead.metadata })
+          : {};
+        metaObj.amount = amount;
+        metaObj.dealAmount = amount;
+        metaObj.currency = body.currency || metaObj.currency || 'INR';
+        updates.metadata = metaObj;
+      }
+    }
+
     const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true })
       .populate('assignedTo', 'email firstName lastName')
       .populate('notes.addedBy', 'firstName lastName email');
     if (activities.length > 0) await Activity.insertMany(activities);
+
+    // Stage automations (async, non-blocking for response)
+    if (status && status !== lead.status) {
+      const business = await Business.findById(businessId);
+      if (business) {
+        runLeadStagePipelineActions({
+          lead: updatedLead,
+          business,
+          oldStage: lead.status,
+          newStage: normalizeLeadStatus(status),
+          userId: performedBy || user.userId,
+          body: { lostReason, ...body },
+        }).catch((err) => {
+          if (err.code === 'LOST_REASON_REQUIRED') {
+            console.warn('[Lead] Lost reason required:', id);
+          } else {
+            console.error('[Lead] Stage automation error:', err.message);
+          }
+        });
+      }
+    }
 
     // Human Assignment Notification
     if (updates.assignedTo && updates.assignedTo !== lead.assignedTo?.toString()) {
@@ -167,15 +243,15 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       }
     }
 
-    // Trigger automation on status change
-    if (status && status !== lead.status) {
-      // Trigger as a side effect
-      triggerAutomationForLead(id, businessId, 'onStatusChange').catch(err => {
-        console.error('[Automation] Trigger failed for status change:', err);
-      });
-    }
-
-    return NextResponse.json({ success: true, data: updatedLead });
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...updatedLead.toObject(),
+        ...(dealAmount != null && Number(dealAmount) > 0
+          ? { dealAmount: Number(dealAmount), dealCurrency: body.currency || 'INR' }
+          : {}),
+      },
+    });
   } catch (error) {
     console.error('Update lead error:', error);
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 });

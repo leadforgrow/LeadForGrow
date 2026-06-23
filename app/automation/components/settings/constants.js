@@ -20,7 +20,8 @@ import {
   Plug,
   Zap,
   LayoutGrid,
-  Globe
+  Globe,
+  BookOpen,
 } from 'lucide-react';
 
 export const SETTINGS_GROUPS = [
@@ -82,7 +83,9 @@ export const SETTINGS_GROUPS = [
       { id: 'sla-rules', label: 'SLA Rules', href: '/automation/settings/automation', icon: Timer, tab: 'sla' },
       { id: 'follow-up', label: 'Follow-up Rules', href: '/automation/settings/automation', icon: UserCheck, tab: 'followup' },
       { id: 'assignment', label: 'Assignment Logic', href: '/automation/settings/automation', icon: Users, tab: 'assignment' },
-      { id: 'ai-suggestions', label: 'AI Suggestions', href: '/automation/settings/automation', icon: Sparkles, tab: 'ai' }
+      { id: 'ai-suggestions', label: 'AI Suggestions', href: '/automation/settings/automation', icon: Sparkles, tab: 'ai' },
+      { id: 'ai-platform', label: 'AI Platform', href: '/automation/settings/ai', icon: Sparkles },
+      { id: 'ai-knowledge', label: 'Knowledge Base', href: '/automation/ai/knowledge', icon: BookOpen },
     ]
   }
 ];

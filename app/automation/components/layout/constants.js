@@ -1,6 +1,9 @@
 import {
   LayoutDashboard,
   Users,
+  UserCircle,
+  Building2,
+  Handshake,
   MessagesSquare,
   Kanban,
   CheckSquare,
@@ -15,7 +18,12 @@ import {
   CalendarDays,
   UserCog,
   Plug,
-  Settings
+  Settings,
+  Sparkles,
+  BookOpen,
+  Send,
+  Map,
+  Activity,
 } from 'lucide-react';
 
 export const SIDEBAR_WIDTH = {
@@ -25,29 +33,35 @@ export const SIDEBAR_WIDTH = {
 
 export const NAV_GROUPS = [
   {
-    id: 'main',
-    label: 'Main',
+    id: 'crm',
+    label: 'CRM',
     items: [
       { id: 'dashboard', name: 'Dashboard', href: '/automation', icon: LayoutDashboard, exact: true },
       { id: 'leads', name: 'Leads', href: '/automation/leads', icon: Users, badgeKey: 'unreadLeads', urgent: true },
+      { id: 'contacts', name: 'Contacts', href: '/automation/contacts', icon: UserCircle, matchPrefix: '/automation/contacts' },
+      { id: 'companies', name: 'Companies', href: '/automation/companies', icon: Building2, matchPrefix: '/automation/companies' },
+      { id: 'deals', name: 'Deals', href: '/automation/deals', icon: Handshake, matchPrefix: '/automation/deals' },
+      { id: 'deal-pipeline', name: 'Deal Pipeline', href: '/automation/pipelines', icon: GitBranch, matchPrefix: '/automation/pipelines' },
+      { id: 'pipeline', name: 'Lead Pipeline', href: '/automation/leads?view=kanban', icon: Kanban, matchPrefix: '/automation/leads' },
+      { id: 'tasks', name: 'Tasks', href: '/automation/tasks', icon: CheckSquare, badgeKey: 'overdueTasks', urgent: true },
+    ]
+  },
+  {
+    id: 'main',
+    label: 'Communication',
+    items: [
       {
         id: 'inbox',
-        name: 'WhatsApp Inbox',
+        name: 'Inbox',
         href: '/automation/chat',
         icon: MessagesSquare,
         badgeKey: 'unreadChats',
         permission: ['dashboard_access', 'reports_access']
       },
-      { id: 'pipeline', name: 'Pipeline', href: '/automation/leads?view=kanban', icon: Kanban, matchPrefix: '/automation/leads' },
-      { id: 'tasks', name: 'Tasks', href: '/automation/tasks', icon: CheckSquare, badgeKey: 'overdueTasks', urgent: true }
-    ]
-  },
-  {
-    id: 'automation',
-    label: 'Automation',
-    items: [
       { id: 'rules', name: 'Automation Rules', href: '/automation/automation-rules', icon: SlidersHorizontal, badgeKey: 'activeAutomations', dot: 'live' },
       { id: 'sequences', name: 'Sequences', href: '/automation/sequences', icon: GitBranch },
+      { id: 'broadcasts', name: 'Broadcasts', href: '/automation/broadcasts', icon: Send },
+      { id: 'journeys', name: 'Customer Journeys', href: '/automation/journeys', icon: Map },
       {
         id: 'meetings',
         name: 'Meetings & Scheduling',
@@ -67,7 +81,10 @@ export const NAV_GROUPS = [
     role: 'owner',
     items: [
       { id: 'reports', name: 'Reports', href: '/automation/reports', icon: BarChart3 },
-      { id: 'events', name: 'Events & Sessions', href: '/automation/events', icon: CalendarDays, badgeKey: 'activeEvents', dot: 'live' }
+      { id: 'automation-analytics', name: 'Automation Analytics', href: '/automation/automation-analytics', icon: Activity },
+      { id: 'events', name: 'Events & Sessions', href: '/automation/events', icon: CalendarDays, badgeKey: 'activeEvents', dot: 'live' },
+      { id: 'ai-knowledge', name: 'AI Knowledge', href: '/automation/ai/knowledge', icon: BookOpen, role: 'owner' },
+      { id: 'ai-settings', name: 'AI Settings', href: '/automation/settings/ai', icon: Sparkles, role: 'owner' },
     ]
   },
   {

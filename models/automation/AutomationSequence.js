@@ -49,7 +49,9 @@ const AutomationSequenceSchema = new mongoose.Schema({
     enum: [
       'new_lead', 'form_submission', 'whatsapp_message', 'meta_lead',
       'stage_changed', 'missed_call', 'tag_added', 'no_reply', 'payment_received',
-      'event_joined',
+      'event_joined', 'lead_updated', 'lead_converted', 'deal_won', 'deal_lost',
+      'email_received', 'email_opened', 'chat_started', 'lead_qualified', 'manual', 'recurring',
+      'webhook', 'instagram_dm', 'deal_created',
     ],
     default: 'new_lead',
   },
@@ -67,6 +69,25 @@ const AutomationSequenceSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   version: { type: Number, default: 1 },
   tags: [{ type: String, trim: true }],
+  folderId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkflowFolder', default: null },
+  enabled: { type: Boolean, default: true },
+  publishedAt: Date,
+  publishedVersion: { type: Number, default: 0 },
+  searchText: { type: String, trim: true },
+  abTest: {
+    enabled: { type: Boolean, default: false },
+    variants: [{
+      id: String,
+      name: String,
+      weight: { type: Number, default: 50 },
+      nodes: [WorkflowNodeSchema],
+      edges: [WorkflowEdgeSchema],
+    }],
+    winnerVariantId: String,
+    autoSelectWinner: { type: Boolean, default: false },
+  },
+  webhookSecret: { type: String, sparse: true },
+  lastScheduledRunAt: Date,
   analytics: {
     enrolled: { type: Number, default: 0 },
     completed: { type: Number, default: 0 },
@@ -77,6 +98,8 @@ const AutomationSequenceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 AutomationSequenceSchema.index({ businessId: 1, status: 1 });
+AutomationSequenceSchema.index({ businessId: 1, folderId: 1 });
+AutomationSequenceSchema.index({ businessId: 1, name: 'text', description: 'text' });
 
 export default mongoose.models.AutomationSequence
   || mongoose.model('AutomationSequence', AutomationSequenceSchema);

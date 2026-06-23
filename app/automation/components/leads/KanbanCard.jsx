@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { assigneeName, formatSource, formatDate } from './utils';
+import { assigneeName, formatSource, getLeadAmount, formatLeadAmount } from './utils';
 import FollowupChip from './FollowupChip';
 
 export default function KanbanCard({ lead, onOpen }) {
@@ -16,6 +16,8 @@ export default function KanbanCard({ lead, onOpen }) {
     transition,
     opacity: isDragging ? 0.5 : 1
   };
+
+  const dealInfo = getLeadAmount(lead);
 
   return (
     <div
@@ -42,7 +44,14 @@ export default function KanbanCard({ lead, onOpen }) {
           )}
           <div className="flex items-center justify-between mt-2 gap-2">
             <span className="text-[10px] text-slate-500 truncate">{assigneeName(lead.assignedTo)}</span>
-            <FollowupChip date={lead.nextFollowUpAt} />
+            <div className="flex items-center gap-1.5 shrink-0">
+              {dealInfo && (
+                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  {formatLeadAmount(dealInfo.amount, dealInfo.currency)}
+                </span>
+              )}
+              {lead.nextFollowUpAt ? <FollowupChip date={lead.nextFollowUpAt} /> : !dealInfo && <FollowupChip date={null} />}
+            </div>
           </div>
         </div>
       </div>

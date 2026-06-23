@@ -5,28 +5,44 @@ import Link from 'next/link';
 import {
   X,
   Phone,
-  Mail,
   MessageSquare,
   ExternalLink,
   Clock,
   User,
   Tag,
-  Sparkles
+  Sparkles,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
 import StatusBadge from './StatusBadge';
 import FollowupChip from './FollowupChip';
+import LeadActivityTab from './detail/LeadDetailTabs';
 import LeadScoreBadge from './LeadScoreBadge';
-import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOptions } from './utils';
+import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOptions, resolveAssignedToId, resolveStageSelectValue, STAGE_SELECT_OPTIONS } from './utils';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
-import { PIPELINE_STAGES } from './constants';
+import ConvertLeadDialog from './ConvertLeadDialog';
 
-export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, teamMembers, onCall }) {
+export default function LeadDrawer({
+  leadId,
+  leadSnapshot,
+  onClose,
+  onStatusChange,
+  onAssign,
+  teamMembers,
+  onCall,
+  onConvertLead,
+}) {
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('overview');
   const [note, setNote] = useState('');
+  const [showConvert, setShowConvert] = useState(false);
+  const [converting, setConverting] = useState(false);
+
+  useEffect(() => {
+    setShowConvert(false);
+  }, [leadId]);
 
   useEffect(() => {
     if (!leadId) return;
@@ -40,6 +56,26 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
       .catch(() => toast.error('Failed to load lead'))
       .finally(() => setLoading(false));
   }, [leadId]);
+
+  useEffect(() => {
+    if (!leadSnapshot || !leadId || leadSnapshot._id !== leadId) return;
+    setLead((prev) => (prev ? { ...prev, ...leadSnapshot } : leadSnapshot));
+  }, [leadSnapshot, leadId]);
+
+  const handleAssign = async (assigneeId) => {
+    const updated = await onAssign(leadId, assigneeId || null);
+    if (updated) setLead((prev) => ({ ...prev, ...updated }));
+  };
+
+  const handleStageChange = async (newStatus) => {
+    const prevStatus = lead?.status;
+    const updated = await onStatusChange(leadId, newStatus);
+    if (updated) {
+      setLead((prev) => ({ ...prev, ...updated }));
+    } else if (prevStatus != null) {
+      setLead((prev) => (prev ? { ...prev, status: prevStatus } : prev));
+    }
+  };
 
   if (!leadId) return null;
 
@@ -67,9 +103,10 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/40 z-40" onClick={onClose} />
-      <aside className="fixed top-0 right-0 h-full w-full sm:w-[440px] lg:w-[480px] bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 z-50 flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
+      <div className="fixed inset-0 bg-slate-900/40 z-[60]" onClick={onClose} />
+      <aside className="fixed top-0 right-0 h-full w-full sm:w-[440px] lg:w-[480px] bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 z-[70] flex flex-col shadow-2xl">
+        <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Lead Details</h2>
           <div className="flex items-center gap-1">
             <Link
@@ -113,6 +150,15 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
                   <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
                 </Link>
               </div>
+              {lead.status !== 'converted' && (
+                <button
+                  type="button"
+                  onClick={() => setShowConvert(true)}
+                  className="w-full mt-2 inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" /> Convert Lead
+                </button>
+              )}
             </div>
 
             <div className="flex border-b border-slate-100 dark:border-slate-800 px-2">
@@ -137,8 +183,8 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
                     <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                       <p className="text-slate-500 mb-1 flex items-center gap-1"><User className="w-3 h-3" /> Assigned</p>
                       <select
-                        value={lead.assignedTo?._id || ''}
-                        onChange={(e) => onAssign(leadId, e.target.value || null)}
+                        value={resolveAssignedToId(lead)}
+                        onChange={(e) => handleAssign(e.target.value || null)}
                         className="w-full text-sm font-medium bg-transparent border-none p-0 focus:ring-0"
                       >
                         <option value="">Unassigned</option>
@@ -154,11 +200,11 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
                     <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                       <p className="text-slate-500 mb-1">Stage</p>
                       <select
-                        value={lead.status}
-                        onChange={(e) => onStatusChange(leadId, e.target.value)}
+                        value={resolveStageSelectValue(lead.status)}
+                        onChange={(e) => handleStageChange(e.target.value)}
                         className="w-full text-sm font-medium bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1"
                       >
-                        {PIPELINE_STAGES.map((s) => (
+                        {STAGE_SELECT_OPTIONS.map((s) => (
                           <option key={s.key} value={s.key}>{s.label}</option>
                         ))}
                       </select>
@@ -195,18 +241,7 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
               )}
 
               {tab === 'activity' && (
-                <ul className="space-y-3">
-                  {activities.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-6">No activity yet</p>
-                  ) : (
-                    activities.slice(0, 20).map((a, i) => (
-                      <li key={a._id || i} className="text-sm border-l-2 border-slate-200 dark:border-slate-700 pl-3">
-                        <p className="text-slate-700 dark:text-slate-300">{a.description || a.type}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{formatRelative(a.performedAt)}</p>
-                      </li>
-                    ))
-                  )}
-                </ul>
+                <LeadActivityTab activities={activities} expandWorkflows />
               )}
 
               {tab === 'notes' && (
@@ -237,6 +272,31 @@ export default function LeadDrawer({ leadId, onClose, onStatusChange, onAssign, 
             </div>
           </>
         ) : null}
+
+        {lead && showConvert && (
+          <ConvertLeadDialog
+            variant="drawer"
+            open={showConvert}
+            lead={lead}
+            teamMembers={teamMembers}
+            saving={converting}
+            onClose={() => setShowConvert(false)}
+            onConfirm={async (form) => {
+              if (!onConvertLead) return;
+              setConverting(true);
+              try {
+                const ok = await onConvertLead(form, leadId);
+                if (ok) {
+                  setShowConvert(false);
+                  onClose();
+                }
+              } finally {
+                setConverting(false);
+              }
+            }}
+          />
+        )}
+        </div>
       </aside>
     </>
   );

@@ -31,7 +31,7 @@ const SequenceExecutionSchema = new mongoose.Schema({
   automationRuleId: { type: mongoose.Schema.Types.ObjectId, ref: 'AutomationRule' },
   status: {
     type: String,
-    enum: ['pending', 'running', 'waiting', 'completed', 'failed', 'cancelled'],
+    enum: ['pending', 'running', 'waiting', 'pending_approval', 'completed', 'failed', 'cancelled'],
     default: 'pending',
     index: true,
   },
@@ -42,6 +42,19 @@ const SequenceExecutionSchema = new mongoose.Schema({
   failedAt: Date,
   lastError: String,
   retryCount: { type: Number, default: 0 },
+  testMode: { type: Boolean, default: false },
+  debugMode: { type: Boolean, default: false },
+  context: mongoose.Schema.Types.Mixed,
+  durationMs: Number,
+  revenueAttributed: { type: Number, default: 0 },
+  variantId: { type: String, default: null },
+  pendingApproval: {
+    nodeId: String,
+    reason: String,
+    requestedAt: Date,
+    approverRoles: [String],
+  },
+  skippedSteps: [{ nodeId: String, reason: String }],
 }, { timestamps: true });
 
 SequenceExecutionSchema.index({ sequenceId: 1, status: 1 });

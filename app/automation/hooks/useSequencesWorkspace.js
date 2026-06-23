@@ -23,12 +23,19 @@ export function useSequencesWorkspace() {
   const [builderTab, setBuilderTab] = useState('builder');
   const [draftNodes, setDraftNodes] = useState([]);
   const [draftEdges, setDraftEdges] = useState([]);
-  const [draftMeta, setDraftMeta] = useState({ name: '', description: '', category: 'custom', triggerType: 'new_lead', status: 'draft' });
+  const [draftMeta, setDraftMeta] = useState({
+    name: '', description: '', category: 'custom', triggerType: 'new_lead', status: 'draft',
+    triggerConfig: {}, abTest: { enabled: false, variants: [] }, webhookSecret: null, folderId: null,
+  });
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [executions, setExecutions] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [executionsLoading, setExecutionsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [folders, setFolders] = useState([]);
+  const [activeFolderId, setActiveFolderId] = useState(null);
   const historyRef = useRef({ past: [], future: [] });
+  const clipboardRef = useRef(null);
 
   const selectedSequence = useMemo(
     () => sequences.find((s) => s._id === selectedId) || null,
@@ -43,10 +50,24 @@ export function useSequencesWorkspace() {
     return { total: sequences.length, active, enrolled, completed, running };
   }, [sequences]);
 
+  const fetchFolders = useCallback(async () => {
+    try {
+      const res = await authFetch('/api/automation/folders');
+      const data = await res.json();
+      if (data.success) setFolders(data.data || []);
+    } catch {
+      /* non-critical */
+    }
+  }, []);
+
   const fetchSequences = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await authFetch('/api/automation/sequences');
+      const params = new URLSearchParams();
+      if (searchQuery) params.set('q', searchQuery);
+      if (activeFolderId) params.set('folderId', activeFolderId);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      const res = await authFetch(`/api/automation/sequences${qs}`);
       const data = await res.json();
       if (data.success) setSequences(data.data);
       else toast.error(data.error);
@@ -55,9 +76,9 @@ export function useSequencesWorkspace() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchQuery, activeFolderId]);
 
-  useEffect(() => { fetchSequences(); }, [fetchSequences]);
+  useEffect(() => { fetchSequences(); fetchFolders(); }, [fetchSequences, fetchFolders]);
 
   const loadExecutions = useCallback(async (id) => {
     if (!id) return;
@@ -117,6 +138,10 @@ export function useSequencesWorkspace() {
       category: seq.category || 'custom',
       triggerType: seq.triggerType || 'new_lead',
       status: seq.status || 'draft',
+      triggerConfig: seq.triggerConfig || {},
+      abTest: seq.abTest || { enabled: false, variants: [] },
+      webhookSecret: seq.webhookSecret || null,
+      folderId: seq.folderId || null,
     });
     setSelectedNodeId(null);
     historyRef.current = { past: [], future: [] };
@@ -177,8 +202,11 @@ export function useSequencesWorkspace() {
         description: draftMeta.description,
         category: draftMeta.category,
         triggerType: draftMeta.triggerType,
+        triggerConfig: draftMeta.triggerConfig || {},
+        abTest: draftMeta.abTest,
         nodes: draftNodes,
         edges: draftEdges,
+        folderId: draftMeta.folderId || activeFolderId || null,
         status: activate ? 'active' : draftMeta.status,
       };
 
@@ -194,7 +222,11 @@ export function useSequencesWorkspace() {
 
       toast.success(activate ? 'Sequence activated!' : 'Sequence saved');
       setSelectedId(data.data._id);
-      setDraftMeta((m) => ({ ...m, status: data.data.status }));
+      setDraftMeta((m) => ({
+        ...m,
+        status: data.data.status,
+        webhookSecret: data.data.webhookSecret || m.webhookSecret,
+      }));
       await fetchSequences();
       if (activate) toast.success('Automation rule synced — toggle in Automation Rules if needed');
     } catch (e) {
@@ -262,6 +294,170 @@ export function useSequencesWorkspace() {
     setDraftNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, position } : n)));
   };
 
+  const copySelection = () => {
+    if (!selectedNodeId) return toast.error('Select a node to copy');
+    const node = draftNodes.find((n) => n.id === selectedNodeId);
+    if (node) {
+      clipboardRef.current = JSON.parse(JSON.stringify(node));
+      toast.success('Node copied');
+    }
+  };
+
+  const pasteSelection = () => {
+    if (!clipboardRef.current) return toast.error('Nothing to paste');
+    pushHistory();
+    const copy = createNode(clipboardRef.current.type, {
+      x: (clipboardRef.current.position?.x || 0) + 40,
+      y: (clipboardRef.current.position?.y || 0) + 40,
+    });
+    copy.data = { ...clipboardRef.current.data };
+    setDraftNodes((prev) => [...prev, copy]);
+    setSelectedNodeId(copy.id);
+    toast.success('Node pasted');
+  };
+
+  const runTestMode = async () => {
+    if (!selectedId) return toast.error('Save sequence first');
+    const leadId = window.prompt('Enter lead ID to test with:');
+    if (!leadId) return;
+    try {
+      setSaving(true);
+      const res = await authFetch(`/api/automation/sequences/${selectedId}/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId, debugMode: true }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success(`Test run complete — ${data.data.logs?.length || 0} steps`);
+      setExecutions([data.data]);
+      setBuilderTab('logs');
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleEnabled = async (id, enabled) => {
+    try {
+      const res = await authFetch(`/api/automation/sequences/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, status: enabled ? 'active' : 'paused' }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success(enabled ? 'Workflow enabled' : 'Workflow disabled');
+      fetchSequences();
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const createFolder = async (name) => {
+    if (!name?.trim()) return;
+    const res = await authFetch('/api/automation/folders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim() }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success('Folder created');
+      fetchFolders();
+    } else toast.error(data.error);
+  };
+
+  const renameFolder = async (id, name) => {
+    const res = await authFetch(`/api/automation/folders/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success('Folder renamed');
+      fetchFolders();
+    } else toast.error(data.error);
+  };
+
+  const deleteFolder = async (id) => {
+    const res = await authFetch(`/api/automation/folders/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      if (activeFolderId === id) setActiveFolderId(null);
+      toast.success('Folder deleted');
+      fetchFolders();
+      fetchSequences();
+    } else toast.error(data.error);
+  };
+
+  const moveSequenceToFolder = async (sequenceId, folderId) => {
+    const res = await authFetch(`/api/automation/sequences/${sequenceId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folderId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success('Moved to folder');
+      fetchSequences();
+    } else toast.error(data.error);
+  };
+
+  const duplicateSequence = async (seq) => {
+    try {
+      const res = await authFetch('/api/automation/sequences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${seq.name} (copy)`,
+          description: seq.description,
+          category: seq.category,
+          triggerType: seq.triggerType,
+          triggerConfig: seq.triggerConfig,
+          nodes: seq.nodes,
+          edges: seq.edges,
+          folderId: seq.folderId,
+          status: 'draft',
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success('Workflow duplicated');
+      fetchSequences();
+    } catch (e) {
+      toast.error(e.message || 'Duplicate failed');
+    }
+  };
+
+  const archiveSequence = async (id) => {
+    try {
+      const res = await authFetch(`/api/automation/sequences/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'archived' }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      toast.success('Workflow archived');
+      fetchSequences();
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const toggleFolderFavorite = async (id, isFavorite) => {
+    const res = await authFetch(`/api/automation/folders/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isFavorite }),
+    });
+    const data = await res.json();
+    if (data.success) fetchFolders();
+  };
+
   const selectedNode = draftNodes.find((n) => n.id === selectedNodeId) || null;
 
   return {
@@ -269,9 +465,13 @@ export function useSequencesWorkspace() {
     workspaceMode, setWorkspaceMode, wizardStep, setWizardStep, wizardDraft, setWizardDraft,
     builderTab, setBuilderTab, draftNodes, draftEdges, draftMeta, setDraftMeta,
     selectedNodeId, setSelectedNodeId, selectedNode, executions, analytics, executionsLoading,
+    searchQuery, setSearchQuery, folders, activeFolderId, setActiveFolderId,
+    createFolder, renameFolder, deleteFolder, moveSequenceToFolder,
+    duplicateSequence, archiveSequence, toggleFolderFavorite,
     startWizard, openEditor, finishWizard, saveSequence, deleteSequence,
     fetchSequences, loadExecutions, updateNode, addNode, removeNode, duplicateNode,
     connectNodes, moveNode, undo, redo, setDraftNodes, setDraftEdges,
+    copySelection, pasteSelection, runTestMode, toggleEnabled,
     templates: SEQUENCE_TEMPLATES,
   };
 }

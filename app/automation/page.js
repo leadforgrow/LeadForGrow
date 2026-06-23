@@ -1,50 +1,28 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useDashboardData } from './hooks/useDashboardData';
 import DashboardHeader from './components/dashboard/DashboardHeader';
 import DashboardSkeleton from './components/dashboard/DashboardSkeleton';
-import StatCardsRow from './components/dashboard/StatCardsRow';
-import PipelineOverview from './components/dashboard/PipelineOverview';
-import TeamLeaderboard from './components/dashboard/TeamLeaderboard';
-import WhatsAppActivity from './components/dashboard/WhatsAppActivity';
-import FollowUpTasks from './components/dashboard/FollowUpTasks';
-import QuickActionsBar from './components/dashboard/QuickActionsBar';
-import AiSuggestionsPanel from './components/dashboard/AiSuggestionsPanel';
-import RecentActivity from './components/dashboard/RecentActivity';
-
-const AnalyticsRow = dynamic(() => import('./components/dashboard/AnalyticsRow'), {
-  loading: () => <div className="h-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl animate-pulse" />,
-  ssr: false
-});
+import DashboardKpiRow from './components/dashboard/DashboardKpiRow';
+import TodaysFocus from './components/dashboard/TodaysFocus';
+import LivePipelineBar from './components/dashboard/LivePipelineBar';
+import RevenueSnapshot from './components/dashboard/RevenueSnapshot';
+import CrmActivityFeed from './components/dashboard/CrmActivityFeed';
+import UpcomingMeetings from './components/dashboard/UpcomingMeetings';
+import DashboardTasksPanel from './components/dashboard/DashboardTasksPanel';
+import AiInsightsPanel from './components/dashboard/AiInsightsPanel';
+import DashboardQuickActions from './components/dashboard/DashboardQuickActions';
 
 export default function AutomationDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
-  const {
-    loading,
-    refreshing,
-    error,
-    refresh,
-    businessName,
-    reports,
-    metrics,
-    tasks,
-    activities,
-    conversations,
-    notContacted,
-    overdueTasks,
-    trend,
-    newLeadsToday
-  } = useDashboardData();
+  const { loading, refreshing, error, refresh, businessName, dash, currency } = useDashboardData();
 
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="min-h-full bg-[#f8f9fc] dark:bg-slate-950">
-      <div className="px-4 sm:px-6 pb-8 max-w-[1600px] mx-auto">
+      <div className="px-4 sm:px-6 pb-24 max-w-[1600px] mx-auto">
         <DashboardHeader
           businessName={businessName}
           refreshing={refreshing}
@@ -59,41 +37,27 @@ export default function AutomationDashboard() {
           </div>
         )}
 
-        <div className="mb-5">
-          <QuickActionsBar />
-        </div>
+        <div className="space-y-4">
+          <DashboardKpiRow kpis={dash?.kpis} revenue={dash?.revenue} currency={currency} />
 
-        <div className="space-y-5">
-          <StatCardsRow
-            reports={reports}
-            metrics={metrics}
-            newLeadsToday={newLeadsToday}
-            trend={trend}
-          />
-
-          <AiSuggestionsPanel
-            notContacted={notContacted}
-            overdueTasks={overdueTasks}
-            unreadChats={conversations.length}
-          />
+          <TodaysFocus focus={dash?.focus} currency={currency} />
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <PipelineOverview statusCounts={reports?.statusCounts} />
-            <TeamLeaderboard teamPerformance={reports?.teamPerformance} />
+            <LivePipelineBar pipeline={dash?.pipeline} currency={currency} />
+            <RevenueSnapshot revenue={dash?.revenue} currency={currency} />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <WhatsAppActivity conversations={conversations} />
-            <FollowUpTasks tasks={tasks} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <CrmActivityFeed activities={dash?.activities} />
+            <UpcomingMeetings meetings={dash?.meetings} />
+            <DashboardTasksPanel tasks={dash?.tasks} />
           </div>
 
-          <Suspense fallback={<div className="h-64 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />}>
-            <AnalyticsRow reports={reports} />
-          </Suspense>
-
-          <RecentActivity activities={activities} />
+          <AiInsightsPanel />
         </div>
       </div>
+
+      <DashboardQuickActions />
     </div>
   );
 }

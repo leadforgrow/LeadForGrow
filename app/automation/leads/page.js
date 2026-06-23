@@ -9,6 +9,10 @@ import BulkActionsBar from '../components/leads/BulkActionsBar';
 import LeadTable from '../components/leads/LeadTable';
 import CRMKanban from '../components/leads/CRMKanban';
 import LeadDrawer from '../components/leads/LeadDrawer';
+import ConvertLeadDialog from '../components/leads/ConvertLeadDialog';
+import QualifiedAmountModal from '../components/leads/QualifiedAmountModal';
+import DemoScheduledModal from '../components/leads/DemoScheduledModal';
+import QuotationSentModal from '../components/leads/QuotationSentModal';
 import LeadsPagination from '../components/leads/LeadsPagination';
 import MobileLeadCard from '../components/leads/MobileLeadCard';
 import LeadsSkeleton from '../components/leads/LeadsSkeleton';
@@ -64,6 +68,7 @@ function LeadsWorkspaceContent() {
                 onToggleSelect={ws.toggleSelect}
                 onToggleSelectAll={ws.toggleSelectAll}
                 onOpenDrawer={ws.setDrawerLeadId}
+                onConvert={ws.requestLeadConvert}
                 teamMembers={ws.teamMembers}
                 onAssign={ws.assignLead}
                 onStatusChange={ws.updateLeadStatus}
@@ -105,11 +110,46 @@ function LeadsWorkspaceContent() {
 
       <LeadDrawer
         leadId={ws.drawerLeadId}
+        leadSnapshot={ws.leads.find((l) => l._id === ws.drawerLeadId)}
         onClose={() => ws.setDrawerLeadId(null)}
         onStatusChange={ws.updateLeadStatus}
         onAssign={ws.assignLead}
         teamMembers={ws.teamMembers}
         onCall={ws.initiateCall}
+        onConvertLead={ws.convertLead}
+      />
+
+      <QualifiedAmountModal
+        open={!!ws.qualifiedPrompt}
+        leadName={ws.qualifiedPrompt?.leadName}
+        saving={ws.qualifying}
+        onCancel={ws.cancelQualifiedPrompt}
+        onConfirm={ws.confirmQualifiedAmount}
+      />
+
+      <DemoScheduledModal
+        open={!!ws.demoPrompt}
+        leadName={ws.demoPrompt?.leadName}
+        saving={ws.demoSaving}
+        onCancel={ws.cancelDemoPrompt}
+        onConfirm={ws.confirmDemoScheduled}
+      />
+
+      <QuotationSentModal
+        open={!!ws.quotationPrompt}
+        leadName={ws.quotationPrompt?.leadName}
+        saving={ws.quotationSaving}
+        onCancel={ws.cancelQuotationPrompt}
+        onConfirm={ws.confirmQuotationSent}
+      />
+
+      <ConvertLeadDialog
+        open={!!ws.convertLeadId && !ws.drawerLeadId && !!ws.convertLeadMeta}
+        lead={ws.convertLeadMeta}
+        teamMembers={ws.teamMembers}
+        saving={ws.converting}
+        onClose={ws.cancelLeadConvert}
+        onConfirm={(form) => ws.convertLead(form)}
       />
     </div>
   );

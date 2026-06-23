@@ -13,6 +13,25 @@ const MessageSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  conversationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation',
+    index: true
+  },
+  channel: {
+    type: String,
+    enum: ['whatsapp', 'instagram', 'email'],
+    default: 'whatsapp',
+    index: true
+  },
+  contactId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', index: true },
+  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+  dealId: { type: mongoose.Schema.Types.ObjectId, ref: 'Deal' },
+  isInternal: { type: Boolean, default: false },
+  starred: { type: Boolean, default: false },
+  replyToMessageId: String,
+  emailThreadId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailThread' },
+  subject: String,
   messageId: {
     type: String,
     required: true,
@@ -26,7 +45,7 @@ const MessageSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['text', 'image', 'video', 'audio', 'document', 'sticker', 'location', 'contacts', 'button', 'interactive'],
+    enum: ['text', 'image', 'video', 'audio', 'document', 'sticker', 'location', 'contacts', 'button', 'interactive', 'email', 'story_reply'],
     default: 'text'
   },
   content: {
@@ -44,9 +63,12 @@ const MessageSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['sent', 'delivered', 'read', 'failed', 'received'],
+    enum: ['sent', 'delivered', 'read', 'failed', 'received', 'draft', 'scheduled'],
     default: 'received'
   },
+  folder: { type: String, enum: ['inbox', 'sent', 'drafts', 'trash', 'starred'], index: true },
+  scheduledAt: Date,
+  isDeleted: { type: Boolean, default: false },
   rawMetadata: mongoose.Schema.Types.Mixed
 }, {
   timestamps: true
@@ -54,5 +76,7 @@ const MessageSchema = new mongoose.Schema({
 
 // Indexes for conversation lookup
 MessageSchema.index({ businessId: 1, leadId: 1, timestamp: -1 });
+MessageSchema.index({ businessId: 1, conversationId: 1, timestamp: -1 });
+MessageSchema.index({ businessId: 1, channel: 1, timestamp: -1 });
 
 export default mongoose.models.Message || mongoose.model('Message', MessageSchema);

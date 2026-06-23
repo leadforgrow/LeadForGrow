@@ -1,15 +1,18 @@
-import AboutUsPage from '@/app/components/landing/AboutUsPage';
+import AboutPageContent from '@/app/components/marketing/AboutPageContent';
 
 export const metadata = {
   title: 'About Us | LeadForGrow — Built by Scaledesk Technology',
   description:
-    'Meet the LeadForGrow founders — Saurabh Singh (Co-Founder & CTO), Himanshu Singh, and Shashank Singh Chauhan. AI-powered CRM and sales automation by Scaledesk Technology.',
+    'Meet the LeadForGrow team. AI-powered CRM and sales automation by Scaledesk Technology — mission, vision, values, and journey.',
   openGraph: {
     title: 'About LeadForGrow',
     description: 'Turning leads into customers with AI-powered CRM and automation.',
   },
+  alternates: {
+    canonical: 'https://leadforgrow.com/about',
+  },
 };
 
 export default function AboutPage() {
-  return <AboutUsPage />;
+  return <AboutPageContent />;
 }

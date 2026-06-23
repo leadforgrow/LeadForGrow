@@ -11,7 +11,7 @@ const TRUSTED_COMPANIES = [
 
 export default function TrustedCompanies() {
   return (
-    <section className="relative bg-white py-10 sm:py-12">
+    <section className="relative bg-white pt-4 pb-10 sm:pt-5 sm:pb-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-14 lg:gap-x-16 xl:gap-x-20">
           {TRUSTED_COMPANIES.map((name) => (

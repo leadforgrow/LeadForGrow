@@ -2,28 +2,29 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { MARKETING } from '@/lib/marketing/designTokens';
 
 export default function PricingFinalCTA() {
   return (
-    <section className="py-20 lg:py-24 bg-white border-t border-slate-200/80">
-      <div className="max-w-3xl mx-auto px-6 text-center">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-          Your leads are already expensive. Losing them is even more expensive.
+    <section className={`${MARKETING.section} bg-gradient-to-br from-[#064E3B] via-[#065F46] to-[#047857] text-white`}>
+      <div className={`${MARKETING.containerNarrow} text-center`}>
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-tight">
+          Your leads are already expensive. Losing them costs even more.
         </h2>
-        <p className="mt-4 text-base text-slate-600 leading-relaxed">
+        <p className="mt-4 text-base text-emerald-100/90 leading-relaxed">
           LeadForGrow helps your team respond faster, follow up automatically, and convert more revenue.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
-            href="/user/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors shadow-[0_4px_14px_rgba(15,23,42,0.12)]"
+            href="/register"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 transition-colors shadow-lg"
           >
             Start Free Trial
             <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-7 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
           >
             Book Demo
           </Link>

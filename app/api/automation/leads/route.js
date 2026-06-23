@@ -5,7 +5,8 @@ import Lead from '@/models/automation/Lead';
 import Activity from '@/models/automation/Activity';
 import Business from '@/models/Business';
 import Form from '@/models/Form';
-import { processNewLead, triggerAutomationForLead } from '@/lib/leadProcessor';
+import { processNewLead } from '@/lib/leadProcessor';
+import { enrichLeadsWithNextFollowUp } from '@/lib/crm/followUpSync';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -116,11 +117,40 @@ export const GET = withTenantAuth(async (request) => {
       Lead.countDocuments(query)
     ]);
 
-    console.log('[API Leads] Found leads:', leads.length, 'total:', total);
+    let enrichedLeads = leads;
+    if (leads.length > 0) {
+      const Deal = (await import('@/models/automation/Deal')).default;
+      const leadIds = leads.map((l) => l._id);
+      const dealAmounts = await Deal.aggregate([
+        { $match: { businessId: business._id, leadId: { $in: leadIds }, deletedAt: null } },
+        { $sort: { updatedAt: -1 } },
+        { $group: { _id: '$leadId', amount: { $first: '$amount' }, currency: { $first: '$currency' } } },
+      ]);
+      const amountByLead = Object.fromEntries(
+        dealAmounts.map((d) => [d._id.toString(), { amount: d.amount, currency: d.currency }])
+      );
+      enrichedLeads = leads.map((l) => {
+        const deal = amountByLead[l._id.toString()];
+        if (deal?.amount) return { ...l, dealAmount: deal.amount, dealCurrency: deal.currency };
+        const meta = l.metadata;
+        const metaAmount = meta?.amount ?? meta?.dealAmount ?? (typeof meta?.get === 'function' ? meta.get('amount') || meta.get('dealAmount') : null);
+        if (metaAmount) {
+          return {
+            ...l,
+            dealAmount: Number(metaAmount),
+            dealCurrency: meta?.currency || (typeof meta?.get === 'function' ? meta.get('currency') : null) || 'INR',
+          };
+        }
+        return l;
+      });
+      enrichedLeads = await enrichLeadsWithNextFollowUp(enrichedLeads, business._id);
+    }
+
+    console.log('[API Leads] Found leads:', enrichedLeads.length, 'total:', total);
 
     return NextResponse.json({
       success: true,
-      data: leads,
+      data: enrichedLeads,
       pagination: {
         total,
         page,
@@ -174,7 +204,8 @@ export const POST = withTenantAuth(async (request) => {
       sourceDetails: body.sourceDetails || 'Manual entry',
       sourcePage: body.sourcePage || '',
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-      priority: body.priority || 'medium'
+      priority: body.priority || 'medium',
+      tags: Array.isArray(body.tags) ? body.tags : [],
     };
 
     // Process lead through centralized processor
@@ -202,12 +233,7 @@ export const POST = withTenantAuth(async (request) => {
 
     console.log(`[API Leads] Successfully processed lead: ${processResult.lead._id}`);
 
-    // Trigger automation asynchronously
-    setTimeout(() => {
-      triggerAutomationForLead(processResult.lead._id, business._id).catch(err => {
-        console.error('Automation trigger failed:', err);
-      });
-    }, 100);
+    // Pipeline automation in ingestLead handles welcome messages, tasks, and AI — no duplicate legacy trigger.
 
     return NextResponse.json({
       success: true,

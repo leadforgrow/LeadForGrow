@@ -34,22 +34,6 @@ export const PUT = withPlanAccess('tasks', async (req, { params }) => {
           performedBy: performedBy || user.userId,
           metadata: { taskId: id }
         });
-
-        // Sync with Lead status
-        const Lead = mongoose.models.Lead || (await import('@/models/automation/Lead')).default;
-        const lead = await Lead.findById(task.leadId);
-        if (lead && lead.status === 'new') {
-          lead.status = 'contacted';
-          lead.lastContactedAt = new Date();
-          await lead.save();
-
-          await Activity.create({
-            leadId: lead._id, businessId,
-            type: 'status_change',
-            description: `Status automatically updated to 'contacted' after completing task: ${task.title}`,
-            performedBy: user.userId
-          });
-        }
       }
     }
 

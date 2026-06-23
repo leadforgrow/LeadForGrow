@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Bell, X, MessageCircle, UserPlus, CheckCircle, Info, Clock, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell, X, MessageCircle, UserPlus, CheckCircle, Info, Clock, Sparkles, Mail, Instagram } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/apiClient';
+import { useRealtime, REALTIME_EVENTS } from '@/app/automation/hooks/useRealtime';
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -11,25 +12,30 @@ export default function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await authFetch('/api/automation/notifications');
       const data = await res.json();
       if (data.success) {
         setNotifications(data.data);
-        setUnreadCount(data.data.filter(n => !n.isRead).length);
+        setUnreadCount(data.data.filter((n) => !n.isRead).length);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
-    // Poll every 1 minute for new notifications
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications]);
+
+  useRealtime({
+    onEvent: useCallback((event) => {
+      if (event.type === REALTIME_EVENTS.NOTIFICATION) {
+        fetchNotifications();
+      }
+    }, [fetchNotifications]),
+  });
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -70,6 +76,10 @@ export default function NotificationCenter() {
   const getIcon = (type) => {
     switch (type) {
       case 'whatsapp_message': return <MessageCircle className="w-4 h-4 text-emerald-600" />;
+      case 'instagram_message': return <Instagram className="w-4 h-4 text-pink-600" />;
+      case 'email_message': return <Mail className="w-4 h-4 text-indigo-600" />;
+      case 'conversation_assigned': return <UserPlus className="w-4 h-4 text-blue-600" />;
+      case 'internal_mention': return <Info className="w-4 h-4 text-amber-600" />;
       case 'new_lead': return <UserPlus className="w-4 h-4 text-indigo-600" />;
       case 'task_reminder': return <Clock className="w-4 h-4 text-amber-600" />;
       case 'automation_alert': return <Sparkles className="w-4 h-4 text-purple-600" />;

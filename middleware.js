@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 
 /** Public API routes — no JWT required */
 const PUBLIC_API_PREFIXES = [
+  '/api/health',
   '/api/auth/login',
   '/api/auth/register',
+  '/api/auth/refresh',
   '/api/forms/submit',
   '/api/forms/public',
   '/api/forms/config',
@@ -72,18 +74,32 @@ function hasValidTokenFormat(token) {
   return parts.length === 3 && parts.every((p) => p.length > 0);
 }
 
+function attachSecurityHeaders(response, requestId) {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (requestId) response.headers.set('X-Request-Id', requestId);
+  return response;
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+  const requestId = request.headers.get('x-request-id') || globalThis.crypto.randomUUID();
 
   if (pathname.startsWith('/api/')) {
     if (request.headers.get('x-user-id')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Legacy x-user-id authentication is no longer supported.',
-          code: 'LEGACY_AUTH_REJECTED',
-        },
-        { status: 401 }
+      return attachSecurityHeaders(
+        NextResponse.json(
+          {
+            success: false,
+            error: 'Legacy x-user-id authentication is no longer supported.',
+            code: 'LEGACY_AUTH_REJECTED',
+            requestId,
+          },
+          { status: 401 }
+        ),
+        requestId
       );
     }
 
@@ -96,7 +112,10 @@ export async function middleware(request) {
         '/api/rag-test',
       ];
       if (blocked.some((b) => pathname.startsWith(b))) {
-        return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+        return attachSecurityHeaders(
+          NextResponse.json({ success: false, error: 'Not found', requestId }, { status: 404 }),
+          requestId
+        );
       }
     }
   }
@@ -109,20 +128,17 @@ export async function middleware(request) {
         loginUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(loginUrl);
       }
-      return NextResponse.json(
-        { success: false, error: 'Authentication required', code: 'AUTH_REQUIRED' },
-        { status: 401 }
+      return attachSecurityHeaders(
+        NextResponse.json(
+          { success: false, error: 'Authentication required', code: 'AUTH_REQUIRED', requestId },
+          { status: 401 }
+        ),
+        requestId
       );
     }
   }
 
-  const response = NextResponse.next();
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-
-  return response;
+  return attachSecurityHeaders(NextResponse.next(), requestId);
 }
 
 export const config = {

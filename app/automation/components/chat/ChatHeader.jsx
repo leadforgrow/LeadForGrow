@@ -13,6 +13,7 @@ import {
 import Link from 'next/link';
 import StatusBadge from '../leads/StatusBadge';
 import { assigneeName } from '../leads/utils';
+import InboxActionsMenu from './InboxActionsMenu';
 
 export default function ChatHeader({
   chat,
@@ -24,6 +25,10 @@ export default function ChatHeader({
   onLost,
   onProfile,
   onIntervene,
+  onUpdateConversation,
+  onClaim,
+  onAction,
+  currentUserId,
   showBack
 }) {
   if (!chat) {
@@ -36,7 +41,10 @@ export default function ChatHeader({
 
   const lead = chat.leadId || {};
   const assignee = chat.assignedTo || lead.assignedTo;
-  const canChat = chat.status === 'intervened';
+  const canChat =
+    chat.channel !== 'whatsapp' ||
+    chat.status === 'intervened' ||
+    chat.inboxStatus === 'intervened';
 
   return (
     <div className="h-14 flex-shrink-0 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-3 sm:px-4 gap-2">
@@ -85,6 +93,13 @@ export default function ChatHeader({
         <button type="button" onClick={onProfile} className="xl:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" title="CRM profile">
           <UserPlus className="w-4 h-4" />
         </button>
+        <InboxActionsMenu
+          chat={chat}
+          onUpdate={onUpdateConversation}
+          onClaim={onClaim}
+          onAction={onAction}
+          currentUserId={currentUserId}
+        />
       </div>
     </div>
   );

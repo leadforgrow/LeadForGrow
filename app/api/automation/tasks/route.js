@@ -16,6 +16,7 @@ export const GET = withTenantAuth(async (request) => {
     const filter = searchParams.get('filter'); // 'today', 'overdue', 'upcoming'
     const assignedTo = searchParams.get('assignedTo');
     const leadId = searchParams.get('leadId');
+    const companyId = searchParams.get('companyId');
 
     const query = { businessId: business._id, status: 'pending' };
 
@@ -27,6 +28,7 @@ export const GET = withTenantAuth(async (request) => {
     }
 
     if (leadId) query.leadId = leadId;
+    if (companyId) query.companyId = companyId;
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -63,23 +65,45 @@ export const POST = withTenantAuth(async (request) => {
 
     const { business } = tenant;
     const body = await request.json();
-    const { leadId, type, title, description, dueDate, assignedTo, autoSend, messageContent } = body;
+    const { leadId, contactId, companyId, dealId, type, title, description, dueDate, assignedTo, priority, autoSend, messageContent, reminderAt } = body;
 
-    if (!leadId || !type || !title || !dueDate || !assignedTo) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    if (!type || !title || !dueDate || !assignedTo) {
+      return NextResponse.json({ success: false, error: 'type, title, dueDate, and assignedTo are required' }, { status: 400 });
+    }
+
+    if (!leadId && !contactId && !dealId && !companyId) {
+      return NextResponse.json({ success: false, error: 'Link task to a lead, contact, deal, or company' }, { status: 400 });
     }
 
     const task = await Task.create({
       businessId: business._id,
-      leadId,
+      leadId: leadId || undefined,
+      contactId: contactId || undefined,
+      companyId: companyId || undefined,
+      dealId: dealId || undefined,
       type,
       title,
       description,
       dueDate: new Date(dueDate),
       assignedTo,
+      priority: priority || 'medium',
       status: 'pending',
       autoSend: !!autoSend,
-      messageContent
+      messageContent,
+      reminderAt: reminderAt ? new Date(reminderAt) : undefined,
+      createdBy: tenant.user._id,
+    });
+
+    const { logTimelineEvent } = await import('@/lib/crm/timeline');
+    await logTimelineEvent({
+      businessId: business._id,
+      entityType: companyId ? 'company' : leadId ? 'lead' : dealId ? 'deal' : 'contact',
+      entityId: companyId || leadId || dealId || contactId,
+      leadId: leadId || undefined,
+      type: 'task_created',
+      description: `Task created: ${title}`,
+      performedBy: tenant.user._id,
+      metadata: { taskId: task._id },
     });
 
     const populatedTask = await Task.findById(task._id)

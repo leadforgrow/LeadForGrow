@@ -1,7 +1,8 @@
 'use client';
 
-import { use, useState } from 'react';
+import { Suspense, use, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { useLeadDetail } from '../../hooks/useLeadDetail';
 import LeadDetailSkeleton from '../../components/leads/detail/LeadDetailSkeleton';
@@ -9,11 +10,28 @@ import LeadDetailHeader from '../../components/leads/detail/LeadDetailHeader';
 import LeadDetailProfile from '../../components/leads/detail/LeadDetailProfile';
 import LeadDetailWorkspace from '../../components/leads/detail/LeadDetailWorkspace';
 import ChatbotTranscript from '../../components/leads/detail/ChatbotTranscript';
+import ConvertLeadDialog from '../../components/leads/ConvertLeadDialog';
 
 export default function LeadDetailPage({ params }) {
+  return (
+    <Suspense fallback={<LeadDetailSkeleton />}>
+      <LeadDetailPageContent params={params} />
+    </Suspense>
+  );
+}
+
+function LeadDetailPageContent({ params }) {
   const { id } = use(params);
   const detail = useLeadDetail(id);
+  const searchParams = useSearchParams();
   const [sendingChat, setSendingChat] = useState(false);
+  const [showConvert, setShowConvert] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('convert') === '1' && detail.lead && detail.lead.status !== 'converted') {
+      setShowConvert(true);
+    }
+  }, [searchParams, detail.lead]);
 
   if (detail.loading) return <LeadDetailSkeleton />;
 
@@ -57,9 +75,21 @@ export default function LeadDetailPage({ params }) {
           updating={detail.updating}
           onCall={detail.initiateCall}
           onWhatsApp={() => detail.openWhatsApp()}
-          onWon={() => detail.updateStatus('converted')}
+          onConvert={() => setShowConvert(true)}
           onLost={() => detail.updateStatus('lost')}
           onDelete={detail.deleteLead}
+        />
+
+        <ConvertLeadDialog
+          open={showConvert}
+          lead={detail.lead}
+          teamMembers={detail.teamMembers}
+          saving={detail.updating}
+          onClose={() => setShowConvert(false)}
+          onConfirm={async (form) => {
+            const ok = await detail.convertLead(form);
+            if (ok) setShowConvert(false);
+          }}
         />
 
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
@@ -69,7 +99,13 @@ export default function LeadDetailPage({ params }) {
             teamMembers={detail.teamMembers}
             showHistory={detail.showHistory}
             onShowHistoryChange={detail.setShowHistory}
-            onStatusChange={detail.updateStatus}
+            onStatusChange={(status) => {
+              if (status === 'converted') {
+                setShowConvert(true);
+                return;
+              }
+              detail.updateStatus(status);
+            }}
             onAssign={detail.assignLead}
             templates={detail.templates}
             onTemplate={handleTemplate}

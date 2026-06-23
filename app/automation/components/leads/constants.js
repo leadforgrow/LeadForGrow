@@ -1,48 +1,10 @@
-export const PIPELINE_STAGES = [
-  { key: 'new', label: 'New Lead' },
-  { key: 'contacted', label: 'Contacted' },
-  { key: 'interested', label: 'Interested' },
-  { key: 'follow-up', label: 'Follow-up' },
-  { key: 'converted', label: 'Converted' },
-  { key: 'lost', label: 'Lost' }
-];
-
-export const STATUS_CONFIG = {
-  new: {
-    label: 'New Lead',
-    badge: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900'
-  },
-  contacted: {
-    label: 'Contacted',
-    badge: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-900'
-  },
-  interested: {
-    label: 'Interested',
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900'
-  },
-  'follow-up': {
-    label: 'Follow-up',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900'
-  },
-  converted: {
-    label: 'Converted',
-    badge: 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800'
-  },
-  lost: {
-    label: 'Lost',
-    badge: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900'
-  }
-};
-
-/** Automatic row background by pipeline status */
-export const LEAD_STATUS_ROW_COLORS = {
-  new: '#dbeafe',
-  contacted: '#cffafe',
-  interested: '#dcfce7',
-  'follow-up': '#fef3c7',
-  converted: '#bbf7d0',
-  lost: '#fee2e2'
-};
+export {
+  PIPELINE_STAGES,
+  STATUS_CONFIG,
+  LEAD_STATUS_ROW_COLORS,
+  LEAD_LEGACY_STATUS_MAP,
+  normalizeLeadStatus,
+} from '@/lib/crm/leadStages';
 
 export const PRIORITY_CONFIG = {
   urgent: { label: 'Urgent', badge: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400' },

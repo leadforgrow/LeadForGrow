@@ -4,7 +4,7 @@ export default function NotificationBadge({ count, urgent = false, dot = false, 
   if (dot && !count) {
     return (
       <span
-        className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"
+        className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
         title="Active"
       />
     );
@@ -15,8 +15,8 @@ export default function NotificationBadge({ count, urgent = false, dot = false, 
   if (collapsed) {
     return (
       <span
-        className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-          urgent ? 'bg-blue-600' : 'bg-slate-400'
+        className={`absolute right-1 top-1 h-2 w-2 rounded-full ${
+          urgent ? 'bg-emerald-600' : 'bg-slate-400'
         }`}
       />
     );
@@ -24,10 +24,10 @@ export default function NotificationBadge({ count, urgent = false, dot = false, 
 
   return (
     <span
-      className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-md text-[10px] font-semibold tabular-nums flex-shrink-0 ${
+      className={`inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-md px-1 text-[10px] font-semibold tabular-nums ${
         urgent
-          ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400'
-          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+          : 'bg-[#F1F5F9] text-[#64748B] dark:bg-slate-800 dark:text-slate-400'
       }`}
     >
       {count > 99 ? '99+' : count}

@@ -1,6 +1,8 @@
 'use client';
 
 import { Suspense, useState } from 'react';
+import Link from 'next/link';
+import { Settings2 } from 'lucide-react';
 import { useAutomationRules } from '../hooks/useAutomationRules';
 import AutomationHeader from '../components/automation/AutomationHeader';
 import AutomationList from '../components/automation/AutomationList';
@@ -35,6 +37,22 @@ function AutomationRulesContent() {
           onRefresh={ws.refresh}
           onCreate={() => ws.setShowCreateModal(true)}
         />
+
+        <div className="mt-4 mb-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">CRM stage automations</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Configure welcome messages, meeting reminders, templates, and payment follow-ups per sales stage.
+            </p>
+          </div>
+          <Link
+            href="/automation/settings/crm"
+            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 shrink-0"
+          >
+            <Settings2 className="w-3.5 h-3.5" />
+            CRM automation settings
+          </Link>
+        </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">

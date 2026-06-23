@@ -1,6 +1,6 @@
 'use client';
 
-import UserNavbar from '@/app/user/Header';
+import MarketingShell from '@/app/components/marketing/MarketingShell';
 import PricingHero from '@/app/components/pricing/PricingHero';
 import PricingPlans from '@/app/components/pricing/PricingPlans';
 import ComparisonMatrix from '@/app/components/pricing/ComparisonMatrix';
@@ -14,9 +14,8 @@ import PricingFinalCTA from '@/app/components/pricing/PricingFinalCTA';
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#fafbfc] text-slate-900 antialiased">
-      <UserNavbar />
-      <main>
+    <MarketingShell>
+      <main className="bg-white">
         <PricingHero />
         <PricingPlans />
         <ComparisonMatrix />
@@ -28,6 +27,6 @@ export default function PricingPage() {
         <PricingFAQ />
         <PricingFinalCTA />
       </main>
-    </div>
+    </MarketingShell>
   );
 }

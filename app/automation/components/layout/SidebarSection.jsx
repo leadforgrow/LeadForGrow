@@ -44,13 +44,13 @@ export default function SidebarSection({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 mb-1 group"
+        className="group mb-1 flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 hover:bg-white/50 dark:hover:bg-emerald-950/20"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 group-hover:text-slate-500">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800/45 dark:text-emerald-500/50 group-hover:text-emerald-800/70">
           {group.label}
         </span>
         <ChevronDown
-          className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${open ? 'rotate-0' : '-rotate-90'}`}
+          className={`h-3 w-3 text-emerald-700/35 transition-transform duration-200 ${open ? 'rotate-0' : '-rotate-90'}`}
         />
       </button>
       {open && (

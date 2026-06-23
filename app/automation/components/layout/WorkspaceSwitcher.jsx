@@ -25,7 +25,7 @@ export default function WorkspaceSwitcher({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-sm font-semibold shadow-sm hover:ring-2 hover:ring-blue-500/30 transition-all"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-200/80 bg-gradient-to-br from-emerald-700 to-emerald-600 text-sm font-semibold text-white shadow-sm transition-all hover:ring-2 hover:ring-emerald-500/25"
           title={workspace}
         >
           {initial}
@@ -63,14 +63,16 @@ export default function WorkspaceSwitcher({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group"
+        className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/80 dark:hover:bg-emerald-950/30"
       >
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200/70 bg-gradient-to-br from-emerald-700 to-emerald-600 text-sm font-bold text-white shadow-sm">
           {initial}
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate leading-tight">{workspace}</p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">{plan} plan</p>
+          <p className="truncate text-sm font-semibold leading-tight text-[#111827] dark:text-slate-100">{workspace}</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700/60 dark:text-emerald-400/70">
+            {plan} plan
+          </p>
         </div>
         <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -82,7 +84,7 @@ export default function WorkspaceSwitcher({
             <div className="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{workspace}</p>
               <p className="text-[11px] text-slate-500 truncate mt-0.5">{displayName || email}</p>
-              <span className="inline-block mt-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 uppercase">
+              <span className="mt-1.5 inline-block rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                 {plan}
               </span>
               <span className="ml-1.5 text-[10px] text-slate-400">{roleLabel}</span>

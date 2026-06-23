@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, Menu, User, X } from 'lucide-react';
 
 function NavDropdownTrigger({ children, isOpen }) {
   return (
@@ -18,19 +18,28 @@ function NavDropdownTrigger({ children, isOpen }) {
 }
 
 const platformDropdown = [
-  { label: 'CRM & Sales Pipeline', href: '/blog/crm-sales-pipeline' },
-  { label: 'Unified Inbox', href: '/blog/unified-inbox' },
-  { label: 'AI Reply Assistant', href: '/blog/ai-reply-assistant' },
-  { label: 'Website Lead Capture', href: '/blog/website-lead-capture' },
-  { label: 'Analytics & Reports', href: '/blog/analytics-reports' },
-  { label: 'Team Inbox & Assignment', href: '/blog/team-inbox-assignment' },
+  { label: 'CRM & Pipeline', href: '/products/crm' },
+  { label: 'Unified Inbox', href: '/products/unified-inbox' },
+  { label: 'AI Assistant', href: '/products/ai' },
+  { label: 'Automation', href: '/products/automation' },
+  { label: 'Integrations', href: '/products/integrations' },
+  { label: 'Pricing', href: '/pricing' },
 ];
 
-const automationDropdown = [
-  { label: 'WhatsApp Automation', href: '/blog/whatsapp-automation' },
-  { label: 'Instagram Automation', href: '/blog/instagram-automation' },
-  { label: 'Email Automation', href: '/blog/email-automation' },
-  { label: 'AI Automation Workflows', href: '/blog/ai-automation-workflows' },
+const solutionsDropdown = [
+  { label: 'Startups', href: '/solutions/startups' },
+  { label: 'Agencies', href: '/solutions/agencies' },
+  { label: 'Real Estate', href: '/solutions/real-estate' },
+  { label: 'Healthcare', href: '/solutions/healthcare' },
+  { label: 'Education', href: '/solutions/education' },
+  { label: 'Enterprise', href: '/solutions/enterprise' },
+];
+
+const loggedInNav = [
+  { label: 'Home', href: '/' },
+  { label: 'Dashboard', href: '/automation' },
+  { label: 'Leads', href: '/automation/leads' },
+  { label: 'Blogs', href: '/blog' },
 ];
 
 function DropdownMenu({ items, isOpen }) {
@@ -55,10 +64,23 @@ function DropdownMenu({ items, isOpen }) {
 export default function LandingNavbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState(null);
 
-  const NavLink = ({ href, children }) => (
+  useEffect(() => {
+    const id = localStorage.getItem('userid');
+    if (id) {
+      setIsLoggedIn(true);
+      setUserId(id);
+    }
+  }, []);
+
+  const profileHref = userId ? `/user/profile/${userId}` : '/login';
+
+  const NavLink = ({ href, children, onClick }) => (
     <a
       href={href}
+      onClick={onClick}
       className="inline-flex items-center py-1 text-[14px] font-medium text-[#1a1a1a] hover:text-black transition-colors"
     >
       {children}
@@ -68,54 +90,72 @@ export default function LandingNavbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-5 sm:px-6">
       <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 rounded-xl border border-white/70 bg-white/55 px-4 py-2.5 shadow-[0_4px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-5 lg:px-6">
-        {/* Logo */}
         <a href="/" className="shrink-0 ml-5">
           <span className="landing-logo text-[17px] sm:text-[18px]">
             LeadForGrow<span className="text-[9px] align-super text-[#1a1a1a]/60">™</span>
           </span>
         </a>
 
-        {/* Desktop nav */}
         <nav className="hidden lg:flex flex-1 items-center justify-center gap-7 xl:gap-9">
-          <NavLink href="/">Home</NavLink>
-          <div
-            className="relative"
-            onMouseEnter={() => setOpenDropdown('platform')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <NavDropdownTrigger isOpen={openDropdown === 'platform'}>Platform</NavDropdownTrigger>
-            <DropdownMenu items={platformDropdown} isOpen={openDropdown === 'platform'} />
-          </div>
-          <div
-            className="relative"
-            onMouseEnter={() => setOpenDropdown('automation')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <NavDropdownTrigger isOpen={openDropdown === 'automation'}>Automation</NavDropdownTrigger>
-            <DropdownMenu items={automationDropdown} isOpen={openDropdown === 'automation'} />
-          </div>
-          <NavLink href="/#pricing">Pricing</NavLink>
-          <NavLink href="/contact">Enterprise</NavLink>
-          <NavLink href="/contact">Contact us</NavLink>
+          {isLoggedIn ? (
+            loggedInNav.map((item) => (
+              <NavLink key={item.href} href={item.href}>
+                {item.label}
+              </NavLink>
+            ))
+          ) : (
+            <>
+              <NavLink href="/">Home</NavLink>
+              <div
+                className="relative"
+                onMouseEnter={() => setOpenDropdown('platform')}
+                onMouseLeave={() => setOpenDropdown(null)}
+              >
+                <NavDropdownTrigger isOpen={openDropdown === 'platform'}>Platform</NavDropdownTrigger>
+                <DropdownMenu items={platformDropdown} isOpen={openDropdown === 'platform'} />
+              </div>
+              <div
+                className="relative"
+                onMouseEnter={() => setOpenDropdown('solutions')}
+                onMouseLeave={() => setOpenDropdown(null)}
+              >
+                <NavDropdownTrigger isOpen={openDropdown === 'solutions'}>Solutions</NavDropdownTrigger>
+                <DropdownMenu items={solutionsDropdown} isOpen={openDropdown === 'solutions'} />
+              </div>
+              <NavLink href="/pricing">Pricing</NavLink>
+              <NavLink href="/blog">Resources</NavLink>
+              <NavLink href="/contact">Contact</NavLink>
+            </>
+          )}
         </nav>
 
-        {/* Desktop auth */}
         <div className="hidden lg:flex items-center gap-2 shrink-0">
-          <a
-            href="/user/login"
-            className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2 text-[14px] font-medium text-[#1a1a1a] border border-[#E8E8E8] hover:bg-[#FAFAFA] transition-colors"
-          >
-            Login
-          </a>
-          <a
-            href="/user/register"
-            className="inline-flex items-center justify-center rounded-lg bg-[#1a1a1a] px-5 py-2 text-[14px] font-semibold text-white hover:bg-black transition-colors"
-          >
-            Join
-          </a>
+          {isLoggedIn ? (
+            <a
+              href={profileHref}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#1a1a1a] px-5 py-2 text-[14px] font-semibold text-white hover:bg-black transition-colors"
+            >
+              <User className="h-4 w-4" />
+              Profile
+            </a>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2 text-[14px] font-medium text-[#1a1a1a] border border-[#E8E8E8] hover:bg-[#FAFAFA] transition-colors"
+              >
+                Login
+              </a>
+              <a
+                href="/register"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-5 py-2 text-[14px] font-semibold text-white hover:bg-emerald-800 transition-colors"
+              >
+                Start free trial
+              </a>
+            </>
+          )}
         </div>
 
-        {/* Mobile toggle */}
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -126,26 +166,50 @@ export default function LandingNavbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="lg:hidden mx-auto mt-2 max-w-[1100px] rounded-xl border border-white/70 bg-white/90 backdrop-blur-xl shadow-lg p-4">
           <div className="space-y-1">
-            <a href="/" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Home</a>
-            <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Platform</p>
-            {platformDropdown.map((item) => (
-              <a key={item.label} href={item.href} className="block px-3 py-2 text-sm text-[#374151] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
-            ))}
-            <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Automation</p>
-            {automationDropdown.map((item) => (
-              <a key={item.label} href={item.href} className="block px-3 py-2 text-sm text-[#374151] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
-            ))}
-            <a href="/#pricing" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Pricing</a>
-            <a href="/contact" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Enterprise</a>
-            <a href="/contact" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Contact us</a>
-          </div>
-          <div className="mt-3 flex gap-2 pt-3 border-t border-[#E8E8E8]">
-            <a href="/user/login" className="flex-1 text-center rounded-xl bg-white border border-[#E8E8E8] px-4 py-2.5 text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Login</a>
-            <a href="/user/register" className="flex-1 text-center rounded-xl bg-[#1a1a1a] text-white px-4 py-2.5 text-sm font-semibold" onClick={() => setIsMenuOpen(false)}>Join</a>
+            {isLoggedIn ? (
+              <>
+                {loggedInNav.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <a
+                  href={profileHref}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#1a1a1a] text-white px-4 py-2.5 text-sm font-semibold"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="h-4 w-4" />
+                  Profile
+                </a>
+              </>
+            ) : (
+              <>
+                <a href="/" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Home</a>
+                <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Platform</p>
+                {platformDropdown.map((item) => (
+                  <a key={item.label} href={item.href} className="block px-3 py-2 text-sm text-[#374151] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
+                ))}
+                <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Solutions</p>
+                {solutionsDropdown.map((item) => (
+                  <a key={item.label} href={item.href} className="block px-3 py-2 text-sm text-[#374151] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
+                ))}
+                <a href="/pricing" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Pricing</a>
+                <a href="/blog" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Resources</a>
+                <a href="/contact" className="block px-3 py-2 text-sm font-medium text-[#1a1a1a] rounded-lg hover:bg-white/80" onClick={() => setIsMenuOpen(false)}>Contact</a>
+                <div className="mt-3 flex gap-2 pt-3 border-t border-[#E8E8E8]">
+                  <a href="/login" className="flex-1 text-center rounded-xl bg-white border border-[#E8E8E8] px-4 py-2.5 text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Login</a>
+                  <a href="/register" className="flex-1 text-center rounded-xl bg-emerald-700 text-white px-4 py-2.5 text-sm font-semibold" onClick={() => setIsMenuOpen(false)}>Start trial</a>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

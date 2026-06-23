@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, ArrowLeft, Save, Play, Layers, BarChart3, Activity } from 'lucide-react';
+import { Loader2, ArrowLeft, Save, Play, Layers, BarChart3, Activity, FlaskConical, Copy, ClipboardPaste, Settings, ShieldCheck } from 'lucide-react';
 import { useSequencesWorkspace } from '../../hooks/useSequencesWorkspace';
 import SequencesHomeView from './SequencesHomeView';
 import SequenceCreationWizard from './SequenceCreationWizard';
@@ -9,11 +9,15 @@ import WorkflowCanvas from './WorkflowCanvas';
 import NodeSettingsPanel from './NodeSettingsPanel';
 import SequenceAnalytics from './SequenceAnalytics';
 import ExecutionLogs from './ExecutionLogs';
+import SequenceWorkflowSettings from './SequenceWorkflowSettings';
+import ApprovalQueue from './ApprovalQueue';
 
 const TABS = [
   { id: 'builder', label: 'Builder', icon: Layers },
+  { id: 'settings', label: 'Trigger & A/B', icon: Settings },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'logs', label: 'Execution logs', icon: Activity },
+  { id: 'approvals', label: 'Approvals', icon: ShieldCheck },
 ];
 
 export default function SequencesWorkspace() {
@@ -33,9 +37,22 @@ export default function SequencesWorkspace() {
         <SequencesHomeView
           sequences={ws.sequences}
           stats={ws.stats}
+          searchQuery={ws.searchQuery}
+          onSearchChange={ws.setSearchQuery}
           onCreate={ws.startWizard}
           onSelect={ws.openEditor}
           onDelete={ws.deleteSequence}
+          onToggleEnabled={ws.toggleEnabled}
+          folders={ws.folders}
+          activeFolderId={ws.activeFolderId}
+          onFolderSelect={ws.setActiveFolderId}
+          onCreateFolder={ws.createFolder}
+          onRenameFolder={ws.renameFolder}
+          onDeleteFolder={ws.deleteFolder}
+          onMoveToFolder={ws.moveSequenceToFolder}
+          onDuplicate={ws.duplicateSequence}
+          onArchive={ws.archiveSequence}
+          onToggleFolderFavorite={ws.toggleFolderFavorite}
         />
       </div>
     );
@@ -87,8 +104,20 @@ export default function SequencesWorkspace() {
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
             >
               {ws.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save
+              Save draft
             </button>
+            {ws.selectedId && (
+              <button
+                type="button"
+                onClick={ws.runTestMode}
+                disabled={ws.saving}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-50 disabled:opacity-50"
+              >
+                <FlaskConical className="w-4 h-4" /> Test
+              </button>
+            )}
+            <button type="button" onClick={ws.copySelection} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500" title="Copy"><Copy className="w-4 h-4" /></button>
+            <button type="button" onClick={ws.pasteSelection} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500" title="Paste"><ClipboardPaste className="w-4 h-4" /></button>
             <button
               type="button"
               onClick={() => ws.saveSequence(true)}
@@ -140,12 +169,21 @@ export default function SequencesWorkspace() {
             <NodeSettingsPanel node={ws.selectedNode} onUpdate={ws.updateNode} />
           </div>
         )}
+        {ws.builderTab === 'settings' && (
+          <SequenceWorkflowSettings
+            draftMeta={ws.draftMeta}
+            setDraftMeta={ws.setDraftMeta}
+            sequenceId={ws.selectedId}
+            webhookSecret={ws.draftMeta.webhookSecret || ws.analytics?.sequence?.webhookSecret}
+          />
+        )}
         {ws.builderTab === 'analytics' && (
           <SequenceAnalytics analytics={ws.analytics} loading={ws.executionsLoading} />
         )}
         {ws.builderTab === 'logs' && (
           <ExecutionLogs executions={ws.executions} timeline={ws.analytics?.timeline} loading={ws.executionsLoading} />
         )}
+        {ws.builderTab === 'approvals' && <ApprovalQueue />}
       </div>
     </div>
   );

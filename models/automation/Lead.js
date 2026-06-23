@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+import { baseSchemaPlugin } from '../baseSchema.js';
+import { LEAD_PIPELINE_STAGE_KEYS } from '@/lib/crm/leadStages';
+
+const LEGACY_LEAD_STATUSES = ['new', 'contacted', 'interested', 'follow-up'];
 
 const LeadSchema = new mongoose.Schema({
   // Business Context (Optional - for solo businesses)
@@ -92,8 +96,8 @@ const LeadSchema = new mongoose.Schema({
   // Status & Assignment
   status: {
     type: String,
-    enum: ['new', 'contacted', 'interested', 'follow-up', 'converted', 'lost'],
-    default: 'new'
+    enum: [...LEAD_PIPELINE_STAGE_KEYS, 'converted', ...LEGACY_LEAD_STATUSES],
+    default: 'new_lead'
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -141,11 +145,19 @@ const LeadSchema = new mongoose.Schema({
     }
   }],
 
+  // CRM relationships
+  contactId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', index: true },
+  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', index: true },
+  tags: [{ type: String, trim: true }],
+  customFields: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
+  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+
   // Metadata
   archived: {
     type: Boolean,
     default: false
   },
+  archivedAt: Date,
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed
@@ -177,6 +189,8 @@ const LeadSchema = new mongoose.Schema({
   timestamps: true
 });
 
+LeadSchema.plugin(baseSchemaPlugin);
+
 // Indexes for performance and deduplication
 LeadSchema.index({ businessId: 1, phone: 1 }); 
 LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true, sparse: true }); // HARDENED: Unique index to prevent duplicates
@@ -191,6 +205,10 @@ LeadSchema.index({ businessId: 1, metaLeadId: 1 }, { unique: true, sparse: true 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });
 LeadSchema.index({ agencyId: 1, status: 1 });
+LeadSchema.index({ businessId: 1, email: 1 });
+LeadSchema.index({ businessId: 1, tags: 1 });
+LeadSchema.index({ businessId: 1, archived: 1, updatedAt: -1 });
+LeadSchema.index({ businessId: 1, companyId: 1 });
 
 export default mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
 

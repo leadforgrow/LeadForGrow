@@ -11,7 +11,7 @@ export default function FeatureBlogShell({ children, backHref = '/blog', backLab
 
   const handleGetStarted = () => {
     const userId = localStorage.getItem('userid');
-    window.location.href = userId ? '/automation' : '/user/register';
+    window.location.href = userId ? '/automation' : '/register';
   };
 
   const handleBookDemo = () => {
