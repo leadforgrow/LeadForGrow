@@ -4,15 +4,15 @@ import { COMPANY, FOUNDERS } from '@/lib/founders/data';
 const PAGE_URL = `${COMPANY.siteUrl}/founders`;
 
 export const metadata = {
-  title: 'Founders & Co-Founders | LeadForGrow — Saurabh Singh, Himanshu Singh, Shashank Singh Chauhan',
+  title: 'Founders & Co-Founders | LeadForGrow — Saurabh Singh, Honey Singh, S.S Chauhan',
   description:
-    'Meet the LeadForGrow co-founders: Saurabh Singh (Co-Founder & CTO), Himanshu Singh, and Shashank Singh Chauhan. Learn about the team behind India\'s AI-powered CRM and sales automation platform by Scaledesk Technology.',
+    'Meet the LeadForGrow co-founders: Saurabh Singh (Co-Founder & CTO), Honey Singh, and S.S Chauhan. Learn about the team behind India\'s AI-powered CRM and sales automation platform by Scaledesk Technology.',
   keywords: [
     'LeadForGrow founders',
     'LeadForGrow co-founders',
     'Saurabh Singh LeadForGrow',
-    'Himanshu Singh LeadForGrow',
-    'Shashank Singh Chauhan LeadForGrow',
+    'Honey Singh LeadForGrow',
+    'S.S Chauhan LeadForGrow',
     'Scaledesk Technology founders',
     'LeadForGrow team',
     'CRM founders India',
@@ -23,7 +23,7 @@ export const metadata = {
   openGraph: {
     title: 'Meet the LeadForGrow Co-Founders',
     description:
-      'Saurabh Singh, Himanshu Singh, and Shashank Singh Chauhan — the team building AI-powered CRM and sales automation for 1100+ businesses.',
+      'Saurabh Singh, Honey Singh, and S.S Chauhan — the team building AI-powered CRM and sales automation for 1100+ businesses.',
     url: PAGE_URL,
     type: 'website',
     siteName: 'LeadForGrow',

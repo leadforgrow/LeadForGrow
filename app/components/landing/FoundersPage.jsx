@@ -29,8 +29,8 @@ export default function FoundersPage() {
             </h1>
             <p className="landing-subhead mx-auto mt-6 max-w-2xl">
               <strong className="font-semibold text-[#111827]">Saurabh Singh</strong>,{' '}
-              <strong className="font-semibold text-[#111827]">Himanshu Singh</strong>, and{' '}
-              <strong className="font-semibold text-[#111827]">Shashank Singh Chauhan</strong> founded{' '}
+              <strong className="font-semibold text-[#111827]">Honey Singh</strong>, and{' '}
+              <strong className="font-semibold text-[#111827]">S.S Chauhan</strong> founded{' '}
               {COMPANY.name} under {COMPANY.parent} to help businesses capture leads from Meta,
               WhatsApp, and the web — then convert them with AI-powered CRM and automation.
             </p>
