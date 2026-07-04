@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core';
 
-export default function KanbanColumn({ id, title, count, children, colorClass }) {
+export default function KanbanColumn({ id, title, count, children, color = '#94a3b8' }) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -13,7 +13,7 @@ export default function KanbanColumn({ id, title, count, children, colorClass })
       }`}
     >
       <div className="px-3 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full ${colorClass}`} />
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
         <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h3>
         <span className="ml-auto text-xs font-medium text-slate-500 tabular-nums">{count}</span>
       </div>

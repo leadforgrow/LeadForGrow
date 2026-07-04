@@ -107,7 +107,7 @@ export const PUT = withTenantAuth(async (request, { params }) => {
     if (!company) return NextResponse.json({ success: false, error: 'Company not found' }, { status: 404 });
 
     const wasArchived = company.archived;
-    const allowed = ['name', 'domain', 'industry', 'employeeCount', 'annualRevenue', 'revenueCurrency', 'website', 'phone', 'email', 'address', 'socialLinks', 'description', 'ownerId', 'tags', 'customFields', 'logo', 'archived'];
+    const allowed = ['name', 'domain', 'industry', 'employeeCount', 'annualRevenue', 'revenueCurrency', 'website', 'phone', 'email', 'address', 'socialLinks', 'description', 'ownerId', 'tags', 'customFields', 'logo', 'archived', 'status', 'gstNumber', 'primaryContactId'];
     for (const key of allowed) {
       if (body[key] !== undefined) company[key] = body[key];
     }

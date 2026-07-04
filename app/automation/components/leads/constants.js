@@ -2,8 +2,10 @@ export {
   PIPELINE_STAGES,
   STATUS_CONFIG,
   LEAD_STATUS_ROW_COLORS,
+  LEAD_STATUS_ACCENT_COLORS,
   LEAD_LEGACY_STATUS_MAP,
   normalizeLeadStatus,
+  getLeadKanbanStage,
 } from '@/lib/crm/leadStages';
 
 export const PRIORITY_CONFIG = {
@@ -60,16 +62,18 @@ export const LEAD_ROW_COLORS = [
 ];
 
 export const TABLE_COLUMNS = [
-  { key: 'name', label: 'Lead Name', sortable: true, minWidth: 160 },
-  { key: 'phone', label: 'Phone', sortable: false, minWidth: 120 },
-  { key: 'whatsapp', label: 'WhatsApp', sortable: false, minWidth: 90 },
-  { key: 'source', label: 'Source', sortable: true, minWidth: 100 },
-  { key: 'status', label: 'Status', sortable: true, minWidth: 110 },
-  { key: 'stage', label: 'Pipeline', sortable: false, minWidth: 100 },
-  { key: 'assignedTo', label: 'Assigned To', sortable: true, minWidth: 130 },
-  { key: 'lastActivity', label: 'Last Activity', sortable: true, minWidth: 120 },
-  { key: 'nextFollowUp', label: 'Next Follow-up', sortable: true, minWidth: 120 },
-  { key: 'score', label: 'Score', sortable: true, minWidth: 70 },
-  { key: 'tags', label: 'Tags', sortable: false, minWidth: 100 },
-  { key: 'receivedAt', label: 'Created', sortable: true, minWidth: 100 }
+  { key: 'name', label: 'Lead Name', sortable: true, minWidth: 180, align: 'left' },
+  { key: 'phone', label: 'Phone', sortable: false, minWidth: 130, align: 'center' },
+  { key: 'source', label: 'Source', sortable: true, minWidth: 110, align: 'center' },
+  { key: 'status', label: 'Status', sortable: true, minWidth: 120, align: 'center' },
+  { key: 'assignedTo', label: 'Assigned To', sortable: true, minWidth: 130, align: 'center' },
+  { key: 'lastActivity', label: 'Last Activity', sortable: true, minWidth: 120, align: 'center' },
+  { key: 'nextFollowUp', label: 'Follow-up', sortable: true, minWidth: 130, align: 'center' },
+  { key: 'score', label: 'Score', sortable: true, minWidth: 80, align: 'center' },
+  { key: 'tags', label: 'Tags', sortable: false, minWidth: 120, align: 'center' },
+  { key: 'receivedAt', label: 'Created', sortable: true, minWidth: 100, align: 'center' },
 ];
+
+/** White vertical divider between table columns */
+export const TABLE_COL_LINE = 'border-r border-solid border-white';
+export const TABLE_ROW_LINE = 'border-b border-solid border-white';

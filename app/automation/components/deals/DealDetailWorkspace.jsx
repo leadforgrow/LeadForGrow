@@ -12,6 +12,7 @@ import {
   CheckSquare,
   StickyNote,
 } from 'lucide-react';
+import { getStageLabel, resolveStages } from '@/lib/crm/pipelineUtils';
 import { useDealDetail } from '../../hooks/useDealDetail';
 import LeadsSkeleton from '../leads/LeadsSkeleton';
 
@@ -36,7 +37,8 @@ export default function DealDetailWorkspace() {
   if (loading) return <LeadsSkeleton />;
   if (!deal) return <div className="p-8 text-center text-slate-500">Deal not found</div>;
 
-  const stages = deal.pipelineId?.stages || [];
+  const stages = resolveStages(deal.pipelineId?.stages);
+  const stageLabel = getStageLabel(stages, deal.stage);
   const currency = deal.currency || 'INR';
   const quotations = (deal.customFields?.quotations) || (typeof deal.customFields?.get === 'function' ? deal.customFields.get('quotations') : null) || [];
   const payments = (deal.customFields?.payments) || (typeof deal.customFields?.get === 'function' ? deal.customFields.get('payments') : null) || [];
@@ -56,7 +58,7 @@ export default function DealDetailWorkspace() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{deal.title}</h1>
               <p className="text-xl font-semibold text-emerald-700 dark:text-emerald-400 mt-1">{formatCurrency(deal.amount, currency)}</p>
-              <p className="text-sm text-slate-500 mt-1 capitalize">{deal.stage?.replace(/_/g, ' ')} · {deal.probability}% probability</p>
+              <p className="text-sm text-slate-500 mt-1">{stageLabel} · {deal.probability}% probability</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">

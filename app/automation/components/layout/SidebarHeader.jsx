@@ -7,7 +7,7 @@ import NotificationCenter from '../NotificationCenter';
 export default function SidebarHeader({ collapsed, isMobile, onToggle, onMobileClose }) {
   const LogoMark = ({ size = 'md' }) => (
     <div
-      className={`flex shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-white shadow-[0_2px_8px_rgba(5,150,105,0.08)] ${
+      className={`flex shrink-0 items-center justify-center rounded-xl border border-[#E8EAED] bg-white shadow-sm ${
         size === 'sm' ? 'h-9 w-9' : 'h-8 w-8'
       }`}
     >
@@ -17,7 +17,7 @@ export default function SidebarHeader({ collapsed, isMobile, onToggle, onMobileC
 
   return (
     <div
-      className={`flex-shrink-0 border-b border-emerald-100/90 bg-white/60 backdrop-blur-sm dark:border-emerald-950/40 dark:bg-emerald-950/10 ${
+      className={`flex-shrink-0 border-b border-[#E8EAED] bg-white ${
         collapsed ? 'px-2 py-3' : 'px-3 py-3.5'
       }`}
     >
@@ -26,11 +26,11 @@ export default function SidebarHeader({ collapsed, isMobile, onToggle, onMobileC
           <Link href="/automation" className="group flex min-w-0 flex-1 items-center gap-2.5">
             <LogoMark />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-[-0.01em] text-[#111827] transition-colors group-hover:text-emerald-800 dark:text-slate-50">
+              <p className="truncate text-sm font-semibold tracking-[-0.01em] text-[#1A1D1F] transition-colors group-hover:text-[#2463EB]">
                 LeadForGrow
               </p>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-emerald-700/55">
-                CRM Workspace
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#9CA3AF]">
+                CRM Management
               </p>
             </div>
           </Link>
@@ -45,7 +45,7 @@ export default function SidebarHeader({ collapsed, isMobile, onToggle, onMobileC
           <button
             type="button"
             onClick={isMobile ? onMobileClose : onToggle}
-            className="rounded-lg p-2 text-[#64748B] transition-colors hover:bg-emerald-50 hover:text-emerald-800 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
+            className="rounded-lg p-2 text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#1A1D1F]"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isMobile ? (

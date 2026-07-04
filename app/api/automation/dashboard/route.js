@@ -4,6 +4,8 @@ import Lead from '@/models/automation/Lead';
 import Deal from '@/models/automation/Deal';
 import Task from '@/models/automation/Task';
 import Activity from '@/models/automation/Activity';
+import Contact from '@/models/automation/Contact';
+import Company from '@/models/automation/Company';
 import MeetingBooking from '@/models/meetings/MeetingBooking';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
 import { CLOSED_STAGES } from '@/lib/crm/stageKeys';
@@ -14,6 +16,16 @@ import {
   monthBounds,
   wonRevenueInRange,
 } from '@/lib/crm/revenueMetrics';
+import {
+  buildHeroKpis,
+  buildRevenueSeries,
+  buildLeadsManagement,
+  buildRetentionData,
+  buildLocationData,
+  buildCalendarData,
+  startOfDay,
+  endOfDay,
+} from '@/lib/crm/dashboardMetrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,18 +33,6 @@ const STALE_DAYS = 7;
 const AWAITING_FIRST_RESPONSE = ['new', 'new_lead'];
 const QUOTATION_WAIT_STAGES = ['demo_completed', 'negotiation', 'decision_pending'];
 const MEETING_ACTIVE = ['scheduled', 'confirmed'];
-
-function startOfDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function endOfDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
-}
 
 export const GET = withTenantAuth(async (request) => {
   try {
@@ -48,6 +48,11 @@ export const GET = withTenantAuth(async (request) => {
     const dayAfterTomorrow = startOfDay(new Date(tomorrow.getTime() + 86400000));
     const next24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const staleCutoff = new Date(Date.now() - STALE_DAYS * 86400000);
+    const now = new Date();
+    const calYear = now.getFullYear();
+    const calMonth = now.getMonth();
+    const monthStart = new Date(calYear, calMonth, 1);
+    const monthEnd = new Date(calYear, calMonth + 1, 1);
 
     const pipeline = await ensureDefaultPipeline(businessId);
     const stages = pipeline.stages?.length ? pipeline.stages : [];
@@ -56,6 +61,10 @@ export const GET = withTenantAuth(async (request) => {
       todayLeads,
       awaitingFirstResponse,
       deals,
+      allLeads,
+      contacts,
+      companies,
+      monthMeetings,
       tasksDueToday,
       tasksOverdue,
       tasksCompletedToday,
@@ -71,6 +80,23 @@ export const GET = withTenantAuth(async (request) => {
       Deal.find({ businessId, archived: false })
         .select('title amount currency stage probability updatedAt wonAt lostAt assignedTo leadId')
         .populate('assignedTo', 'firstName lastName')
+        .lean(),
+      Lead.find({ businessId, archived: false })
+        .select('status source priority receivedAt convertedAt updatedAt location')
+        .lean(),
+      Contact.find({ businessId, archived: { $ne: true } })
+        .select('addresses')
+        .lean(),
+      Company.find({ businessId, archived: { $ne: true } })
+        .select('address')
+        .lean(),
+      MeetingBooking.find({
+        businessId,
+        status: { $in: MEETING_ACTIVE },
+        startTime: { $gte: monthStart, $lt: monthEnd },
+      })
+        .sort({ startTime: 1 })
+        .populate('assignedTo', 'firstName lastName email')
         .lean(),
       Task.find({ businessId, status: 'pending', dueDate: { $gte: today, $lte: endOfDay() } })
         .sort({ dueDate: 1 }).limit(12).lean(),
@@ -143,10 +169,31 @@ export const GET = withTenantAuth(async (request) => {
       startTime: { $gte: today, $lt: tomorrow },
     });
 
+    const currency = deals[0]?.currency || 'INR';
+    const heroKpis = buildHeroKpis(allLeads, deals, revenue);
+    const revenueChart = buildRevenueSeries(deals, currency);
+    const leadsManagement = buildLeadsManagement(allLeads);
+    const retention = buildRetentionData(allLeads);
+    const locations = buildLocationData(contacts, companies, allLeads);
+    const calendar = buildCalendarData(monthMeetings, calYear, calMonth);
+
     return NextResponse.json({
       success: true,
       data: {
-        currency: deals[0]?.currency || 'INR',
+        lastUpdated: new Date().toISOString(),
+        currency,
+        heroKpis,
+        revenue: {
+          ...revenue,
+          wonThisMonth,
+          wonLastMonth,
+          monthChange,
+          chart: revenueChart,
+        },
+        leadsManagement,
+        retention,
+        locations,
+        calendar,
         kpis: {
           newLeadsToday: todayLeads,
           leadsAwaitingFirstResponse: awaitingFirstResponse,
@@ -156,12 +203,6 @@ export const GET = withTenantAuth(async (request) => {
           lostRevenue: revenue.lostRevenue,
           meetingsToday: meetingsTodayCount,
           tasksDueToday: tasksDueToday.length,
-        },
-        revenue: {
-          ...revenue,
-          wonThisMonth,
-          wonLastMonth,
-          monthChange,
         },
         focus: {
           followUpsToday: followUpLeads,

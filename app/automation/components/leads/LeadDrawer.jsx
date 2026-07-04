@@ -12,6 +12,7 @@ import {
   Tag,
   Sparkles,
   ArrowRightLeft,
+  MapPin,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
@@ -39,6 +40,14 @@ export default function LeadDrawer({
   const [note, setNote] = useState('');
   const [showConvert, setShowConvert] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [locationForm, setLocationForm] = useState({
+    street: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: '',
+  });
+  const [savingLocation, setSavingLocation] = useState(false);
 
   useEffect(() => {
     setShowConvert(false);
@@ -50,8 +59,16 @@ export default function LeadDrawer({
     authFetch(`/api/automation/leads/${leadId}`)
       .then((r) => r.json())
       .then((data) => {
-        if (data.success) setLead(data.data);
-        else toast.error('Failed to load lead');
+        if (data.success) {
+          setLead(data.data);
+          setLocationForm({
+            street: data.data.location?.street || '',
+            city: data.data.location?.city || '',
+            state: data.data.location?.state || '',
+            postalCode: data.data.location?.postalCode || '',
+            country: data.data.location?.country || '',
+          });
+        } else toast.error('Failed to load lead');
       })
       .catch(() => toast.error('Failed to load lead'))
       .finally(() => setLoading(false));
@@ -74,6 +91,29 @@ export default function LeadDrawer({
       setLead((prev) => ({ ...prev, ...updated }));
     } else if (prevStatus != null) {
       setLead((prev) => (prev ? { ...prev, status: prevStatus } : prev));
+    }
+  };
+
+  const saveLocation = async () => {
+    setSavingLocation(true);
+    try {
+      const userId = getUserId();
+      const res = await authFetch(`/api/automation/leads/${leadId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: locationForm, performedBy: userId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLead((prev) => ({ ...prev, ...data.data }));
+        toast.success('Location saved');
+      } else {
+        toast.error(data.error || 'Failed to save location');
+      }
+    } catch {
+      toast.error('Failed to save location');
+    } finally {
+      setSavingLocation(false);
     }
   };
 
@@ -221,6 +261,57 @@ export default function LeadDrawer({
                       <p className="text-sm text-slate-700 dark:text-slate-300">{lead.serviceInterest}</p>
                     </div>
                   )}
+
+                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-2.5">
+                    <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> Location
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={locationForm.country}
+                        onChange={(e) => setLocationForm((prev) => ({ ...prev, country: e.target.value }))}
+                        placeholder="Country"
+                        className="col-span-2 text-sm px-2.5 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={locationForm.city}
+                        onChange={(e) => setLocationForm((prev) => ({ ...prev, city: e.target.value }))}
+                        placeholder="City"
+                        className="text-sm px-2.5 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={locationForm.state}
+                        onChange={(e) => setLocationForm((prev) => ({ ...prev, state: e.target.value }))}
+                        placeholder="State"
+                        className="text-sm px-2.5 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={locationForm.postalCode}
+                        onChange={(e) => setLocationForm((prev) => ({ ...prev, postalCode: e.target.value }))}
+                        placeholder="Postal code"
+                        className="text-sm px-2.5 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={locationForm.street}
+                        onChange={(e) => setLocationForm((prev) => ({ ...prev, street: e.target.value }))}
+                        placeholder="Street"
+                        className="text-sm px-2.5 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={saveLocation}
+                      disabled={savingLocation}
+                      className="w-full py-2 text-xs font-medium rounded-md bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
+                    >
+                      {savingLocation ? 'Saving…' : 'Save location'}
+                    </button>
+                  </div>
 
                   {intelligence && (
                     <div className="p-3 rounded-lg border border-blue-100 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20">

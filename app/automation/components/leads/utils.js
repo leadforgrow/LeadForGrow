@@ -1,4 +1,4 @@
-import { STATUS_CONFIG, LEAD_STATUS_ROW_COLORS, PIPELINE_STAGES } from './constants';
+import { STATUS_CONFIG, LEAD_STATUS_ROW_COLORS, LEAD_STATUS_ACCENT_COLORS, PIPELINE_STAGES } from './constants';
 import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 
 /** Unwrap User from TeamMember { userId: {...} } or return User as-is */
@@ -64,6 +64,41 @@ export function formatRelative(date) {
   return formatDate(date);
 }
 
+/** Follow-up column: date label, sub-label, and visual tone */
+export function getFollowUpMeta(date) {
+  if (!date) {
+    return { key: 'none', dateLabel: '—', subLabel: 'Not scheduled', tone: 'muted' };
+  }
+
+  const dueDay = new Date(date);
+  dueDay.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((dueDay - today) / (24 * 60 * 60 * 1000));
+
+  if (diffDays < 0) {
+    const overdue = Math.abs(diffDays);
+    return {
+      key: 'overdue',
+      dateLabel: formatDate(date),
+      subLabel: overdue === 1 ? '1 day overdue' : `${overdue} days overdue`,
+      tone: 'overdue',
+    };
+  }
+  if (diffDays === 0) {
+    return { key: 'today', dateLabel: formatDate(date), subLabel: 'Due today', tone: 'today' };
+  }
+  if (diffDays === 1) {
+    return { key: 'tomorrow', dateLabel: formatDate(date), subLabel: 'Tomorrow', tone: 'upcoming' };
+  }
+  return {
+    key: 'upcoming',
+    dateLabel: formatDate(date),
+    subLabel: `In ${diffDays} days`,
+    tone: 'upcoming',
+  };
+}
+
 export function formatSource(source) {
   if (!source) return 'Unknown';
   return source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -104,7 +139,14 @@ export function buildLeadsQuery(filters) {
   if (filters.status && filters.status !== 'all') params.set('status', filters.status);
   if (filters.source) params.set('source', filters.source);
   if (filters.assignedTo) params.set('assignedTo', filters.assignedTo);
-  if (filters.view && filters.view !== 'all') params.set('view', filters.view);
+  if (filters.view && filters.view !== 'all' && filters.view !== 'kanban') {
+    params.set('view', filters.view);
+  }
+  if (filters.kanban) {
+    params.set('kanban', '1');
+    params.set('page', '1');
+    params.set('limit', String(filters.kanbanLimit || 500));
+  }
   if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
   if (filters.dateTo) params.set('dateTo', filters.dateTo);
   if (filters.page) params.set('page', String(filters.page));
@@ -115,6 +157,11 @@ export function buildLeadsQuery(filters) {
 export function getStatusRowColor(status) {
   const key = normalizeLeadStatus(status);
   return LEAD_STATUS_ROW_COLORS[key] || LEAD_STATUS_ROW_COLORS[status] || null;
+}
+
+export function getStatusAccentColor(status) {
+  const key = normalizeLeadStatus(status);
+  return LEAD_STATUS_ACCENT_COLORS[key] || LEAD_STATUS_ACCENT_COLORS[status] || '#94a3b8';
 }
 
 /** Manual rowColor overrides automatic status color */

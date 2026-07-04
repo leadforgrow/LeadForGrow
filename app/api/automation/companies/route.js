@@ -19,24 +19,46 @@ export const GET = withTenantAuth(async (request) => {
     const { searchParams } = new URL(request.url);
     const { page, limit, skip, sortField, sortDir, search, archived } = parseListParams(searchParams);
     const industry = searchParams.get('industry');
+    const status = searchParams.get('status');
+    const ownerId = searchParams.get('ownerId');
+    const country = searchParams.get('country');
+    const hasOpenDeals = searchParams.get('hasOpenDeals');
+    const tag = searchParams.get('tag');
+    const recentlyAdded = searchParams.get('recentlyAdded') === '1';
 
     const query = { businessId: tenant.business._id, deletedAt: null, archived };
     if (industry) query.industry = industry;
+    if (status) query.status = status;
+    if (ownerId) query.ownerId = ownerId === 'unassigned' ? null : ownerId;
+    if (country) query['address.country'] = country;
+    if (tag) query.tags = tag;
+    if (recentlyAdded) {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      query.createdAt = { $gte: weekAgo };
+    }
 
-    const searchOr = buildSearchOr(['name', 'domain', 'website', 'email'], search);
+    const searchOr = buildSearchOr(['name', 'domain', 'website', 'email', 'gstNumber'], search);
     if (searchOr) query.$or = searchOr;
 
-    const [companies, total] = await Promise.all([
-      Company.find(query)
-        .populate('ownerId', 'firstName lastName email')
-        .sort({ [sortField]: sortDir })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Company.countDocuments(query),
-    ]);
+    let companies = await Company.find(query)
+      .populate('ownerId', 'firstName lastName email')
+      .sort({ [sortField]: sortDir })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    const enriched = await enrichCompaniesWithStats(tenant.business._id, companies);
+    let enriched = await enrichCompaniesWithStats(tenant.business._id, companies);
+
+    if (hasOpenDeals === 'yes') {
+      enriched = enriched.filter((c) => (c.stats?.openDealCount || 0) > 0);
+    } else if (hasOpenDeals === 'no') {
+      enriched = enriched.filter((c) => (c.stats?.openDealCount || 0) === 0);
+    }
+
+    const total = hasOpenDeals
+      ? enriched.length
+      : await Company.countDocuments(query);
 
     return NextResponse.json({ success: true, data: enriched, pagination: paginationMeta(total, page, limit) });
   } catch (error) {

@@ -38,7 +38,7 @@ export default function Sidebar() {
 
       <aside
         style={{ width: sidebar.isMobile ? SIDEBAR_WIDTH.expanded : width }}
-        className={`flex flex-col h-screen flex-shrink-0 z-50 bg-[#FAFDFA] dark:bg-[#0a120f] border-r border-emerald-100/90 dark:border-emerald-950/40 transition-[width,transform] duration-300 ease-out ${
+        className={`flex flex-col h-screen flex-shrink-0 z-50 bg-white border-r border-[#E8EAED] transition-[width,transform] duration-300 ease-out ${
           sidebar.isMobile
             ? `fixed top-0 left-0 shadow-2xl ${sidebar.mobileOpen ? 'translate-x-0' : '-translate-x-full'}`
             : 'sticky top-0'
@@ -54,7 +54,7 @@ export default function Sidebar() {
         <nav
           className={`flex-1 overflow-y-auto overflow-x-hidden py-3 space-y-4 scrollbar-thin ${
             showRail ? 'px-2' : 'px-2'
-          } [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-emerald-200/80 dark:[&::-webkit-scrollbar-thumb]:bg-emerald-900/50 [&::-webkit-scrollbar-thumb]:rounded-full`}
+          } [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[#E8EAED] [&::-webkit-scrollbar-thumb]:rounded-full`}
         >
           {groups.map((group) => (
             <SidebarSection
@@ -70,7 +70,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="flex-shrink-0 border-t border-emerald-100/90 dark:border-emerald-950/40 bg-[#F3FAF3]/80 dark:bg-emerald-950/20">
+        <div className="flex-shrink-0 border-t border-[#E8EAED] bg-[#FAFBFC]">
           <WorkspaceSwitcher
             workspace={sidebar.userData.workspace}
             plan={sidebar.userData.plan}
@@ -87,7 +87,7 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={sidebar.toggleMobile}
-          className="fixed top-3.5 left-3.5 z-40 w-9 h-9 bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900/50 rounded-lg flex items-center justify-center text-emerald-800 shadow-md hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors lg:hidden"
+          className="fixed top-3.5 left-3.5 z-40 w-9 h-9 bg-white border border-[#E8EAED] rounded-lg flex items-center justify-center text-[#1A1D1F] shadow-md hover:bg-[#F8F9FA] transition-colors lg:hidden"
           title="Open navigation"
         >
           <Menu className="w-4 h-4" />

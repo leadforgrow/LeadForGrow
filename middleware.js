@@ -6,6 +6,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/refresh',
+  '/api/auth/google',
   '/api/forms/submit',
   '/api/forms/public',
   '/api/forms/config',

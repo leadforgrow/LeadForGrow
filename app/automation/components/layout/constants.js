@@ -38,12 +38,12 @@ export const NAV_GROUPS = [
     items: [
       { id: 'dashboard', name: 'Dashboard', href: '/automation', icon: LayoutDashboard, exact: true },
       { id: 'leads', name: 'Leads', href: '/automation/leads', icon: Users, badgeKey: 'unreadLeads', urgent: true },
-      { id: 'contacts', name: 'Contacts', href: '/automation/contacts', icon: UserCircle, matchPrefix: '/automation/contacts' },
-      { id: 'companies', name: 'Companies', href: '/automation/companies', icon: Building2, matchPrefix: '/automation/companies' },
+      { id: 'pipeline', name: 'Lead Pipeline', href: '/automation/leads?view=kanban', icon: Kanban, matchPrefix: '/automation/leads' },
       { id: 'deals', name: 'Deals', href: '/automation/deals', icon: Handshake, matchPrefix: '/automation/deals' },
       { id: 'deal-pipeline', name: 'Deal Pipeline', href: '/automation/pipelines', icon: GitBranch, matchPrefix: '/automation/pipelines' },
-      { id: 'pipeline', name: 'Lead Pipeline', href: '/automation/leads?view=kanban', icon: Kanban, matchPrefix: '/automation/leads' },
       { id: 'tasks', name: 'Tasks', href: '/automation/tasks', icon: CheckSquare, badgeKey: 'overdueTasks', urgent: true },
+      { id: 'companies', name: 'Companies', href: '/automation/companies', icon: Building2, matchPrefix: '/automation/companies' },
+      { id: 'contacts', name: 'Contacts', href: '/automation/contacts', icon: UserCircle, matchPrefix: '/automation/contacts' },
     ]
   },
   {

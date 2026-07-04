@@ -1,6 +1,6 @@
 'use client';
 
-import { Phone, Mail, Tag, Clock, User, Sparkles, ChevronDown, MessageSquare } from 'lucide-react';
+import { Phone, Mail, Tag, Clock, User, Sparkles, ChevronDown, MessageSquare, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { PIPELINE_STAGES } from '../constants';
 import { assigneeName, formatSource, formatDate, formatRelative, mapTeamMemberOptions } from '../utils';
@@ -49,6 +49,16 @@ export default function LeadDetailProfile({
           <div className="flex items-start gap-2.5 text-sm">
             <Tag className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
             <span className="text-slate-600 dark:text-slate-400">{lead.serviceInterest}</span>
+          </div>
+        )}
+        {(lead.location?.city || lead.location?.country || lead.location?.state) && (
+          <div className="flex items-start gap-2.5 text-sm">
+            <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+            <span className="text-slate-600 dark:text-slate-400">
+              {[lead.location.city, lead.location.state, lead.location.country]
+                .filter(Boolean)
+                .join(', ')}
+            </span>
           </div>
         )}
         <div className="flex items-center gap-2.5 text-sm">

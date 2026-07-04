@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
+import { isStageLost, resolveStages } from '@/lib/crm/pipelineUtils';
 
 export function useDealDetail(dealId) {
   const router = useRouter();
@@ -46,8 +47,9 @@ export function useDealDetail(dealId) {
   };
 
   const changeStage = async (stage) => {
+    const stages = resolveStages(deal?.pipelineId?.stages);
     const payload = { stage };
-    if (stage === 'lost' || stage === 'closed_lost') {
+    if (isStageLost(stage, stages)) {
       const reason = window.prompt('Why was this deal lost?');
       if (!reason?.trim()) {
         toast.error('Lost reason is required');

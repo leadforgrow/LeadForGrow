@@ -189,6 +189,90 @@
   @apply transition-transform duration-200;
 }
 
+/* ── Premium dashboard animations ───────────────────────────── */
+@keyframes lfg-fade-up {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.lfg-fade-up {
+  animation: lfg-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes lfg-scale-in {
+  0% { opacity: 0; transform: scale(0.97) translateY(4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.lfg-scale-in {
+  animation: lfg-scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top right;
+}
+
+@keyframes lfg-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.lfg-draw-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: lfg-draw 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lfg-area-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.lfg-area-in {
+  animation: lfg-area-in 1.1s ease-out forwards;
+}
+
+@keyframes lfg-reveal-x {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+.lfg-chart-reveal {
+  transform-origin: left center;
+  animation: lfg-reveal-x 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes lfg-grow-y {
+  0% { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+
+.lfg-grow-y {
+  transform-origin: bottom;
+  animation: lfg-grow-y 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes lfg-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.lfg-skeleton {
+  background: linear-gradient(90deg, #EEF1F0 25%, #F6F8F7 50%, #EEF1F0 75%);
+  background-size: 200% 100%;
+  animation: lfg-shimmer 1.4s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lfg-fade-up,
+  .lfg-scale-in,
+  .lfg-draw-line,
+  .lfg-area-in,
+  .lfg-grow-y,
+  .lfg-chart-reveal,
+  .lfg-skeleton {
+    animation: none !important;
+  }
+  .lfg-draw-line { stroke-dashoffset: 0; }
+  .lfg-chart-reveal { transform: scaleX(1); }
+}
+
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-4px); opacity: 1; }

@@ -1,0 +1,101 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import WidgetCard from './WidgetCard';
+
+const TABS = [
+  { id: 'status', label: 'Status' },
+  { id: 'sources', label: 'Sources' },
+  { id: 'qualification', label: 'Qualification' },
+];
+
+const STATUS_COLORS = {
+  open: '#1A45A5',
+  in_progress: '#2563EB',
+  lost: '#E5484D',
+  won: '#153A8A',
+};
+
+function LeadStatBox({ item, color }) {
+  return (
+    <div className="p-3 rounded-[12px] border border-[#E8ECEF] bg-[#FAFBFB] transition-all duration-200 hover:border-[#BFDBFE] hover:bg-white hover:shadow-[0_2px_8px_rgba(16,24,40,0.05)]">
+      <p className="text-[12px] font-normal text-[#475569] mb-1.5 truncate">{item.label}</p>
+      <p className="text-[18px] font-medium text-[#1A1D1F] tabular-nums leading-none mb-2.5 tracking-[-0.02em]">
+        {item.count}
+        <span className="text-[11px] font-normal text-[#94A3B8] ml-1">leads</span>
+      </p>
+      <div className="h-1.5 rounded-full bg-[#EEF1F0] overflow-hidden">
+        <div
+          className="h-full rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{ width: `${item.progress}%`, backgroundColor: color || '#1A45A5' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function LeadsManagementCard({ leadsManagement, onRefresh }) {
+  const [tab, setTab] = useState('status');
+  const tabIndex = TABS.findIndex((t) => t.id === tab);
+
+  if (!leadsManagement) return null;
+
+  const items = leadsManagement[tab] || [];
+
+  return (
+    <WidgetCard
+      title="Leads Management"
+      onRefresh={onRefresh}
+      action={
+        <Link
+          href="/automation/leads"
+          className="inline-flex items-center gap-0.5 text-[12.5px] font-normal text-[#1A45A5] hover:text-[#153A8A] transition-colors"
+        >
+          View all
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </Link>
+      }
+      className="h-full"
+    >
+      <div className="relative flex p-1 bg-[#F2F4F3] rounded-[10px] mb-4 w-full max-w-[320px]">
+        <span
+          className="absolute top-1 bottom-1 rounded-[8px] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            left: 4,
+            width: `calc((100% - 8px) / ${TABS.length})`,
+            transform: `translateX(${tabIndex * 100}%)`,
+          }}
+        />
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`relative z-10 flex-1 py-1.5 text-[12px] font-normal rounded-[8px] transition-colors duration-200 ${tab === t.id ? 'text-[#101828]' : 'text-[#667085] hover:text-[#101828]'
+              }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {items.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center py-10">
+          <p className="text-[13px] text-[#98A2B3]">No lead data yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {items.map((item) => (
+            <LeadStatBox
+              key={item.key}
+              item={item}
+              color={tab === 'status' ? STATUS_COLORS[item.key] : '#1A45A5'}
+            />
+          ))}
+        </div>
+      )}
+    </WidgetCard>
+  );
+}

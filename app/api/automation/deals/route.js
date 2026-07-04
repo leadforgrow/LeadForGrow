@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Deal from '@/models/automation/Deal';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
-import { ensureDefaultPipeline } from '@/lib/crm/pipelines';
+import { ensureDefaultPipeline, getStageByKey } from '@/lib/crm/pipelines';
+import { getDefaultStageKey } from '@/lib/crm/pipelineUtils';
+import Pipeline from '@/models/automation/Pipeline';
 import { logTimelineEvent } from '@/lib/crm/timeline';
 
 export const GET = withTenantAuth(async (req) => {
@@ -22,7 +24,7 @@ export const GET = withTenantAuth(async (req) => {
     const query = { businessId: tenant.business._id, archived: false };
     if (stage) query.stage = stage;
 
-    const [deals, total, pipeline] = await Promise.all([
+    const [deals, total, pipelineAgg, defaultPipeline] = await Promise.all([
       Deal.find(query)
         .populate('leadId', 'name email phone status')
         .populate('assignedTo', 'firstName lastName email')
@@ -42,12 +44,14 @@ export const GET = withTenantAuth(async (req) => {
           },
         },
       ]),
+      ensureDefaultPipeline(tenant.business._id),
     ]);
 
     return NextResponse.json({
       success: true,
       data: deals,
-      pipeline,
+      pipeline: pipelineAgg,
+      pipelineStages: defaultPipeline?.stages || [],
       pagination: { total, page, limit, pages: Math.ceil(total / limit) || 1 },
     });
   } catch (error) {
@@ -70,18 +74,25 @@ export const POST = withTenantAuth(async (req) => {
 
     await dbConnect();
 
-    const pipeline = body.pipelineId
-      ? null
-      : await ensureDefaultPipeline(tenant.business._id);
+    let pipelineDoc = null;
+    if (body.pipelineId) {
+      pipelineDoc = await Pipeline.findOne({ _id: body.pipelineId, businessId: tenant.business._id, deletedAt: null });
+    }
+    if (!pipelineDoc) {
+      pipelineDoc = await ensureDefaultPipeline(tenant.business._id);
+    }
+
+    const stageKey = body.stage || getDefaultStageKey(pipelineDoc.stages);
+    const stageConfig = getStageByKey(pipelineDoc, stageKey);
 
     const deal = await Deal.create({
       businessId: tenant.business._id,
       title: body.title,
       amount: body.amount || 0,
       currency: body.currency || 'INR',
-      probability: body.probability ?? 10,
-      stage: body.stage || 'qualified',
-      pipelineId: body.pipelineId || pipeline?._id,
+      probability: body.probability ?? stageConfig?.probability ?? 10,
+      stage: stageKey,
+      pipelineId: pipelineDoc._id,
       expectedCloseDate: body.expectedCloseDate ? new Date(body.expectedCloseDate) : undefined,
       assignedTo: body.assignedTo || tenant.user._id,
       ownerId: tenant.user._id,

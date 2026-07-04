@@ -10,7 +10,26 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: function requiredPassword() {
+      return this.authProvider !== 'google';
+    },
+  },
+
+  // Google OAuth
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local',
+  },
+  googleId: {
+    type: String,
+    trim: true,
+    index: true,
+    sparse: true,
+  },
+  avatarUrl: {
+    type: String,
+    trim: true,
   },
 
   // Multi-tenant: User belongs to a Business or an Agency

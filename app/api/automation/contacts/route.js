@@ -5,6 +5,7 @@ import { withTenantAuth, resolveTenant } from '@/lib/auth';
 import { parseListParams, buildSearchOr, paginationMeta } from '@/lib/crm/queryBuilder';
 import { logTimelineEvent } from '@/lib/crm/timeline';
 import { findDuplicateContacts } from '@/lib/crm/duplicateDetection';
+import { enrichContactsWithStats } from '@/lib/crm/contactService';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,26 +21,45 @@ export const GET = withTenantAuth(async (request) => {
     const type = searchParams.get('type');
     const tag = searchParams.get('tag');
 
+    const ownerId = searchParams.get('ownerId');
+    const hasOpenDeals = searchParams.get('hasOpenDeals');
+    const recentlyAdded = searchParams.get('recentlyAdded') === '1';
+
     const query = { businessId: tenant.business._id, deletedAt: null, archived };
     if (companyId) query.companyId = companyId;
     if (type) query.type = type;
     if (tag) query.tags = tag;
+    if (ownerId) query.ownerId = ownerId === 'unassigned' ? null : ownerId;
+    if (recentlyAdded) {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      query.createdAt = { $gte: weekAgo };
+    }
 
     const searchOr = buildSearchOr(['fullName', 'firstName', 'lastName', 'jobTitle'], search);
     if (searchOr) query.$or = searchOr;
 
-    const [contacts, total] = await Promise.all([
-      Contact.find(query)
-        .populate('companyId', 'name domain')
-        .populate('ownerId', 'firstName lastName email')
-        .sort({ [sortField]: sortDir })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Contact.countDocuments(query),
-    ]);
+    let contacts = await Contact.find(query)
+      .populate('companyId', 'name domain')
+      .populate('ownerId', 'firstName lastName email')
+      .sort({ [sortField]: sortDir })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    return NextResponse.json({ success: true, data: contacts, pagination: paginationMeta(total, page, limit) });
+    let enriched = await enrichContactsWithStats(tenant.business._id, contacts);
+
+    if (hasOpenDeals === 'yes') {
+      enriched = enriched.filter((c) => (c.stats?.openDeals || 0) > 0);
+    } else if (hasOpenDeals === 'no') {
+      enriched = enriched.filter((c) => (c.stats?.openDeals || 0) === 0);
+    }
+
+    const total = hasOpenDeals
+      ? enriched.length
+      : await Contact.countDocuments(query);
+
+    return NextResponse.json({ success: true, data: enriched, pagination: paginationMeta(total, page, limit) });
   } catch (error) {
     console.error('[Contacts API GET]', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

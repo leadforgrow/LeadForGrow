@@ -5,8 +5,43 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 import { SettingsTabs, SettingsCard, SettingsField, SettingsInput, SettingsToggle, SettingsSelect } from '../../components/settings/SettingsCard';
-import { DEFAULT_DEAL_STAGES } from '@/lib/crm/pipelineStages';
 import { PAYMENT_ON_CONFIRM_MODES } from '@/lib/crm/crmSettings';
+import { resolveStages } from '@/lib/crm/pipelineUtils';
+
+function PipelineStagesPreview() {
+  const [stages, setStages] = useState([]);
+
+  useEffect(() => {
+    authFetch('/api/automation/pipelines')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          const def = d.data?.find((p) => p.isDefault) || d.data?.[0];
+          setStages(resolveStages(def?.stages));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <SettingsCard title="Pipeline stages" description="Your configured deal pipeline stages">
+      <ol className="space-y-2">
+        {stages.map((s) => (
+          <li key={s.key} className="flex items-center gap-3 text-sm">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="font-medium text-slate-800 dark:text-slate-200">{s.label}</span>
+            <span className="text-xs text-slate-400">{s.probability}% probability</span>
+            {s.isWon && <span className="text-[10px] text-emerald-600 font-medium">Won</span>}
+            {s.isLost && <span className="text-[10px] text-red-600 font-medium">Lost</span>}
+          </li>
+        ))}
+      </ol>
+      <p className="text-xs text-slate-500 mt-4">
+        Edit names, scores, and colors in <a href="/automation/pipelines" className="text-blue-600 hover:underline">Deal Pipeline settings</a>.
+      </p>
+    </SettingsCard>
+  );
+}
 
 const TABS = [
   { id: 'pipeline', label: 'Pipeline Behavior' },
@@ -92,20 +127,7 @@ export default function CRMSettingsPage() {
       )}
 
       {tab === 'stages' && (
-        <SettingsCard title="Pipeline stages" description="12-stage enterprise sales pipeline (read-only)">
-          <ol className="space-y-2">
-            {DEFAULT_DEAL_STAGES.map((s) => (
-              <li key={s.key} className="flex items-center gap-3 text-sm">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                <span className="font-medium text-slate-800 dark:text-slate-200">{s.label}</span>
-                <span className="text-xs text-slate-400">{s.probability}% probability</span>
-              </li>
-            ))}
-          </ol>
-          <p className="text-xs text-slate-500 mt-4">
-            Customize deal pipeline labels in <a href="/automation/pipelines" className="text-blue-600 hover:underline">Deal Pipeline settings</a>.
-          </p>
-        </SettingsCard>
+        <PipelineStagesPreview />
       )}
 
       {tab === 'tasks' && (

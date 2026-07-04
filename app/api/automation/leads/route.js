@@ -33,7 +33,10 @@ export const GET = withTenantAuth(async (request) => {
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50', 10)), 100);
+    const forKanban = searchParams.get('kanban') === '1';
+    const limit = forKanban
+      ? Math.min(Math.max(1, parseInt(searchParams.get('limit') || '500', 10)), 500)
+      : Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50', 10)), 100);
     const skip = (page - 1) * limit;
 
     const query = { businessId: business._id, archived: false };
@@ -124,14 +127,30 @@ export const GET = withTenantAuth(async (request) => {
       const dealAmounts = await Deal.aggregate([
         { $match: { businessId: business._id, leadId: { $in: leadIds }, deletedAt: null } },
         { $sort: { updatedAt: -1 } },
-        { $group: { _id: '$leadId', amount: { $first: '$amount' }, currency: { $first: '$currency' } } },
+        {
+          $group: {
+            _id: '$leadId',
+            amount: { $first: '$amount' },
+            currency: { $first: '$currency' },
+            stage: { $first: '$stage' },
+          },
+        },
       ]);
-      const amountByLead = Object.fromEntries(
-        dealAmounts.map((d) => [d._id.toString(), { amount: d.amount, currency: d.currency }])
+      const dealByLead = Object.fromEntries(
+        dealAmounts.map((d) => [
+          d._id.toString(),
+          { amount: d.amount, currency: d.currency, stage: d.stage },
+        ])
       );
       enrichedLeads = leads.map((l) => {
-        const deal = amountByLead[l._id.toString()];
-        if (deal?.amount) return { ...l, dealAmount: deal.amount, dealCurrency: deal.currency };
+        const deal = dealByLead[l._id.toString()];
+        if (deal?.amount || deal?.stage) {
+          return {
+            ...l,
+            ...(deal.amount ? { dealAmount: deal.amount, dealCurrency: deal.currency } : {}),
+            ...(deal.stage ? { dealStage: deal.stage } : {}),
+          };
+        }
         const meta = l.metadata;
         const metaAmount = meta?.amount ?? meta?.dealAmount ?? (typeof meta?.get === 'function' ? meta.get('amount') || meta.get('dealAmount') : null);
         if (metaAmount) {
@@ -206,6 +225,16 @@ export const POST = withTenantAuth(async (request) => {
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       priority: body.priority || 'medium',
       tags: Array.isArray(body.tags) ? body.tags : [],
+      ...(body.location ? { location: body.location } : {}),
+      ...(body.city || body.country || body.state || body.street || body.postalCode
+        ? {
+            city: body.city,
+            state: body.state,
+            country: body.country,
+            street: body.street,
+            postalCode: body.postalCode,
+          }
+        : {}),
     };
 
     // Process lead through centralized processor

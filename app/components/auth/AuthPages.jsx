@@ -1,11 +1,57 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Building2, ArrowRight, Eye, Briefcase, ChevronLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AuthIllustrationPanel, AuthFormShell, AUTH } from './AuthLayout';
+
+const GOOGLE_ERRORS = {
+  google_cancelled: 'Google sign-in was cancelled.',
+  google_failed: 'Google sign-in failed. Please try again.',
+  google_config: 'Google Sign-In is not configured yet.',
+  google_missing_code: 'Google did not return an auth code.',
+  google_no_email: 'Google account has no email address.',
+  account_disabled: 'This account has been disabled.',
+};
+
+function GoogleIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.8-5.5 3.8-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.2 14.6 2.2 12 2.2 6.9 2.2 2.8 6.3 2.8 11.4S6.9 20.6 12 20.6c6.9 0 8.5-5.8 8.5-8.7 0-.6-.1-1-.1-1.5H12z" />
+      <path fill="#34A853" d="M3.9 7.5l3.2 2.4C8 7.5 9.8 6.2 12 6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.2 14.6 2.2 12 2.2 8.3 2.2 5.1 4.3 3.9 7.5z" />
+      <path fill="#4A90E2" d="M12 20.6c2.5 0 4.6-.8 6.1-2.2l-3-2.4c-.8.6-1.9 1-3.1 1-2.4 0-4.4-1.6-5.1-3.8l-3.2 2.5c1.3 3.1 4.4 4.9 8.3 4.9z" />
+      <path fill="#FBBC05" d="M6.9 13.2c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8L3.7 7.1C3 8.4 2.6 9.9 2.6 11.4s.4 3 1.1 4.3l3.2-2.5z" />
+    </svg>
+  );
+}
+
+function GoogleButton({ mode = 'login', isAgency = false, label = 'Continue with Google' }) {
+  const href = `/api/auth/google?mode=${mode}${isAgency ? '&isAgency=1' : ''}`;
+  return (
+    <a
+      href={href}
+      className="flex items-center justify-center gap-2.5 w-full h-11 px-4 text-[13px] font-semibold text-[#344054] bg-white border border-[#E5E7EB] rounded-xl hover:bg-[#F9FAFB] hover:border-[#D0D5DD] transition-colors"
+    >
+      <GoogleIcon />
+      {label}
+    </a>
+  );
+}
+
+function AuthDivider() {
+  return (
+    <div className="relative my-6">
+      <div className="absolute inset-0 flex items-center">
+        <div className="w-full border-t border-[#E5E7EB]" />
+      </div>
+      <div className="relative flex justify-center text-xs">
+        <span className="px-3 bg-white text-[#98A2B3]">or</span>
+      </div>
+    </div>
+  );
+}
 
 function redirectAfterAuth(router, data) {
   const role = (data.role || 'member').toLowerCase();
@@ -29,9 +75,16 @@ function persistSession(data, email) {
 
 export function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    const err = searchParams.get('error');
+    if (err && GOOGLE_ERRORS[err]) toast.error(GOOGLE_ERRORS[err]);
+    else if (err) toast.error('Google sign-in failed');
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,6 +114,8 @@ export function LoginPage() {
     <div className={AUTH.panel}>
       <AuthIllustrationPanel variant="login" />
       <AuthFormShell title="Welcome back" subtitle="Sign in to your LeadForGrow workspace.">
+        <GoogleButton mode="login" label="Continue with Google" />
+        <AuthDivider />
         <form onSubmit={handleSubmit} className="space-y-5">
           <Field icon={Mail} label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
           <Field icon={Lock} label="Password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={(v) => setForm({ ...form, password: v })} togglePassword={() => setShowPassword(!showPassword)} showToggle>
@@ -128,6 +183,12 @@ export function RegisterPage() {
             </button>
           ))}
         </div>
+        <GoogleButton
+          mode="register"
+          isAgency={accountType === 'agency'}
+          label="Continue with Google"
+        />
+        <AuthDivider />
         <form onSubmit={handleSubmit} className="space-y-5">
           <Field icon={Building2} label={accountType === 'agency' ? 'Agency name' : 'Business name'} value={form.companyName} onChange={(v) => setForm({ ...form, companyName: v })} />
           <Field icon={Mail} label="Work email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />

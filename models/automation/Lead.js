@@ -93,6 +93,15 @@ const LeadSchema = new mongoose.Schema({
     trim: true
   },
 
+  // Customer location (powers Top Customer Locations on dashboard)
+  location: {
+    street: { type: String, trim: true },
+    city: { type: String, trim: true },
+    state: { type: String, trim: true },
+    postalCode: { type: String, trim: true },
+    country: { type: String, trim: true },
+  },
+
   // Status & Assignment
   status: {
     type: String,
@@ -209,6 +218,7 @@ LeadSchema.index({ businessId: 1, email: 1 });
 LeadSchema.index({ businessId: 1, tags: 1 });
 LeadSchema.index({ businessId: 1, archived: 1, updatedAt: -1 });
 LeadSchema.index({ businessId: 1, companyId: 1 });
+LeadSchema.index({ businessId: 1, 'location.country': 1 });
 
 export default mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
 

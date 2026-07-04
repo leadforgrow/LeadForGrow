@@ -8,7 +8,9 @@ import { withTenantAuth, resolveTenant } from '@/lib/auth';
 import { logTimelineEvent, getEntityTimeline } from '@/lib/crm/timeline';
 import { ensureDefaultPipeline, getStageByKey } from '@/lib/crm/pipelines';
 import { runDealStageAutomations } from '@/lib/crm/stageAutomations';
-import { isClosedStage } from '@/lib/crm/stageKeys';
+import { normalizeStageKey } from '@/lib/crm/stageKeys';
+import { isStageClosed, isStageWon, getStageLabel } from '@/lib/crm/pipelineUtils';
+import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,14 +91,14 @@ export const PUT = withTenantAuth(async (request, { params }) => {
         throw autoErr;
       }
 
-      if (!isClosedStage(body.stage) && !stageConfig?.isWon && !stageConfig?.isLost) {
+      if (!isStageClosed(body.stage, pipeline?.stages) && !stageConfig?.isWon && !stageConfig?.isLost) {
         await logTimelineEvent({
           businessId: tenant.business._id,
           entityType: 'deal',
           entityId: id,
           leadId: deal.leadId,
           type: 'deal_stage_changed',
-          description: `Deal stage changed from ${oldStage} to ${body.stage}`,
+          description: `Deal moved to ${getStageLabel(pipeline?.stages, body.stage)}`,
           performedBy: tenant.user._id,
           metadata: { oldStage, newStage: body.stage },
         });
@@ -117,13 +119,31 @@ export const PUT = withTenantAuth(async (request, { params }) => {
     await deal.save();
 
     if (stageChanging && deal.leadId) {
+      const Lead = (await import('@/models/automation/Lead')).default;
+      const normalizedStage = normalizeLeadStatus(normalizeStageKey(body.stage));
+      const leadUpdates = { status: normalizedStage };
+      if (normalizedStage === 'won' || normalizedStage === 'converted') {
+        leadUpdates.convertedAt = new Date();
+      }
+      if (normalizedStage === 'lost') {
+        leadUpdates.lostAt = new Date();
+      }
+      if (!isStageClosed(body.stage, pipeline?.stages) || normalizedStage === 'won' || normalizedStage === 'lost' || normalizedStage === 'converted') {
+        await Lead.updateOne(
+          { _id: deal.leadId, businessId: tenant.business._id },
+          { $set: leadUpdates }
+        );
+      }
+    }
+
+    if (stageChanging && deal.leadId) {
       const stageConfig = getStageByKey(
         deal.pipelineId
           ? await (await import('@/models/automation/Pipeline')).default.findById(deal.pipelineId)
           : await ensureDefaultPipeline(tenant.business._id),
         body.stage
       );
-      if (stageConfig?.isWon || ['won', 'converted', 'closed_won'].includes(body.stage)) {
+      if (stageConfig?.isWon || isStageWon(body.stage, pipeline?.stages)) {
         try {
           const Lead = (await import('@/models/automation/Lead')).default;
           const lead = await Lead.findById(deal.leadId);

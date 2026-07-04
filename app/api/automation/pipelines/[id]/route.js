@@ -3,6 +3,7 @@ import { dbConnect } from '@/lib/mongodb';
 import Pipeline from '@/models/automation/Pipeline';
 import Deal from '@/models/automation/Deal';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
+import { normalizePipelineStages } from '@/lib/crm/pipelineUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,13 @@ export const PUT = withTenantAuth(async (request, { params }) => {
 
     const allowed = ['name', 'description', 'stages', 'isDefault', 'archived'];
     for (const key of allowed) {
-      if (body[key] !== undefined) pipeline[key] = body[key];
+      if (body[key] !== undefined) {
+        if (key === 'stages') {
+          pipeline[key] = normalizePipelineStages(body.stages);
+        } else {
+          pipeline[key] = body[key];
+        }
+      }
     }
     pipeline.updatedBy = tenant.user._id;
     await pipeline.save();

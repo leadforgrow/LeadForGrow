@@ -11,18 +11,11 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useState } from 'react';
-import { PIPELINE_STAGES } from './constants';
-import { formatSource } from './utils';
-import { normalizeLeadStatus } from '@/lib/crm/leadStages';
+import { PIPELINE_STAGES, LEAD_STATUS_ACCENT_COLORS } from './constants';
+import { formatSource, getLeadRowBackgroundStyle, getStatusAccentColor } from './utils';
+import { getLeadKanbanStage } from '@/lib/crm/leadStages';
 import KanbanCard from './KanbanCard';
 import KanbanColumn from './KanbanColumn';
-
-const STAGE_DOTS = Object.fromEntries(
-  PIPELINE_STAGES.map((s) => [s.key, 'bg-emerald-500'])
-);
-STAGE_DOTS.new_lead = 'bg-slate-400';
-STAGE_DOTS.won = 'bg-emerald-600';
-STAGE_DOTS.lost = 'bg-red-400';
 
 export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
   const [activeId, setActiveId] = useState(null);
@@ -35,7 +28,7 @@ export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
     const map = {};
     PIPELINE_STAGES.forEach((s) => { map[s.key] = []; });
     leads.forEach((lead) => {
-      const key = normalizeLeadStatus(lead.status);
+      const key = getLeadKanbanStage(lead);
       if (map[key]) map[key].push(lead);
       else map.new_lead.push(lead);
     });
@@ -78,7 +71,7 @@ export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
             id={stage.key}
             title={stage.label}
             count={columns[stage.key]?.length || 0}
-            colorClass={STAGE_DOTS[stage.key] || 'bg-slate-400'}
+            color={LEAD_STATUS_ACCENT_COLORS[stage.key] || '#94a3b8'}
           >
             <SortableContext items={columns[stage.key]?.map((l) => l._id) || []} strategy={verticalListSortingStrategy}>
               {(columns[stage.key] || []).map((lead) => (
@@ -95,7 +88,13 @@ export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
 
       <DragOverlay>
         {activeLead ? (
-          <div className="p-3 bg-white dark:bg-slate-900 border border-blue-300 rounded-lg shadow-lg w-64 rotate-2">
+          <div
+            className="p-3 bg-white dark:bg-slate-900 border border-slate-200/80 border-l-[3px] rounded-lg shadow-lg w-64 rotate-2"
+            style={{
+              borderLeftColor: activeLead.rowColor || getStatusAccentColor(activeLead.status),
+              ...getLeadRowBackgroundStyle(activeLead),
+            }}
+          >
             <p className="font-medium text-sm">{activeLead.name}</p>
             <p className="text-xs text-slate-500">{formatSource(activeLead.source)}</p>
           </div>

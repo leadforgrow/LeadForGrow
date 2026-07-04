@@ -96,7 +96,7 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
     const user = req.user;
     const businessId = user.businessId;
     const body = await req.json();
-    const { performedBy, status, assignedTo, priority, nextFollowUpAt, note, lostReason, dealAmount } = body;
+    const { performedBy, status, assignedTo, priority, nextFollowUpAt, note, lostReason, dealAmount, location } = body;
 
     const lead = await Lead.findOne({ _id: id, businessId });
     if (!lead) {
@@ -201,6 +201,18 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
         metaObj.currency = body.currency || metaObj.currency || 'INR';
         updates.metadata = metaObj;
       }
+    }
+
+    if (location !== undefined) {
+      const { normalizeLeadLocation } = await import('@/lib/leadProcessor');
+      const nextLocation = normalizeLeadLocation({ location });
+      updates.location = nextLocation || {
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+      };
     }
 
     const updatedLead = await Lead.findByIdAndUpdate(id, updates, { new: true })

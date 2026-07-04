@@ -27,7 +27,10 @@ export function useLeadsWorkspace() {
     search: searchParams.get('search') || '',
     status: searchParams.get('filter') || searchParams.get('status') || 'all',
     source: searchParams.get('source') || '',
-    view: searchParams.get('view') || 'all'
+    view: (() => {
+      const v = searchParams.get('view');
+      return v && v !== 'kanban' ? v : 'all';
+    })()
   });
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [leads, setLeads] = useState([]);
@@ -93,7 +96,8 @@ export function useLeadsWorkspace() {
 
       const qs = buildLeadsQuery({
         ...filters,
-        status: filters.status === 'all' ? '' : filters.status
+        status: filters.status === 'all' ? '' : filters.status,
+        kanban: viewMode === 'kanban',
       });
 
       const res = await authFetch(`/api/automation/leads?${qs}`);
@@ -110,7 +114,7 @@ export function useLeadsWorkspace() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [filters]);
+  }, [filters, viewMode]);
 
   useEffect(() => {
     fetchTeam();

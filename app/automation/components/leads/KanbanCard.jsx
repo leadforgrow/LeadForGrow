@@ -3,7 +3,14 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { assigneeName, formatSource, getLeadAmount, formatLeadAmount } from './utils';
+import {
+  assigneeName,
+  formatSource,
+  getLeadAmount,
+  formatLeadAmount,
+  getLeadRowBackgroundStyle,
+  getStatusAccentColor,
+} from './utils';
 import FollowupChip from './FollowupChip';
 
 export default function KanbanCard({ lead, onOpen }) {
@@ -11,10 +18,15 @@ export default function KanbanCard({ lead, onOpen }) {
     id: lead._id
   });
 
+  const accent = lead.rowColor || getStatusAccentColor(lead.status);
+  const rowBg = getLeadRowBackgroundStyle(lead);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1
+    opacity: isDragging ? 0.5 : 1,
+    borderLeftColor: accent,
+    ...rowBg,
   };
 
   const dealInfo = getLeadAmount(lead);
@@ -23,7 +35,7 @@ export default function KanbanCard({ lead, onOpen }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="mb-2 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all cursor-pointer group"
+      className="mb-2 p-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 border-l-[3px] rounded-lg shadow-sm hover:shadow-md hover:brightness-[0.98] dark:hover:brightness-110 transition-all cursor-pointer group"
       onClick={onOpen}
     >
       <div className="flex items-start gap-2">

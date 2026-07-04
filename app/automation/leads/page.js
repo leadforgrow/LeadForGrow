@@ -95,17 +95,26 @@ function LeadsWorkspaceContent() {
             </div>
           </>
         ) : (
+          <>
           <CRMKanban
             leads={ws.leads}
             onStatusChange={ws.updateLeadStatus}
             onOpenDrawer={ws.setDrawerLeadId}
           />
+          {ws.pagination.total > ws.leads.length && (
+            <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+              Showing {ws.leads.length} of {ws.pagination.total} leads in pipeline view. Use filters to narrow results.
+            </p>
+          )}
+          </>
         )}
 
-        <LeadsPagination
-          pagination={ws.pagination}
-          onPageChange={(page) => ws.updateFilter({ page })}
-        />
+        {ws.viewMode === 'table' && (
+          <LeadsPagination
+            pagination={ws.pagination}
+            onPageChange={(page) => ws.updateFilter({ page })}
+          />
+        )}
       </div>
 
       <LeadDrawer

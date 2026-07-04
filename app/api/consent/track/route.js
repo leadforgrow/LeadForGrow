@@ -2,9 +2,26 @@ import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/rateLimit';
 import { appendPageView, corsHeaders } from '@/lib/consent/server';
 
+async function parseRequestBody(request) {
+  const text = await request.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 export const POST = withRateLimit(60, 60, async function (request) {
   try {
-    const body = await request.json();
+    const body = await parseRequestBody(request);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, error: 'Request body is required' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const { token, visitorId, path, title, durationSec } = body;
 
     if (!token || !visitorId || !path) {
