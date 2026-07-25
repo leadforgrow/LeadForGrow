@@ -24,6 +24,7 @@ import {
   Send,
   Map,
   Activity,
+  Workflow,
 } from 'lucide-react';
 
 export const SIDEBAR_WIDTH = {
@@ -60,6 +61,7 @@ export const NAV_GROUPS = [
       },
       { id: 'rules', name: 'Automation Rules', href: '/automation/automation-rules', icon: SlidersHorizontal, badgeKey: 'activeAutomations', dot: 'live' },
       { id: 'sequences', name: 'Sequences', href: '/automation/sequences', icon: GitBranch },
+      { id: 'whatsapp-flows', name: 'WhatsApp Flows', href: '/automation/whatsapp-flows', icon: Workflow, matchPrefix: '/automation/whatsapp-flows' },
       { id: 'broadcasts', name: 'Broadcasts', href: '/automation/broadcasts', icon: Send },
       { id: 'journeys', name: 'Customer Journeys', href: '/automation/journeys', icon: Map },
       {

@@ -39,5 +39,18 @@ import('../lib/queue.js').catch((err) => {
   process.exit(1);
 });
 
-// Keep process alive
-setInterval(() => {}, 60_000);
+import('../lib/queue.js').catch((err) => {
+  console.error('[Worker] Failed to load queue module:', err.message);
+  process.exit(1);
+});
+
+// Resume WhatsApp Flow delay nodes + keep process alive
+setInterval(async () => {
+  try {
+    const { resumeDueFlowDelays } = await import('../lib/whatsappFlows/engine.js');
+    const n = await resumeDueFlowDelays(50);
+    if (n > 0) console.log(`[Worker] Resumed ${n} WhatsApp flow delay(s)`);
+  } catch (err) {
+    /* engine may fail if Mongo not ready — ignore */
+  }
+}, 60_000);

@@ -25,6 +25,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@twilio/voice-sdk": "^2.18.0",
     "@vapi-ai/web": "^2.5.2",
+    "@xyflow/react": "^12.11.2",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.70.0",
     "cloudinary": "^2.9.0",
