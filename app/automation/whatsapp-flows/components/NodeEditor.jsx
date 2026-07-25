@@ -5,22 +5,22 @@ import { DEFAULT_SYSTEM_VARIABLES } from '@/lib/whatsappFlows/constants';
 function Field({ label, children }) {
   return (
     <label className="block mb-3.5">
-      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-xs font-medium text-slate-500">{label}</span>
       <div className="mt-1.5">{children}</div>
     </label>
   );
 }
 
 const inputClass =
-  'w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-400 transition';
+  'w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-400 transition';
 
 export default function NodeEditor({ node, onChange, onDelete, variables = [] }) {
   const vars = variables.length ? variables : DEFAULT_SYSTEM_VARIABLES;
 
   if (!node) {
     return (
-      <aside className="w-72 shrink-0 flex flex-col rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hidden lg:flex">
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+      <aside className="w-72 shrink-0 flex flex-col rounded-2xl bg-white/90 backdrop-blur border border-slate-200 shadow-sm overflow-hidden hidden lg:flex">
+        <div className="px-4 py-3 border-b border-slate-100">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Node settings</h3>
           <p className="text-[11px] text-slate-500 mt-0.5">Select a node on the canvas</p>
         </div>
@@ -30,7 +30,7 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
             {vars.map((v) => (
               <code
                 key={v.key}
-                className="text-[10px] px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700"
+                className="text-[10px] px-2 py-1 rounded-lg bg-slate-50 text-emerald-700 border border-slate-200"
               >
                 {`{{${v.key}}}`}
               </code>
@@ -54,11 +54,11 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
   }
 
   return (
-    <aside className="w-72 shrink-0 flex flex-col rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hidden lg:flex">
-      <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-2">
+    <aside className="w-72 shrink-0 flex flex-col rounded-2xl bg-white/90 backdrop-blur border border-slate-200 shadow-sm overflow-hidden hidden lg:flex">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Node settings</h3>
-          <p className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5 truncate">
+          <p className="text-sm font-semibold text-slate-900 mt-0.5 truncate">
             {data.label || node.type}
           </p>
           <p className="text-[11px] text-slate-400 truncate">{node.type}</p>
@@ -66,7 +66,7 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
         <button
           type="button"
           onClick={onDelete}
-          className="text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 px-2 py-1 rounded-lg transition-colors shrink-0"
+          className="text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg transition-colors shrink-0"
         >
           Delete
         </button>
@@ -255,7 +255,7 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
         )}
 
         {node.type === 'action_end' && (
-          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
@@ -266,14 +266,14 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
           </label>
         )}
 
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="mt-5 pt-4 border-t border-slate-100">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Insert variable</p>
           <div className="flex flex-wrap gap-1.5">
             {DEFAULT_SYSTEM_VARIABLES.map((v) => (
               <button
                 key={v.key}
                 type="button"
-                className="text-[10px] px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                className="text-[10px] px-2 py-1 rounded-lg bg-slate-50 text-emerald-700 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
                 onClick={() => insertVar(v.key)}
               >
                 {`{{${v.key}}}`}

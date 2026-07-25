@@ -31,9 +31,9 @@ function FlowNodeCard({ data, selected, type }) {
 
   return (
     <div
-      className={`min-w-[200px] max-w-[250px] rounded-2xl bg-white/95 dark:bg-slate-900/95 shadow-lg border border-slate-200/80 dark:border-slate-700 overflow-hidden transition-shadow ${
+      className={`min-w-[200px] max-w-[250px] rounded-2xl bg-white/95 shadow-lg border border-slate-200/80 overflow-hidden transition-shadow ${
         selected
-          ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-[#eef1f8] dark:ring-offset-slate-950 shadow-blue-500/20'
+          ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-[#eef1f8] shadow-blue-500/20'
           : 'hover:shadow-xl'
       }`}
     >
@@ -55,7 +55,7 @@ function FlowNodeCard({ data, selected, type }) {
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
             {cat}
           </div>
-          <div className="text-sm font-semibold text-slate-900 dark:text-white leading-snug truncate">
+          <div className="text-sm font-semibold text-slate-900 leading-snug truncate">
             {data?.label || meta.label}
           </div>
           {(data?.text || data?.body || data?.templateName) && (

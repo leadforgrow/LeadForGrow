@@ -43,8 +43,8 @@ function autoLayoutNodes(nodes) {
 }
 
 const STATUS_PILL = {
-  draft: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  draft: 'bg-amber-100 text-amber-700',
+  published: 'bg-emerald-100 text-emerald-700',
   archived: 'bg-slate-100 text-slate-600',
 };
 
@@ -259,18 +259,18 @@ function FlowBuilderInner({ flowId }) {
 
   if (loading) {
     return (
-      <div className="min-h-full bg-[#f4f6fa] dark:bg-slate-950 flex items-center justify-center text-slate-500 text-sm">
+      <div className="min-h-full bg-[#f4f6fa] flex items-center justify-center text-slate-500 text-sm">
         Loading builder…
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-0px)] min-h-[640px] bg-[#f4f6fa] dark:bg-slate-950">
-      <header className="sticky top-0 z-40 shrink-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
+    <div className="flex flex-col h-[calc(100vh-0px)] min-h-[640px] bg-[#f4f6fa] text-slate-900" data-theme="light">
+      <header className="sticky top-0 z-40 shrink-0 bg-white/90 backdrop-blur border-b border-slate-200 px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
         <Link
           href="/automation/whatsapp-flows"
-          className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+          className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
@@ -285,7 +285,7 @@ function FlowBuilderInner({ flowId }) {
             setFlow((f) => ({ ...f, name: e.target.value }));
             setDirty(true);
           }}
-          className="text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none border-b border-transparent focus:border-blue-400 min-w-[140px] max-w-[240px]"
+          className="text-lg font-bold bg-transparent text-slate-900 focus:outline-none border-b border-transparent focus:border-blue-400 min-w-[140px] max-w-[240px]"
         />
 
         <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${STATUS_PILL[flow?.status] || STATUS_PILL.draft}`}>
@@ -302,7 +302,7 @@ function FlowBuilderInner({ flowId }) {
               setDirty(true);
               setTimeout(() => fitView({ padding: 0.2 }), 50);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50"
           >
             <LayoutGrid className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Auto layout</span>
@@ -313,7 +313,7 @@ function FlowBuilderInner({ flowId }) {
               setVersionsOpen((v) => !v);
               setTestOpen(false);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50"
           >
             <History className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Versions</span>
@@ -324,7 +324,7 @@ function FlowBuilderInner({ flowId }) {
               setTestOpen((v) => !v);
               setVersionsOpen(false);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-800 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 text-sm font-medium text-amber-700 hover:bg-amber-50"
           >
             <FlaskConical className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Test</span>
@@ -332,7 +332,7 @@ function FlowBuilderInner({ flowId }) {
           <button
             type="button"
             onClick={() => persist()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             <Save className="w-3.5 h-3.5" />
             Save
@@ -352,7 +352,7 @@ function FlowBuilderInner({ flowId }) {
         <NodePalette onAdd={addNode} />
 
         <div
-          className="flex-1 relative rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-[#eef1f8] dark:bg-slate-950 overflow-hidden shadow-sm"
+          className="flex-1 relative rounded-2xl border border-slate-200/80 bg-[#eef1f8] overflow-hidden shadow-sm"
           onDragOver={onDragOver}
           onDrop={onDrop}
         >
@@ -371,13 +371,14 @@ function FlowBuilderInner({ flowId }) {
             onSelectionChange={({ nodes: sel }) => setSelectedId(sel[0]?.id || null)}
             nodeTypes={flowNodeTypes}
             fitView
+            colorMode="light"
             proOptions={{ hideAttribution: true }}
             defaultEdgeOptions={{ type: 'smoothstep' }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#cbd5e1" />
-            <Controls className="!bg-white/90 !border-slate-200 !shadow-lg !rounded-xl overflow-hidden" />
+            <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#c5cddb" />
+            <Controls className="!bg-white !border-slate-200 !shadow-lg !rounded-xl overflow-hidden !text-slate-600" />
             <MiniMap
-              className="!bg-white/90 !border-slate-200 !rounded-xl !shadow-lg"
+              className="!bg-white !border-slate-200 !rounded-xl !shadow-lg"
               nodeColor={(n) =>
                 String(n.type).startsWith('trigger_')
                   ? '#3b82f6'
@@ -389,16 +390,16 @@ function FlowBuilderInner({ flowId }) {
           </ReactFlow>
 
           {versionsOpen && (
-            <div className="absolute top-3 right-3 w-72 max-h-80 overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-3 shadow-xl z-10">
+            <div className="absolute top-3 right-3 w-72 max-h-80 overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 backdrop-blur p-3 shadow-xl z-10">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Version history</h4>
               {(versions.length ? versions : []).map((v) => (
                 <button
                   key={v._id || v.version}
                   type="button"
                   onClick={() => restoreVersion(v.version)}
-                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/30 text-xs mb-1 transition-colors"
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 text-xs mb-1 transition-colors"
                 >
-                  <div className="text-slate-900 dark:text-white font-semibold">
+                  <div className="text-slate-900 font-semibold">
                     v{v.version} {v.published ? '· published' : ''}
                   </div>
                   <div className="text-slate-500">{v.note || 'Snapshot'}</div>
@@ -409,13 +410,13 @@ function FlowBuilderInner({ flowId }) {
           )}
 
           {testOpen && (
-            <div className="absolute bottom-3 left-3 right-3 md:left-auto md:right-3 md:w-96 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-4 shadow-xl z-10">
+            <div className="absolute bottom-3 left-3 right-3 md:left-auto md:right-3 md:w-96 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur p-4 shadow-xl z-10">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Test flow</h4>
               <p className="text-[11px] text-slate-500 mb-2">Simulate an inbound WhatsApp message before publishing.</p>
               <input
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
-                className="w-full mb-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                className="w-full mb-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm"
                 placeholder="Simulated inbound message"
               />
               <button
@@ -428,7 +429,7 @@ function FlowBuilderInner({ flowId }) {
               {testResult && (
                 <div className="mt-3 max-h-40 overflow-y-auto text-[11px] space-y-1 custom-scrollbar">
                   <div className="text-slate-500">
-                    Status: <span className="font-semibold text-slate-900 dark:text-white">{testResult.status}</span>
+                    Status: <span className="font-semibold text-slate-900">{testResult.status}</span>
                   </div>
                   {(testResult.logs || []).map((log, i) => (
                     <div key={i} className="text-slate-500 border-l-2 border-slate-200 pl-2">
