@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   Plus,
@@ -11,16 +12,21 @@ import {
   Copy,
   Trash2,
   Upload,
-  BarChart3,
   Play,
   FileDown,
+  Zap,
+  CheckCircle2,
+  Activity,
+  TrendingDown,
+  Target,
+  MessageCircle,
 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 
 const STATUS_STYLES = {
-  draft: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
-  published: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  archived: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  draft: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+  published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  archived: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
 };
 
 export default function WhatsAppFlowsPage() {
@@ -42,7 +48,7 @@ export default function WhatsAppFlowsPage() {
       const analyticsData = await analyticsRes.json();
       if (flowsData.success) setFlows(flowsData.data || []);
       if (analyticsData.success) setAnalytics(analyticsData.data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load flows');
     } finally {
       setLoading(false);
@@ -133,30 +139,32 @@ export default function WhatsAppFlowsPage() {
   }
 
   const stats = [
-    { label: 'Total Executions', value: analytics?.totalExecutions ?? '—' },
-    { label: 'Active Flows', value: analytics?.activeFlows ?? '—' },
-    { label: 'Completed', value: analytics?.completedFlows ?? '—' },
-    { label: 'Drop-off Rate', value: analytics ? `${analytics.dropOffRate}%` : '—' },
-    { label: 'Conversion Rate', value: analytics ? `${analytics.conversionRate}%` : '—' },
+    { label: 'Total executions', value: analytics?.totalExecutions ?? 0, icon: Activity, iconClass: 'text-blue-500' },
+    { label: 'Active flows', value: analytics?.activeFlows ?? 0, icon: Zap, iconClass: 'text-emerald-500' },
+    { label: 'Completed', value: analytics?.completedFlows ?? 0, icon: CheckCircle2, iconClass: 'text-violet-500' },
+    { label: 'Drop-off rate', value: analytics ? `${analytics.dropOffRate}%` : '0%', icon: TrendingDown, iconClass: 'text-amber-500' },
+    { label: 'Conversion', value: analytics ? `${analytics.conversionRate}%` : '0%', icon: Target, iconClass: 'text-indigo-500' },
   ];
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
+    <div className="min-h-full bg-[#f4f6fa] dark:bg-slate-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">
-              <Workflow className="w-4 h-4" />
-              Automation
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-medium mb-3">
+              <MessageCircle className="w-3.5 h-3.5" />
+              WhatsApp Automation
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">WhatsApp Flows</h1>
-            <p className="mt-2 text-slate-400 max-w-xl">
-              Build no-code WhatsApp automation flows for any business — triggers, interactive messages, logic, and analytics.
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              WhatsApp Flows
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm max-w-lg">
+              Build premium no-code WhatsApp journeys — triggers, interactive messages, logic, and analytics for any business.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-sm cursor-pointer">
-              <Upload className="w-4 h-4" />
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+              <Upload className="w-4 h-4 text-slate-400" />
               Import
               <input
                 type="file"
@@ -169,117 +177,163 @@ export default function WhatsAppFlowsPage() {
               type="button"
               onClick={createFlow}
               disabled={creating}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
-              New Flow
+              Create flow
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="text-[11px] uppercase tracking-wider text-slate-500">{s.label}</div>
-              <div className="mt-1 text-2xl font-semibold text-white">{s.value}</div>
-            </div>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
+          {stats.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/80 dark:border-slate-800 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <s.icon className={`w-4 h-4 ${s.iconClass}`} />
+              </div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{s.value}</div>
+              <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+            </motion.div>
           ))}
         </div>
 
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search flows…"
-            className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
           />
         </div>
 
         {loading ? (
-          <div className="text-slate-500 py-20 text-center">Loading flows…</div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-36 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 lfg-skeleton" />
+            ))}
+          </div>
         ) : flows.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] py-20 text-center">
-            <Workflow className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-300 font-medium">No flows yet</p>
-            <p className="text-slate-500 text-sm mt-1 mb-4">Create your first WhatsApp automation flow</p>
+          <div className="text-center py-16 px-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-xl shadow-emerald-500/20 mb-4">
+              <Workflow className="w-8 h-8 text-white" />
+            </div>
+            <p className="text-slate-900 dark:text-white font-semibold text-lg">No flows yet</p>
+            <p className="text-slate-500 text-sm mt-1 mb-5 max-w-sm mx-auto">
+              Create your first WhatsApp automation flow — keywords, buttons, lists, and smart routing.
+            </p>
             <button
               type="button"
               onClick={createFlow}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold text-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25"
             >
-              <Plus className="w-4 h-4" /> Create Flow
+              <Plus className="w-4 h-4" /> Create flow
             </button>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {flows.map((flow) => (
-              <div
+          <div className="grid sm:grid-cols-2 gap-4">
+            {flows.map((flow, i) => (
+              <motion.div
                 key={flow._id}
-                className="group flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.05] p-4 transition"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xl hover:shadow-blue-500/10 transition-all"
               >
-                <Link href={`/automation/whatsapp-flows/${flow._id}`} className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-white truncate">{flow.name}</h3>
-                    <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border ${STATUS_STYLES[flow.status] || STATUS_STYLES.draft}`}>
-                      {flow.status}
-                    </span>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+                    <MessageCircle className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-sm text-slate-500 mt-1 truncate">
-                    {flow.description || `Trigger: ${flow.triggerType}`} · v{flow.publishedVersion || 0} published
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {flow.analytics?.totalExecutions || 0} executions · {flow.analytics?.completed || 0} completed
-                  </p>
-                </Link>
-                <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/automation/whatsapp-flows/${flow._id}`}
+                        className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate transition-colors"
+                      >
+                        {flow.name}
+                      </Link>
+                      <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${STATUS_STYLES[flow.status] || STATUS_STYLES.draft}`}>
+                        {flow.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                      {flow.description || `Trigger: ${String(flow.triggerType || '').replace(/_/g, ' ')}`}
+                    </p>
+                    <div className="flex items-center gap-3 mt-3 text-[11px] text-slate-400">
+                      <span>{flow.analytics?.totalExecutions || 0} runs</span>
+                      <span>·</span>
+                      <span>{flow.analytics?.completed || 0} completed</span>
+                      <span>·</span>
+                      <span>v{flow.publishedVersion || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <Link
                     href={`/automation/whatsapp-flows/${flow._id}`}
-                    className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
-                    title="Open builder"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
                   >
-                    <Play className="w-4 h-4" />
+                    <Play className="w-3.5 h-3.5" /> Open
                   </Link>
-                  <button type="button" onClick={() => exportFlow(flow._id, flow.name)} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white" title="Export">
-                    <FileDown className="w-4 h-4" />
+                  <button
+                    type="button"
+                    onClick={() => exportFlow(flow._id, flow.name)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    title="Export"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
                   </button>
-                  <button type="button" onClick={() => duplicateFlow(flow._id)} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white" title="Duplicate">
-                    <Copy className="w-4 h-4" />
+                  <button
+                    type="button"
+                    onClick={() => duplicateFlow(flow._id)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    title="Duplicate"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
                   </button>
-                  <button type="button" onClick={() => deleteFlow(flow._id)} className="p-2 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-300" title="Delete">
-                    <Trash2 className="w-4 h-4" />
+                  <button
+                    type="button"
+                    onClick={() => deleteFlow(flow._id)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ml-auto"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
 
         {analytics?.nodeAnalytics?.length > 0 && (
           <div className="mt-10">
-            <div className="flex items-center gap-2 mb-4 text-slate-300">
-              <BarChart3 className="w-4 h-4" />
-              <h2 className="font-semibold">Node analytics</h2>
-            </div>
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Node analytics</h2>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
               <table className="w-full text-sm">
-                <thead className="bg-white/5 text-slate-400 text-left">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-left">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Node</th>
-                    <th className="px-4 py-3 font-medium">Type</th>
-                    <th className="px-4 py-3 font-medium">Entered</th>
-                    <th className="px-4 py-3 font-medium">Completed</th>
-                    <th className="px-4 py-3 font-medium">Dropped</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider">Node</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider">Type</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider">Entered</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider">Completed</th>
+                    <th className="px-4 py-3 font-medium text-xs uppercase tracking-wider">Dropped</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {analytics.nodeAnalytics.slice(0, 20).map((n) => (
-                    <tr key={`${n.flowId}-${n.nodeKey}`} className="border-t border-white/5">
-                      <td className="px-4 py-2.5 text-white">{n.label}</td>
-                      <td className="px-4 py-2.5 text-slate-400">{n.type}</td>
-                      <td className="px-4 py-2.5">{n.entered}</td>
-                      <td className="px-4 py-2.5">{n.completed}</td>
-                      <td className="px-4 py-2.5">{n.dropped}</td>
+                  {analytics.nodeAnalytics.slice(0, 12).map((n) => (
+                    <tr key={`${n.flowId}-${n.nodeKey}`} className="border-t border-slate-100 dark:border-slate-800">
+                      <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-white">{n.label}</td>
+                      <td className="px-4 py-2.5 text-slate-500">{n.type}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{n.entered}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{n.completed}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{n.dropped}</td>
                     </tr>
                   ))}
                 </tbody>

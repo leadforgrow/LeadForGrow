@@ -12,6 +12,7 @@ import {
   useNodesState,
   ReactFlowProvider,
   useReactFlow,
+  BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import toast from 'react-hot-toast';
@@ -22,6 +23,7 @@ import {
   History,
   FlaskConical,
   LayoutGrid,
+  MessageCircle,
 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 import { getDefaultNodeData } from '@/lib/whatsappFlows/constants';
@@ -34,11 +36,17 @@ function autoLayoutNodes(nodes) {
   return nodes.map((n, i) => ({
     ...n,
     position: {
-      x: 80 + (i % cols) * 260,
-      y: 80 + Math.floor(i / cols) * 140,
+      x: 80 + (i % cols) * 280,
+      y: 80 + Math.floor(i / cols) * 150,
     },
   }));
 }
+
+const STATUS_PILL = {
+  draft: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+  published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  archived: 'bg-slate-100 text-slate-600',
+};
 
 function FlowBuilderInner({ flowId }) {
   const [flow, setFlow] = useState(null);
@@ -81,7 +89,7 @@ function FlowBuilderInner({ flowId }) {
         (data.data.edges || []).map((e) => ({
           ...e,
           animated: true,
-          style: { stroke: '#64748b' },
+          style: { stroke: '#94a3b8', strokeWidth: 2 },
         }))
       );
       setVersions(data.data.versions || []);
@@ -140,7 +148,6 @@ function FlowBuilderInner({ flowId }) {
     [flowId, flow, nodes, edges]
   );
 
-  // Autosave
   useEffect(() => {
     if (!dirty || !flow) return;
     clearTimeout(saveTimer.current);
@@ -148,16 +155,15 @@ function FlowBuilderInner({ flowId }) {
     return () => clearTimeout(saveTimer.current);
   }, [dirty, nodes, edges, flow?.name, persist, flow]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     function onKey(e) {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         persist();
       }
-      if (e.key === 'Delete' && selectedId) {
+      if (e.key === 'Delete' && selectedId && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         setNodes((nds) => nds.filter((n) => n.id !== selectedId));
-        setEdges((eds) => eds.filter((e) => e.source !== selectedId && e.target !== selectedId));
+        setEdges((eds) => eds.filter((ed) => ed.source !== selectedId && ed.target !== selectedId));
         setSelectedId(null);
         setDirty(true);
       }
@@ -170,7 +176,12 @@ function FlowBuilderInner({ flowId }) {
     (connection) => {
       setEdges((eds) =>
         addEdge(
-          { ...connection, id: `e_${connection.source}_${connection.target}_${Date.now()}`, animated: true, style: { stroke: '#64748b' } },
+          {
+            ...connection,
+            id: `e_${connection.source}_${connection.target}_${Date.now()}`,
+            animated: true,
+            style: { stroke: '#94a3b8', strokeWidth: 2 },
+          },
           eds
         )
       );
@@ -181,11 +192,8 @@ function FlowBuilderInner({ flowId }) {
 
   function addNode(type, position) {
     const id = `${type}_${Date.now()}`;
-    const pos = position || { x: 200 + nodes.length * 20, y: 120 + nodes.length * 20 };
-    setNodes((nds) => [
-      ...nds,
-      { id, type, position: pos, data: getDefaultNodeData(type) },
-    ]);
+    const pos = position || { x: 200 + nodes.length * 24, y: 120 + nodes.length * 24 };
+    setNodes((nds) => [...nds, { id, type, position: pos, data: getDefaultNodeData(type) }]);
     setSelectedId(id);
     setDirty(true);
   }
@@ -199,8 +207,7 @@ function FlowBuilderInner({ flowId }) {
     e.preventDefault();
     const type = e.dataTransfer.getData('application/reactflow');
     if (!type) return;
-    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-    addNode(type, position);
+    addNode(type, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
   }
 
   async function publish() {
@@ -251,28 +258,41 @@ function FlowBuilderInner({ flowId }) {
   }
 
   if (loading) {
-    return <div className="flex-1 flex items-center justify-center text-slate-500 bg-slate-950">Loading builder…</div>;
+    return (
+      <div className="min-h-full bg-[#f4f6fa] dark:bg-slate-950 flex items-center justify-center text-slate-500 text-sm">
+        Loading builder…
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-0px)] min-h-[640px] bg-slate-950 text-slate-100">
-      <header className="shrink-0 border-b border-white/10 px-3 py-2.5 flex flex-wrap items-center gap-2 bg-slate-950/90">
-        <Link href="/automation/whatsapp-flows" className="p-2 rounded-lg hover:bg-white/10 text-slate-400">
+    <div className="flex flex-col h-[calc(100vh-0px)] min-h-[640px] bg-[#f4f6fa] dark:bg-slate-950">
+      <header className="sticky top-0 z-40 shrink-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
+        <Link
+          href="/automation/whatsapp-flows"
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
         </Link>
+
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm shadow-emerald-500/20 hidden sm:flex">
+          <MessageCircle className="w-4 h-4 text-white" />
+        </div>
+
         <input
           value={flow?.name || ''}
           onChange={(e) => {
             setFlow((f) => ({ ...f, name: e.target.value }));
             setDirty(true);
           }}
-          className="bg-transparent text-white font-semibold text-sm focus:outline-none border-b border-transparent focus:border-emerald-500/50 min-w-[160px]"
+          className="text-lg font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none border-b border-transparent focus:border-blue-400 min-w-[140px] max-w-[240px]"
         />
-        <span className="text-[10px] uppercase px-2 py-0.5 rounded-full border border-white/10 text-slate-400">
+
+        <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${STATUS_PILL[flow?.status] || STATUS_PILL.draft}`}>
           {flow?.status}
         </span>
-        {dirty && <span className="text-[11px] text-amber-400">Unsaved</span>}
-        {saving && <span className="text-[11px] text-slate-500">Saving…</span>}
+        {dirty && <span className="text-[11px] text-amber-600 font-medium">Unsaved</span>}
+        {saving && <span className="text-[11px] text-slate-400">Saving…</span>}
 
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
           <button
@@ -282,45 +302,60 @@ function FlowBuilderInner({ flowId }) {
               setDirty(true);
               setTimeout(() => fitView({ padding: 0.2 }), 50);
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border border-white/10 hover:bg-white/5"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900"
           >
-            <LayoutGrid className="w-3.5 h-3.5" /> Auto layout
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Auto layout</span>
           </button>
           <button
             type="button"
-            onClick={() => setVersionsOpen((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border border-white/10 hover:bg-white/5"
+            onClick={() => {
+              setVersionsOpen((v) => !v);
+              setTestOpen(false);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900"
           >
-            <History className="w-3.5 h-3.5" /> Versions
+            <History className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Versions</span>
           </button>
           <button
             type="button"
-            onClick={() => setTestOpen((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border border-white/10 hover:bg-white/5"
+            onClick={() => {
+              setTestOpen((v) => !v);
+              setVersionsOpen(false);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-800 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
           >
-            <FlaskConical className="w-3.5 h-3.5" /> Test
+            <FlaskConical className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Test</span>
           </button>
           <button
             type="button"
             onClick={() => persist()}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border border-white/10 hover:bg-white/5"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900"
           >
-            <Save className="w-3.5 h-3.5" /> Save
+            <Save className="w-3.5 h-3.5" />
+            Save
           </button>
           <button
             type="button"
             onClick={publish}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
           >
-            <Rocket className="w-3.5 h-3.5" /> Publish
+            <Rocket className="w-3.5 h-3.5" />
+            Publish
           </button>
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0 relative">
+      <div className="flex flex-1 min-h-0 gap-3 p-3">
         <NodePalette onAdd={addNode} />
 
-        <div className="flex-1 relative" onDragOver={onDragOver} onDrop={onDrop}>
+        <div
+          className="flex-1 relative rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-[#eef1f8] dark:bg-slate-950 overflow-hidden shadow-sm"
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -336,57 +371,67 @@ function FlowBuilderInner({ flowId }) {
             onSelectionChange={({ nodes: sel }) => setSelectedId(sel[0]?.id || null)}
             nodeTypes={flowNodeTypes}
             fitView
-            colorMode="dark"
             proOptions={{ hideAttribution: true }}
-            className="bg-[radial-gradient(ellipse_at_top,_#0f172a_0%,_#020617_70%)]"
+            defaultEdgeOptions={{ type: 'smoothstep' }}
           >
-            <Background gap={20} color="#1e293b" />
-            <Controls className="!bg-slate-900 !border-white/10 !shadow-xl" />
+            <Background variant={BackgroundVariant.Dots} gap={18} size={1.2} color="#cbd5e1" />
+            <Controls className="!bg-white/90 !border-slate-200 !shadow-lg !rounded-xl overflow-hidden" />
             <MiniMap
-              className="!bg-slate-900/90 !border-white/10"
-              nodeColor={(n) => (String(n.type).startsWith('trigger_') ? '#34d399' : String(n.type).startsWith('logic_') ? '#fbbf24' : '#60a5fa')}
+              className="!bg-white/90 !border-slate-200 !rounded-xl !shadow-lg"
+              nodeColor={(n) =>
+                String(n.type).startsWith('trigger_')
+                  ? '#3b82f6'
+                  : String(n.type).startsWith('logic_')
+                    ? '#f59e0b'
+                    : '#10b981'
+              }
             />
           </ReactFlow>
 
           {versionsOpen && (
-            <div className="absolute top-3 right-3 w-64 max-h-80 overflow-y-auto rounded-xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl z-10">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">Version history</h4>
+            <div className="absolute top-3 right-3 w-72 max-h-80 overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-3 shadow-xl z-10">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Version history</h4>
               {(versions.length ? versions : []).map((v) => (
                 <button
                   key={v._id || v.version}
                   type="button"
                   onClick={() => restoreVersion(v.version)}
-                  className="w-full text-left px-2 py-2 rounded-lg hover:bg-white/5 text-xs mb-1"
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/30 text-xs mb-1 transition-colors"
                 >
-                  <div className="text-white font-medium">v{v.version} {v.published ? '· published' : ''}</div>
+                  <div className="text-slate-900 dark:text-white font-semibold">
+                    v{v.version} {v.published ? '· published' : ''}
+                  </div>
                   <div className="text-slate-500">{v.note || 'Snapshot'}</div>
                 </button>
               ))}
-              {!versions.length && <p className="text-slate-500 text-xs">No versions yet</p>}
+              {!versions.length && <p className="text-slate-500 text-xs px-1">No versions yet — publish to create one</p>}
             </div>
           )}
 
           {testOpen && (
-            <div className="absolute bottom-3 left-3 right-3 md:left-auto md:right-3 md:w-96 rounded-xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl z-10">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">Test Flow</h4>
+            <div className="absolute bottom-3 left-3 right-3 md:left-auto md:right-3 md:w-96 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-4 shadow-xl z-10">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Test flow</h4>
+              <p className="text-[11px] text-slate-500 mb-2">Simulate an inbound WhatsApp message before publishing.</p>
               <input
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
-                className="w-full mb-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm"
+                className="w-full mb-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                 placeholder="Simulated inbound message"
               />
               <button
                 type="button"
                 onClick={runTest}
-                className="w-full py-2 rounded-lg bg-emerald-500 text-slate-950 text-sm font-semibold"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-md shadow-amber-500/20"
               >
                 Run simulation
               </button>
               {testResult && (
-                <div className="mt-3 max-h-40 overflow-y-auto text-[11px] space-y-1">
-                  <div className="text-slate-400">Status: <span className="text-white">{testResult.status}</span></div>
+                <div className="mt-3 max-h-40 overflow-y-auto text-[11px] space-y-1 custom-scrollbar">
+                  <div className="text-slate-500">
+                    Status: <span className="font-semibold text-slate-900 dark:text-white">{testResult.status}</span>
+                  </div>
                   {(testResult.logs || []).map((log, i) => (
-                    <div key={i} className="text-slate-500">
+                    <div key={i} className="text-slate-500 border-l-2 border-slate-200 pl-2">
                       [{log.status}] {log.nodeType || ''} — {log.message || ''}
                     </div>
                   ))}
@@ -400,9 +445,7 @@ function FlowBuilderInner({ flowId }) {
           node={selectedNode}
           variables={flow?.variables}
           onChange={(nextData) => {
-            setNodes((nds) =>
-              nds.map((n) => (n.id === selectedId ? { ...n, data: nextData } : n))
-            );
+            setNodes((nds) => nds.map((n) => (n.id === selectedId ? { ...n, data: nextData } : n)));
             setDirty(true);
           }}
           onDelete={() => {
