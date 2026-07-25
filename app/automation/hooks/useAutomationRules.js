@@ -208,6 +208,7 @@ export function useAutomationRules() {
               cloudData.append('api_key', sigData.apiKey);
               cloudData.append('timestamp', sigData.timestamp);
               cloudData.append('signature', sigData.signature);
+              if (sigData.folder) cloudData.append('folder', sigData.folder);
               const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`, {
                 method: 'POST',
                 body: cloudData

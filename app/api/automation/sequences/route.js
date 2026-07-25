@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import crypto from 'crypto';
 import { dbConnect } from '@/lib/mongodb';
 import AutomationSequence from '@/models/automation/AutomationSequence';
@@ -10,7 +11,7 @@ export const GET = withPlanAccess('automation', async (req) => {
     await dbConnect();
     const businessId = req.user.businessId;
     const { searchParams } = new URL(req.url);
-    const q = searchParams.get('q')?.trim();
+    const q = escapeRegex(searchParams.get('q')?.trim() || '').slice(0, 200) || null;
     const folderId = searchParams.get('folderId');
     const status = searchParams.get('status');
 

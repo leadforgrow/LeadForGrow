@@ -113,5 +113,10 @@ const TaskSchema = new mongoose.Schema({
   collection: 'cms_tasks'
 });
 
+ServiceSchema.index({ businessId: 1, status: 1 });
+ServiceSchema.index({ businessId: 1, clientId: 1 });
+TaskSchema.index({ businessId: 1, status: 1, dueDate: 1 });
+TaskSchema.index({ businessId: 1, clientId: 1 });
+
 export const CMS_Service = mongoose.models.CMS_Service || mongoose.model('CMS_Service', ServiceSchema);
 export const CMS_Task = mongoose.models.CMS_Task || mongoose.model('CMS_Task', TaskSchema);

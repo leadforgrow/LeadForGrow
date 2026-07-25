@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { withTenantAuth } from '@/lib/auth';
 
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
     const body = await request.json();
 
@@ -16,4 +17,4 @@ export async function POST(request) {
     console.error('AI Bridge Error:', error);
     return NextResponse.json({ success: false, error: 'AI Backend unreachable' }, { status: 500 });
   }
-}
+});

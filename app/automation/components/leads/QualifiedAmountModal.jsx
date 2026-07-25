@@ -43,7 +43,8 @@ export default function QualifiedAmountModal({ open, leadName, onConfirm, onCanc
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Enter the deal amount for <span className="font-medium text-slate-900 dark:text-slate-100">{leadName || 'this lead'}</span> to mark as Qualified.
+            Enter the deal amount for <span className="font-medium text-slate-900 dark:text-slate-100">{leadName || 'this lead'}</span>.
+            A deal will be created and this lead will move to your Deals pipeline.
           </p>
           <div>
             <label className="text-xs font-medium text-slate-500">Amount (INR)</label>

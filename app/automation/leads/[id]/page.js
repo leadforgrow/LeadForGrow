@@ -11,6 +11,8 @@ import LeadDetailProfile from '../../components/leads/detail/LeadDetailProfile';
 import LeadDetailWorkspace from '../../components/leads/detail/LeadDetailWorkspace';
 import ChatbotTranscript from '../../components/leads/detail/ChatbotTranscript';
 import ConvertLeadDialog from '../../components/leads/ConvertLeadDialog';
+import LostReasonModal from '../../components/leads/LostReasonModal';
+import QualifiedSummaryModal from '../../components/leads/QualifiedSummaryModal';
 
 export default function LeadDetailPage({ params }) {
   return (
@@ -90,6 +92,23 @@ function LeadDetailPageContent({ params }) {
             const ok = await detail.convertLead(form);
             if (ok) setShowConvert(false);
           }}
+        />
+
+        <LostReasonModal
+          open={!!detail.lostPrompt}
+          leadName={detail.lead.name}
+          variant={detail.lostPrompt?.status === 'unqualified' ? 'unqualified' : 'lost'}
+          saving={detail.lostSaving}
+          onCancel={detail.cancelLostPrompt}
+          onConfirm={detail.confirmLostReason}
+        />
+
+        <QualifiedSummaryModal
+          open={!!detail.qualifiedPrompt}
+          leadName={detail.lead.name}
+          saving={detail.qualifying}
+          onCancel={detail.cancelQualifiedPrompt}
+          onConfirm={detail.confirmQualifiedAmount}
         />
 
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">

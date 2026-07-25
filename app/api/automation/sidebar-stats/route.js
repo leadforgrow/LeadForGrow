@@ -13,7 +13,7 @@ export const GET = withAuth()(async (req) => {
     const businessId = user.businessId;
 
     const [unreadLeads, overdueTasks, activeAutomations, activeEvents] = await Promise.all([
-      Lead.countDocuments({ businessId, isRead: false, archived: false }),
+      Lead.countDocuments({ businessId, isRead: false, archived: false, status: { $ne: 'converted' } }),
       Task.countDocuments({ businessId, status: 'pending', dueDate: { $lt: new Date() } }),
       AutomationRule.countDocuments({ businessId, enabled: true }),
       Event.countDocuments({ businessId, active: true })

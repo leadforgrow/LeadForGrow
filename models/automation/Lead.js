@@ -2,7 +2,12 @@ import mongoose from 'mongoose';
 import { baseSchemaPlugin } from '../baseSchema.js';
 import { LEAD_PIPELINE_STAGE_KEYS } from '@/lib/crm/leadStages';
 
-const LEGACY_LEAD_STATUSES = ['new', 'contacted', 'interested', 'follow-up'];
+const LEGACY_LEAD_STATUSES = [
+  'new', 'contacted', 'interested', 'follow-up',
+  'new_lead', 'first_contact', 'qualified', 'follow_up',
+  'demo_scheduled', 'demo_completed', 'quotation_sent',
+  'negotiation', 'decision_pending', 'payment_pending', 'won', 'unqualified',
+];
 
 const LeadSchema = new mongoose.Schema({
   // Business Context (Optional - for solo businesses)
@@ -106,7 +111,7 @@ const LeadSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: [...LEAD_PIPELINE_STAGE_KEYS, 'converted', ...LEGACY_LEAD_STATUSES],
-    default: 'new_lead'
+    default: 'new'
   },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -205,7 +210,7 @@ LeadSchema.index({ businessId: 1, phone: 1 });
 LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true, sparse: true }); // HARDENED: Unique index to prevent duplicates
 LeadSchema.index({ businessId: 1, status: 1 });
 LeadSchema.index({ businessId: 1, receivedAt: -1 });
-LeadSchema.index({ assignedTo: 1, status: 1 });
+LeadSchema.index({ businessId: 1, assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
 LeadSchema.index({ adId: 1 });

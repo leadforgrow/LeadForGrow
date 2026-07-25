@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import { dbConnect } from '@/lib/mongodb';
 import Message from '@/models/automation/Message';
 import Conversation from '@/models/omnichannel/Conversation';
@@ -12,7 +13,7 @@ async function handler(req) {
   try {
     const { user } = req;
     const { searchParams } = new URL(req.url);
-    const q = searchParams.get('q')?.trim();
+    const q = escapeRegex(searchParams.get('q')?.trim() || '').slice(0, 200) || null;
     const type = searchParams.get('type') || 'all';
     const limit = Math.min(30, parseInt(searchParams.get('limit') || '20', 10));
 

@@ -112,7 +112,7 @@ ActivitySchema.pre('validate', function ensureEntityRef() {
   }
 });
 
-ActivitySchema.index({ entityType: 1, entityId: 1, performedAt: -1 });
+ActivitySchema.index({ businessId: 1, entityType: 1, entityId: 1, performedAt: -1 });
 ActivitySchema.index({ leadId: 1, performedAt: -1 });
 ActivitySchema.index({ businessId: 1, performedAt: -1 });
 

@@ -10,8 +10,23 @@ const inputCls = 'w-full px-3 py-2 text-sm border border-slate-200 dark:border-s
 function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
   return (
     <div className="space-y-3">
+      <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-sm">
+        <p className="text-xs text-slate-500">Lead</p>
+        <p className="font-medium text-slate-900 dark:text-white">{lead?.name || '—'}</p>
+      </div>
+
       <div>
-        <label className="text-xs font-medium text-slate-500">Deal Name</label>
+        <label className="text-xs font-medium text-slate-500">Company</label>
+        <input
+          className={`${inputCls} mt-1`}
+          value={form.companyName}
+          onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+          placeholder={lead?.companyId?.name || 'Company name (optional)'}
+        />
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-slate-500">Deal Name *</label>
         <input
           className={`${inputCls} mt-1`}
           value={form.dealTitle}
@@ -19,8 +34,9 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
           placeholder="Deal name"
         />
       </div>
+
       <div>
-        <label className="text-xs font-medium text-slate-500">Deal Value (optional)</label>
+        <label className="text-xs font-medium text-slate-500">Deal Amount</label>
         <input
           type="number"
           className={`${inputCls} mt-1`}
@@ -29,6 +45,17 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
           placeholder="0"
         />
       </div>
+
+      <div>
+        <label className="text-xs font-medium text-slate-500">Expected Close Date</label>
+        <input
+          type="date"
+          className={`${inputCls} mt-1`}
+          value={form.expectedCloseDate}
+          onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })}
+        />
+      </div>
+
       <div>
         <label className="text-xs font-medium text-slate-500">Pipeline</label>
         <select
@@ -39,7 +66,7 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
             setForm({
               ...form,
               pipelineId: e.target.value,
-              dealStage: p?.stages?.[0]?.key || 'qualified',
+              dealStage: p?.stages?.find((s) => s.key === 'discovery')?.key || p?.stages?.[0]?.key || 'discovery',
             });
           }}
         >
@@ -48,8 +75,9 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
           ))}
         </select>
       </div>
+
       <div>
-        <label className="text-xs font-medium text-slate-500">Stage</label>
+        <label className="text-xs font-medium text-slate-500">Starting Stage</label>
         <select
           className={`${inputCls} mt-1`}
           value={form.dealStage}
@@ -60,17 +88,9 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
           ))}
         </select>
       </div>
+
       <div>
-        <label className="text-xs font-medium text-slate-500">Expected Close Date</label>
-        <input
-          type="date"
-          className={`${inputCls} mt-1`}
-          value={form.expectedCloseDate}
-          onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })}
-        />
-      </div>
-      <div>
-        <label className="text-xs font-medium text-slate-500">Assigned Salesperson</label>
+        <label className="text-xs font-medium text-slate-500">Owner *</label>
         <select
           className={`${inputCls} mt-1`}
           value={form.assignedTo}
@@ -83,6 +103,26 @@ function ConvertForm({ lead, teamMembers, form, setForm, pipelines, stages }) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+        <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+          <input type="checkbox" checked={form.createCompany} disabled className="rounded" />
+          Create company if missing
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+          <input type="checkbox" checked={form.createContact} disabled className="rounded" />
+          Create contact if missing
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+          <input
+            type="checkbox"
+            checked={form.archiveLead}
+            onChange={(e) => setForm({ ...form, archiveLead: e.target.checked })}
+            className="rounded"
+          />
+          Archive lead after conversion
+        </label>
       </div>
     </div>
   );
@@ -102,10 +142,14 @@ export default function ConvertLeadDialog({
   const [form, setForm] = useState({
     dealTitle: '',
     dealAmount: '',
+    companyName: '',
     pipelineId: '',
-    dealStage: 'qualified',
+    dealStage: 'discovery',
     expectedCloseDate: '',
     assignedTo: '',
+    createCompany: true,
+    createContact: true,
+    archiveLead: true,
   });
 
   useEffect(() => {
@@ -114,6 +158,8 @@ export default function ConvertLeadDialog({
 
   useEffect(() => {
     if (!open) return;
+    const meta = lead?.metadata;
+    const budget = meta?.estimatedBudget ?? meta?.dealAmount ?? meta?.amount;
     authFetch('/api/automation/pipelines')
       .then((r) => r.json())
       .then((d) => {
@@ -123,11 +169,15 @@ export default function ConvertLeadDialog({
           if (def) {
             setForm({
               dealTitle: lead?.name ? `Deal — ${lead.name}` : '',
-              dealAmount: '',
+              dealAmount: budget != null ? String(budget) : '',
+              companyName: '',
               pipelineId: def._id,
-              dealStage: def.stages?.find((s) => s.key === 'qualified')?.key || def.stages?.[0]?.key || 'qualified',
+              dealStage: def.stages?.find((s) => s.key === 'discovery')?.key || def.stages?.[0]?.key || 'discovery',
               expectedCloseDate: '',
               assignedTo: lead?.assignedTo?._id || lead?.assignedTo || getUserId() || '',
+              createCompany: true,
+              createContact: true,
+              archiveLead: true,
             });
           }
         }
@@ -150,7 +200,7 @@ export default function ConvertLeadDialog({
         onClick={() => onConfirm(form)}
         className="px-4 py-2 text-sm text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg disabled:opacity-50"
       >
-        {saving ? 'Converting…' : 'Convert & Create Deal'}
+        {saving ? 'Converting…' : 'Convert to Deal'}
       </button>
     </div>
   );
@@ -160,22 +210,15 @@ export default function ConvertLeadDialog({
       <div className="absolute inset-0 z-40 bg-white dark:bg-slate-950 flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <h3 className="font-semibold text-slate-900 dark:text-white">Convert Lead</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Creates contact, company & deal</p>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Convert to Deal</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Creates contact, company & deal — lead moves to Deals</p>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <ConvertForm
-            lead={lead}
-            teamMembers={teamMembers}
-            form={form}
-            setForm={setForm}
-            pipelines={pipelines}
-            stages={stages}
-          />
+          <ConvertForm lead={lead} teamMembers={teamMembers} form={form} setForm={setForm} pipelines={pipelines} stages={stages} />
         </div>
         <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
           {footer}
@@ -188,20 +231,13 @@ export default function ConvertLeadDialog({
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h3 className="font-semibold text-slate-900 dark:text-white">Convert Lead</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-white">Convert to Deal</h3>
           <p className="text-xs text-slate-500 mt-1">
-            Creates a contact{lead?.companyId ? ', company,' : ''} and deal automatically.
+            This lead will be marked converted and removed from your active leads list.
           </p>
         </div>
         <div className="p-5 overflow-y-auto flex-1">
-          <ConvertForm
-            lead={lead}
-            teamMembers={teamMembers}
-            form={form}
-            setForm={setForm}
-            pipelines={pipelines}
-            stages={stages}
-          />
+          <ConvertForm lead={lead} teamMembers={teamMembers} form={form} setForm={setForm} pipelines={pipelines} stages={stages} />
         </div>
         <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800">
           {footer}

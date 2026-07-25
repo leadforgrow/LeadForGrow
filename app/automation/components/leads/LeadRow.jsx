@@ -30,9 +30,8 @@ function LeadRow({
 
   return (
     <tr
-      className={`group ${TABLE_ROW_LINE} cursor-pointer transition-colors ${
-        selected ? 'ring-1 ring-inset ring-[#1A45A5]/40' : ''
-      } ${!lead.rowColor && !statusColor ? 'hover:bg-[#FAFBFC]/80 dark:hover:bg-slate-800/30' : ''}`}
+      className={`group ${TABLE_ROW_LINE} cursor-pointer transition-colors ${selected ? 'ring-1 ring-inset ring-[#1A45A5]/40' : ''
+        } ${!lead.rowColor && !statusColor ? 'hover:bg-[#FAFBFC]/80 dark:hover:bg-slate-800/30' : ''}`}
       style={rowBg}
       onClick={() => onOpenDrawer(lead._id)}
     >
@@ -128,11 +127,10 @@ function LeadRow({
               type="button"
               title="Choose row color"
               onClick={() => setColorPickerOpen((v) => !v)}
-              className={`inline-flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-[#F2F4F7] dark:hover:bg-slate-800 ${
-                colorPickerOpen || lead.rowColor
+              className={`inline-flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-[#F2F4F7] dark:hover:bg-slate-800 ${colorPickerOpen || lead.rowColor
                   ? 'text-[#1A45A5] bg-[#EFF8FF]'
                   : 'text-[#667085]'
-              }`}
+                }`}
             >
               <Palette className="w-3.5 h-3.5" />
             </button>

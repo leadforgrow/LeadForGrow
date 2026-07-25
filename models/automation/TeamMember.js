@@ -87,6 +87,8 @@ const TeamMemberSchema = new mongoose.Schema({
 // Indexes
 TeamMemberSchema.index({ businessId: 1, active: 1 });
 TeamMemberSchema.index({ userId: 1 });
+// One membership per user per business
+TeamMemberSchema.index({ businessId: 1, userId: 1 }, { unique: true });
 
 export default mongoose.models.TeamMember || mongoose.model('TeamMember', TeamMemberSchema);
 

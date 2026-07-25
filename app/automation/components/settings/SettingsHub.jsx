@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Settings, ChevronRight, Search, Plug, Users } from 'lucide-react';
 import { SETTINGS_HUB_CARDS, SECTION_COLORS } from './constants';
+import { CrmHubIcon } from './crm/CrmIcons';
 
 export default function SettingsHub() {
   const [search, setSearch] = useState('');
@@ -78,8 +79,18 @@ export default function SettingsHub() {
                 <div className={`absolute top-0 left-0 right-0 h-1 ${colors.bar} opacity-60 group-hover:opacity-100 transition-opacity`} />
 
                 <div className="flex items-start justify-between gap-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${colors.icon}`}>
-                    <Icon className="w-5 h-5" strokeWidth={2} />
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ring-1 ring-inset ring-black/[0.04] dark:ring-white/[0.06] ${
+                      card.id === 'crm'
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                        : colors.icon
+                    }`}
+                  >
+                    {card.id === 'crm' ? (
+                      <CrmHubIcon className="w-5 h-5" />
+                    ) : (
+                      <Icon className="w-5 h-5" strokeWidth={1.75} />
+                    )}
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all mt-1" />
                 </div>

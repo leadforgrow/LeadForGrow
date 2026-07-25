@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import { dbConnect } from '@/lib/mongodb';
 import CrmNote from '@/models/automation/CrmNote';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
@@ -15,7 +16,7 @@ export const GET = withTenantAuth(async (request) => {
     const { searchParams } = new URL(request.url);
     const entityType = searchParams.get('entityType');
     const entityId = searchParams.get('entityId');
-    const search = searchParams.get('search');
+    const search = escapeRegex(searchParams.get('search') || '').slice(0, 200);
 
     if (!entityType || !entityId) {
       return NextResponse.json({ success: false, error: 'entityType and entityId required' }, { status: 400 });

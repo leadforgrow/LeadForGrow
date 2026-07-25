@@ -24,21 +24,36 @@ export async function GET(request) {
   try {
     await dbConnect();
     const now = new Date();
-    
+    const MAX_BATCH = 200;
+    const MAX_SEND_ATTEMPTS = 5;
+
     // Find pending tasks with autoSend enabled that are due or past due
     const dueTasks = await Task.find({
       status: 'pending',
       autoSend: true,
-      dueDate: { $lte: now }
-    }).populate('leadId');
-    
+      dueDate: { $lte: now },
+      $or: [
+        { autoSendAttempts: { $exists: false } },
+        { autoSendAttempts: { $lt: MAX_SEND_ATTEMPTS } },
+      ],
+    })
+      .sort({ dueDate: 1 })
+      .limit(MAX_BATCH)
+      .populate('leadId');
+
     console.log(`[Cron:Tasks] Found ${dueTasks.length} automated tasks to process.`);
-    
+
     const results = [];
-    
+    const businessCache = new Map();
+
     for (const task of dueTasks) {
       try {
-        const business = await Business.findById(task.businessId);
+        const bizKey = task.businessId?.toString();
+        let business = businessCache.get(bizKey);
+        if (business === undefined) {
+          business = await Business.findById(task.businessId);
+          businessCache.set(bizKey, business);
+        }
         if (!business) {
             console.log(`[Cron:Tasks] Business not found for task ${task._id}`);
             continue;
@@ -99,14 +114,16 @@ export async function GET(request) {
           
           results.push({ taskId: task._id, status: 'success' });
         } else {
-          // If it failed, log the error but don't mark as completed 
-          // (it will retry on next cron run unless we implement a max-retry count)
           console.error(`[Cron:Tasks] Delivery failed for task ${task._id}: ${sendResult.error}`);
-          task.notes = (task.notes || '') + `\n[AutoErr] Failed to send ${task.type}: ${sendResult.error || 'Unknown Error'}`;
-          
-          // Basic protection against infinite loops for broken credentials:
-          // If we've tried multiple times, maybe mark as error?
-          // For now, let's just save the error note.
+          task.autoSendAttempts = (task.autoSendAttempts || 0) + 1;
+          task.notes = (task.notes || '') + `\n[AutoErr] Attempt ${task.autoSendAttempts}/${MAX_SEND_ATTEMPTS} failed to send ${task.type}: ${sendResult.error || 'Unknown Error'}`;
+
+          if (task.autoSendAttempts >= MAX_SEND_ATTEMPTS) {
+            // Give up automating; leave the task pending for manual follow-up
+            task.autoSend = false;
+            task.notes += `\n[AutoErr] Max attempts reached — automation disabled, please follow up manually.`;
+          }
+
           await task.save();
           results.push({ taskId: task._id, status: 'failed', error: sendResult.error });
         }

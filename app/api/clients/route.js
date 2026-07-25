@@ -1,4 +1,5 @@
 import { dbConnect } from '@/lib/mongodb';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import CMS_Client from '@/models/cms/Client';
 import { NextResponse } from 'next/server';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
@@ -20,7 +21,7 @@ export const GET = withTenantAuth(async (request) => {
     }
 
     const status = searchParams.get('status');
-    const search = searchParams.get('search');
+    const search = escapeRegex(searchParams.get('search') || '').slice(0, 200) || null;
 
     const query = { businessId };
     if (status) query.status = status;

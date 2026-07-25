@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -11,7 +12,10 @@ import {
   CheckCircle2,
   CloudDownload,
   CloudUpload,
+  Loader2,
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 import { useBusinessAssistant } from '../../../context/BusinessAssistantContext';
 import GroviaIcon from '../../assistant/GroviaIcon';
 
@@ -24,6 +28,44 @@ export default function PremiumDashboardHeader({
 }) {
   const router = useRouter();
   const { open: openAssistant } = useBusinessAssistant();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const listRes = await authFetch('/api/automation/leads?limit=100');
+      const listData = await listRes.json();
+      const leads = listData?.data || [];
+      if (!leads.length) {
+        toast.error('No leads to export');
+        return;
+      }
+      const res = await authFetch('/api/automation/leads/export/excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leads, filter: 'all' }),
+      });
+      if (!res.ok) {
+        toast.error('Export failed');
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `leads-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Export downloaded');
+    } catch {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
   const updatedLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     : 'now';
@@ -127,17 +169,21 @@ export default function PremiumDashboardHeader({
           </div>
 
           <div className="inline-flex items-stretch rounded-lg bg-[#101828] overflow-hidden shadow-sm">
-            <Link
-              href="/automation/leads/export/excel"
-              className="inline-flex items-center gap-2 h-9 px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-[#1D2939]"
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 h-9 px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-[#1D2939] disabled:opacity-60"
             >
-              <CloudUpload className="w-4 h-4" />
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
               Exports
-            </Link>
+            </button>
             <span className="w-px self-stretch bg-white/20" />
             <button
               type="button"
-              className="inline-flex items-center justify-center w-8 h-9 text-white/80 transition-colors hover:bg-[#1D2939]"
+              onClick={handleExport}
+              disabled={exporting}
+              className="inline-flex items-center justify-center w-8 h-9 text-white/80 transition-colors hover:bg-[#1D2939] disabled:opacity-60"
               aria-label="Export options"
             >
               <ChevronDown className="w-3.5 h-3.5" />

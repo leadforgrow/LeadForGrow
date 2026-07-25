@@ -1,6 +1,30 @@
 import { NextResponse } from 'next/server';
 import { callController } from '@/lib/call-automation/call_controller';
 import { dbConnect } from "@/lib/mongodb";
+import { extractToken, verifyToken } from '@/lib/auth';
+
+/**
+ * Authorize the inbound-call webhook: either an authenticated user of the
+ * same business (dashboard test) or a matching per-business webhook secret.
+ */
+async function authorizeInbound(req, businessId, searchParams) {
+  const token = extractToken(req);
+  if (token) {
+    const user = verifyToken(token);
+    if (user?.businessId && String(user.businessId) === String(businessId)) return true;
+  }
+
+  const { callRepository } = await import('@/lib/call-automation/storage/call_repository');
+  const settings = await callRepository.getBusinessSettings(businessId);
+  const configuredSecret = settings?.telephony?.webhookSecret;
+  if (configuredSecret) {
+    const provided = req.headers.get('x-webhook-secret') || searchParams.get('secret');
+    return provided === configuredSecret;
+  }
+
+  // No secret configured: only allow outside production (local/dev testing)
+  return process.env.NODE_ENV !== 'production';
+}
 
 /**
  * Endpoint for Live Inbound Calls (Forwarded from Personal SIM)
@@ -15,6 +39,10 @@ export async function POST(req) {
     
     if (!businessId) {
       return NextResponse.json({ error: 'businessId required in query string' }, { status: 400 });
+    }
+
+    if (!(await authorizeInbound(req, businessId, searchParams))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Adapt body for controller

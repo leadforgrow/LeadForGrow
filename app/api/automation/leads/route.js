@@ -8,6 +8,7 @@ import Form from '@/models/Form';
 import { processNewLead } from '@/lib/leadProcessor';
 import { enrichLeadsWithNextFollowUp } from '@/lib/crm/followUpSync';
 import { withTenantAuth, resolveTenant } from '@/lib/auth';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,14 @@ export const GET = withTenantAuth(async (request) => {
       : Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50', 10)), 100);
     const skip = (page - 1) * limit;
 
-    const query = { businessId: business._id, archived: false };
+    const query = { businessId: business._id };
+
+    const showConverted = searchParams.get('showConverted') === '1';
+    if (showConverted) {
+      query.$or = [{ archived: false }, { status: 'converted' }];
+    } else {
+      query.archived = false;
+    }
 
     // Role-based filtering: members and team_members only see leads assigned to them
     const isRestrictedRole = ['member', 'TEAM_MEMBER', 'VIEW_ONLY'].includes(user.role);
@@ -54,7 +62,12 @@ export const GET = withTenantAuth(async (request) => {
       query.assignedTo = assignedTo;
     }
 
-    if (status) query.status = status;
+    if (status) {
+      query.status = status;
+    } else if (searchParams.get('showConverted') !== '1') {
+      // Converted leads belong on the Deals page — hidden unless explicitly requested
+      query.status = { $ne: 'converted' };
+    }
     if (source) query.source = source;
     if (eventId) query.eventId = eventId;
     if (campaignName) query.campaignName = campaignName;
@@ -92,11 +105,12 @@ export const GET = withTenantAuth(async (request) => {
     }
 
     if (search) {
+      const safeSearch = escapeRegex(search.slice(0, 200));
       const searchOr = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { serviceInterest: { $regex: search, $options: 'i' } }
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { phone: { $regex: safeSearch, $options: 'i' } },
+        { serviceInterest: { $regex: safeSearch, $options: 'i' } }
       ];
       if (query.$or) {
         query.$and = [{ $or: query.$or }, { $or: searchOr }];
@@ -106,8 +120,6 @@ export const GET = withTenantAuth(async (request) => {
       }
     }
 
-
-    console.log('[API Leads] Query:', JSON.stringify(query));
 
     const [leads, total] = await Promise.all([
       Lead.find(query)
@@ -164,8 +176,6 @@ export const GET = withTenantAuth(async (request) => {
       });
       enrichedLeads = await enrichLeadsWithNextFollowUp(enrichedLeads, business._id);
     }
-
-    console.log('[API Leads] Found leads:', enrichedLeads.length, 'total:', total);
 
     return NextResponse.json({
       success: true,

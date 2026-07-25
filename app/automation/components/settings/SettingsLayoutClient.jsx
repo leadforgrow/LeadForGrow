@@ -21,7 +21,7 @@ function SettingsLayoutInner({ children }) {
   const pathname = usePathname();
   const isHub = isSettingsHub(pathname);
   const section = useMemo(() => sectionFromPath(pathname), [pathname]);
-  const wide = section === 'integrations' || section === 'team';
+  const wide = section === 'integrations' || section === 'team' || section === 'crm';
 
   if (isHub) {
     return <div className="relative min-h-full">{children}</div>;

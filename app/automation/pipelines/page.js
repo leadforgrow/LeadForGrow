@@ -13,22 +13,31 @@ function PipelinesContent() {
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   const fetchPipelines = useCallback(async () => {
     setLoading(true);
-    const res = await authFetch('/api/automation/pipelines');
-    const data = await res.json();
-    if (data.success) {
-      setPipelines(data.data || []);
-      const def = data.data?.find((p) => p.isDefault) || data.data?.[0];
-      if (def) {
-        setSelectedId((prev) => prev || def._id);
-        if (!selectedId || selectedId === def._id) {
-          setStages(normalizePipelineStages(def.stages || []));
+    setLoadError('');
+    try {
+      const res = await authFetch('/api/automation/pipelines');
+      const data = await res.json();
+      if (data.success) {
+        setPipelines(data.data || []);
+        const def = data.data?.find((p) => p.isDefault) || data.data?.[0];
+        if (def) {
+          setSelectedId((prev) => prev || def._id);
+          if (!selectedId || selectedId === def._id) {
+            setStages(normalizePipelineStages(def.stages || []));
+          }
         }
+      } else {
+        setLoadError(data.error || 'Failed to load pipelines');
       }
+    } catch {
+      setLoadError('Could not reach the server. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [selectedId]);
 
   useEffect(() => { fetchPipelines(); }, [fetchPipelines]);
@@ -109,6 +118,23 @@ function PipelinesContent() {
   };
 
   if (loading) return <LeadsSkeleton />;
+
+  if (loadError) {
+    return (
+      <div className="min-h-full bg-[#FAFDFA] dark:bg-slate-950 px-4 sm:px-6 py-6 max-w-4xl mx-auto">
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-6 text-center">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-3">{loadError}</p>
+          <button
+            type="button"
+            onClick={fetchPipelines}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-[#FAFDFA] dark:bg-slate-950 px-4 sm:px-6 py-6 max-w-4xl mx-auto">

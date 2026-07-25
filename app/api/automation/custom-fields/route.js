@@ -38,8 +38,9 @@ export const POST = withTenantAuth(async (request) => {
     await dbConnect();
 
     const field = await CrmCustomField.create({
-      businessId: tenant.business._id,
       ...body,
+      // Tenant/audit fields last so client payloads can never override them
+      businessId: tenant.business._id,
       createdBy: tenant.user._id,
     });
 

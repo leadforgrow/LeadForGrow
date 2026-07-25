@@ -8,6 +8,7 @@ import { withTenantAuth, resolveTenant } from '@/lib/auth';
 import { logTimelineEvent, getEntityTimeline } from '@/lib/crm/timeline';
 import { ensureDefaultPipeline, getStageByKey } from '@/lib/crm/pipelines';
 import { runDealStageAutomations } from '@/lib/crm/stageAutomations';
+import { runDealStageCustomerMessages } from '@/lib/crm/dealCustomerMessages';
 import { normalizeStageKey } from '@/lib/crm/stageKeys';
 import { isStageClosed, isStageWon, getStageLabel } from '@/lib/crm/pipelineUtils';
 import { normalizeLeadStatus } from '@/lib/crm/leadStages';
@@ -66,12 +67,16 @@ export const PUT = withTenantAuth(async (request, { params }) => {
       if (body[key] !== undefined) deal[key] = body[key];
     }
 
+    // Resolved once and reused below (lead sync + won automations)
+    let pipeline = null;
+    let stageConfig = null;
+
     if (stageChanging) {
-      const pipeline = deal.pipelineId
+      pipeline = deal.pipelineId
         ? await (await import('@/models/automation/Pipeline')).default.findById(deal.pipelineId)
         : await ensureDefaultPipeline(tenant.business._id);
 
-      const stageConfig = getStageByKey(pipeline, body.stage);
+      stageConfig = getStageByKey(pipeline, body.stage);
       if (stageConfig) deal.probability = stageConfig.probability;
 
       try {
@@ -84,6 +89,13 @@ export const PUT = withTenantAuth(async (request, { params }) => {
           userId: tenant.user._id,
           body,
         });
+        runDealStageCustomerMessages({
+          business: tenant.business,
+          deal,
+          newStage: body.stage,
+          userId: tenant.user._id,
+          body,
+        }).catch((err) => console.error('[Deal] Customer message error:', err.message));
       } catch (autoErr) {
         if (autoErr.code === 'LOST_REASON_REQUIRED') {
           return NextResponse.json({ success: false, error: autoErr.message, code: autoErr.code }, { status: 400 });
@@ -137,12 +149,6 @@ export const PUT = withTenantAuth(async (request, { params }) => {
     }
 
     if (stageChanging && deal.leadId) {
-      const stageConfig = getStageByKey(
-        deal.pipelineId
-          ? await (await import('@/models/automation/Pipeline')).default.findById(deal.pipelineId)
-          : await ensureDefaultPipeline(tenant.business._id),
-        body.stage
-      );
       if (stageConfig?.isWon || isStageWon(body.stage, pipeline?.stages)) {
         try {
           const Lead = (await import('@/models/automation/Lead')).default;

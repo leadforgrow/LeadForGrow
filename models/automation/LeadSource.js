@@ -36,6 +36,5 @@ const LeadSourceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-LeadSourceSchema.index({ businessId: 1 });
 
 export default mongoose.models.LeadSource || mongoose.model('LeadSource', LeadSourceSchema);

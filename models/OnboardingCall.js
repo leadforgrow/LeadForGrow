@@ -54,4 +54,7 @@ OnboardingCallSchema.pre('save', function() {
   this.updatedAt = Date.now();
 });
 
+OnboardingCallSchema.index({ userId: 1, createdAt: -1 });
+OnboardingCallSchema.index({ status: 1 });
+
 export default mongoose.models.OnboardingCall || mongoose.model('OnboardingCall', OnboardingCallSchema);

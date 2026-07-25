@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { withTenantAuth } from '@/lib/auth';
 
-export async function POST(request) {
+const MAX_EXPORT_ROWS = 5000;
+
+export const POST = withTenantAuth(async (request) => {
   try {
     const { leads, filter } = await request.json();
 
     if (!leads || leads.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No leads to export' },
+        { status: 400 }
+      );
+    }
+
+    if (leads.length > MAX_EXPORT_ROWS) {
+      return NextResponse.json(
+        { success: false, error: `Export limited to ${MAX_EXPORT_ROWS} leads at a time` },
         { status: 400 }
       );
     }
@@ -166,4 +176,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-}
+});

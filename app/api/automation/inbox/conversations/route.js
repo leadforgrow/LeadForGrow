@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import { dbConnect } from '@/lib/mongodb';
 import Conversation from '@/models/omnichannel/Conversation';
 import Lead from '@/models/automation/Lead';
@@ -13,7 +14,7 @@ async function handler(req) {
     const channel = searchParams.get('channel');
     const status = searchParams.get('status');
     const inboxStatus = searchParams.get('inboxStatus');
-    const search = searchParams.get('search');
+    const search = escapeRegex(searchParams.get('search') || '').slice(0, 200) || null;
     const label = searchParams.get('label');
     const archived = searchParams.get('archived') === 'true';
     const spam = searchParams.get('spam') === 'true';

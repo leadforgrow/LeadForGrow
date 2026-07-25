@@ -19,10 +19,21 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get('mode') === 'register' ? 'register' : 'login';
     const isAgency = searchParams.get('isAgency') === '1' ? '1' : '0';
-    const state = `${mode}:${isAgency}`;
+
+    // Random nonce bound to the browser via httpOnly cookie (login CSRF protection)
+    const nonce = globalThis.crypto.randomUUID();
+    const state = `${mode}:${isAgency}:${nonce}`;
 
     const url = getGoogleAuthUrl(state);
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    res.cookies.set('g_oauth_state', nonce, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 600,
+      path: '/',
+    });
+    return res;
   } catch (error) {
     console.error('[Google OAuth] start error:', error);
     const base = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');

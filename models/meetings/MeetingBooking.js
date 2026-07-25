@@ -80,7 +80,7 @@ const MeetingBookingSchema = new mongoose.Schema(
 
 MeetingBookingSchema.index({ businessId: 1, startTime: 1 });
 MeetingBookingSchema.index({ businessId: 1, status: 1, startTime: -1 });
-MeetingBookingSchema.index({ assignedTo: 1, startTime: 1 });
+MeetingBookingSchema.index({ businessId: 1, assignedTo: 1, startTime: 1 });
 
 if (mongoose.models.MeetingBooking) {
   delete mongoose.models.MeetingBooking;

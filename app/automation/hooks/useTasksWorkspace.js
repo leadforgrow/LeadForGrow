@@ -25,6 +25,7 @@ export function useTasksWorkspace() {
   const [counts, setCounts] = useState({ today: 0, overdue: 0, upcoming: 0, all: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState(initialFilter);
   const [search, setSearch] = useState('');
   const [leads, setLeads] = useState([]);
@@ -39,10 +40,13 @@ export function useTasksWorkspace() {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
+      setError('');
       const res = await authFetch(`/api/automation/tasks?filter=${filter}`);
       const data = await res.json();
       if (data.success) setTasks(data.data || []);
+      else setError(data.error || 'Failed to load tasks');
     } catch {
+      setError('Failed to load tasks');
       toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
@@ -92,9 +96,11 @@ export function useTasksWorkspace() {
     fetchTasks();
   }, [fetchTasks]);
 
+  // Counts refresh on filter change and via explicit refresh()/markDone() —
+  // depending on `tasks` here would trigger 4 API calls on every list mutation
   useEffect(() => {
     fetchCounts();
-  }, [fetchCounts, tasks]);
+  }, [fetchCounts, filter]);
 
   useEffect(() => {
     if (showCreateModal) {
@@ -218,6 +224,7 @@ export function useTasksWorkspace() {
     counts,
     loading,
     refreshing,
+    error,
     filter,
     setFilter,
     search,

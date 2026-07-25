@@ -238,6 +238,27 @@ export async function POST(request, { params }) {
 
         logStep(6, 'No leadgen change found — checking WhatsApp');
 
+        // Delivery / read / failed status updates (field=messages, value.statuses)
+        const statusValue = (payload.entry || [])
+          .flatMap((entry) => entry.changes || [])
+          .find((change) => change.field === 'messages' && change.value?.statuses)?.value;
+
+        if (statusValue?.statuses?.length) {
+            const { processWhatsAppStatuses } = await import('@/lib/omnichannel/messageStatus');
+            const statusResults = await processWhatsAppStatuses(business._id, statusValue.statuses);
+            logStep(14, 'WhatsApp status processing result', statusResults);
+            await finalizeMetaWebhookIngress(ingressId, {
+                outcome: 'success',
+                processing: { step: 'whatsapp_status_processed', count: statusResults.length, result: statusResults },
+            });
+            return respond200({
+                success: true,
+                channel: 'whatsapp',
+                status: 'status_processed',
+                processed: statusResults.length,
+            }, '15-whatsapp-status');
+        }
+
         const { extractWhatsAppPayload } = await import('@/lib/whatsapp/attribution');
         const data = extractWhatsAppPayload(payload);
         
@@ -262,6 +283,10 @@ export async function POST(request, { params }) {
         });
 
         logStep(14, 'WhatsApp processing result', waResult);
+        await finalizeMetaWebhookIngress(ingressId, {
+            outcome: 'success',
+            processing: { step: 'whatsapp_message_processed', result: waResult },
+        });
         return respond200({ success: true, channel: 'whatsapp', status: waResult.status }, '15-whatsapp');
 
     } catch (error) {

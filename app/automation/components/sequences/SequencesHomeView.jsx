@@ -117,10 +117,10 @@ export default function SequencesHomeView({
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {[
-              { label: 'Total sequences', value: stats.total, icon: GitBranch, color: 'blue' },
-              { label: 'Active', value: stats.active, icon: Play, color: 'emerald' },
-              { label: 'Enrolled leads', value: stats.enrolled, icon: Users, color: 'violet' },
-              { label: 'Running now', value: stats.running, icon: Zap, color: 'amber' },
+              { label: 'Total sequences', value: stats.total, icon: GitBranch, iconClass: 'text-blue-500' },
+              { label: 'Active', value: stats.active, icon: Play, iconClass: 'text-emerald-500' },
+              { label: 'Enrolled leads', value: stats.enrolled, icon: Users, iconClass: 'text-violet-500' },
+              { label: 'Running now', value: stats.running, icon: Zap, iconClass: 'text-amber-500' },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -130,7 +130,7 @@ export default function SequencesHomeView({
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-slate-500">{s.label}</p>
-                  <s.icon className={`w-4 h-4 text-${s.color}-500`} />
+                  <s.icon className={`w-4 h-4 ${s.iconClass}`} />
                 </div>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{s.value}</p>
               </motion.div>

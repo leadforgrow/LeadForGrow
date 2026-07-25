@@ -17,7 +17,12 @@ export async function GET(request) {
     console.log('[Meta Test Endpoint] token:', token);
     console.log('[Meta Test Endpoint] challenge:', challenge);
 
-    // Accept ANY verify token for testing purposes
+    // Diagnostic endpoint: disabled in production
+    if (process.env.NODE_ENV === 'production') {
+        return new Response('Not found', { status: 404 });
+    }
+
+    // Accept ANY verify token for testing purposes (dev only)
     if (mode === 'subscribe' && challenge) {
         console.log('[Meta Test Endpoint] ✅ Returning challenge');
         return new Response(challenge, {
@@ -31,6 +36,9 @@ export async function GET(request) {
 
 // POST - Receive events
 export async function POST(request) {
+    if (process.env.NODE_ENV === 'production') {
+        return new Response('Not found', { status: 404 });
+    }
     const rawBody = await request.text();
     console.log('[Meta Test Endpoint] ✅ POST received!');
     console.log('[Meta Test Endpoint] Headers:', JSON.stringify(Object.fromEntries(request.headers)));

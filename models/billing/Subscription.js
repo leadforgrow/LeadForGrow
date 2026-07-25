@@ -23,10 +23,10 @@ const SubscriptionSchema = new mongoose.Schema(
       enum: ['stripe', 'razorpay', 'manual'],
       default: 'manual',
     },
-    stripeCustomerId: { type: String, sparse: true },
-    stripeSubscriptionId: { type: String, sparse: true },
-    razorpayCustomerId: { type: String, sparse: true },
-    razorpaySubscriptionId: { type: String, sparse: true },
+    stripeCustomerId: { type: String },
+    stripeSubscriptionId: { type: String },
+    razorpayCustomerId: { type: String },
+    razorpaySubscriptionId: { type: String },
     currentPeriodStart: Date,
     currentPeriodEnd: Date,
     cancelAtPeriodEnd: { type: Boolean, default: false },
@@ -38,6 +38,8 @@ const SubscriptionSchema = new mongoose.Schema(
 
 SubscriptionSchema.index({ stripeSubscriptionId: 1 }, { sparse: true });
 SubscriptionSchema.index({ razorpaySubscriptionId: 1 }, { sparse: true });
+SubscriptionSchema.index({ businessId: 1, status: 1 });
+SubscriptionSchema.index({ businessId: 1, createdAt: -1 });
 
 export default mongoose.models.Subscription ||
   mongoose.model('Subscription', SubscriptionSchema);

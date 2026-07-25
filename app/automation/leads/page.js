@@ -10,7 +10,8 @@ import LeadTable from '../components/leads/LeadTable';
 import CRMKanban from '../components/leads/CRMKanban';
 import LeadDrawer from '../components/leads/LeadDrawer';
 import ConvertLeadDialog from '../components/leads/ConvertLeadDialog';
-import QualifiedAmountModal from '../components/leads/QualifiedAmountModal';
+import QualifiedSummaryModal from '../components/leads/QualifiedSummaryModal';
+import LostReasonModal from '../components/leads/LostReasonModal';
 import DemoScheduledModal from '../components/leads/DemoScheduledModal';
 import QuotationSentModal from '../components/leads/QuotationSentModal';
 import LeadsPagination from '../components/leads/LeadsPagination';
@@ -59,6 +60,19 @@ function LeadsWorkspaceContent() {
           onBulkRowColorChange={ws.bulkUpdateRowColor}
         />
 
+        {ws.error && (
+          <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl">
+            <p className="text-sm text-red-700 dark:text-red-300">{ws.error}</p>
+            <button
+              type="button"
+              onClick={ws.refresh}
+              className="shrink-0 px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {ws.viewMode === 'table' ? (
           <>
             <div className="hidden lg:block">
@@ -94,6 +108,11 @@ function LeadsWorkspaceContent() {
               )}
             </div>
           </>
+        ) : ws.leads.length === 0 ? (
+          <div className="py-20 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No leads in your pipeline</p>
+            <p className="text-sm text-slate-500 mt-1">Adjust filters or capture new leads to see them here.</p>
+          </div>
         ) : (
           <>
           <CRMKanban
@@ -128,12 +147,21 @@ function LeadsWorkspaceContent() {
         onConvertLead={ws.convertLead}
       />
 
-      <QualifiedAmountModal
+      <QualifiedSummaryModal
         open={!!ws.qualifiedPrompt}
         leadName={ws.qualifiedPrompt?.leadName}
         saving={ws.qualifying}
         onCancel={ws.cancelQualifiedPrompt}
         onConfirm={ws.confirmQualifiedAmount}
+      />
+
+      <LostReasonModal
+        open={!!ws.lostPrompt}
+        leadName={ws.lostPrompt?.leadName}
+        variant={ws.lostPrompt?.status === 'unqualified' ? 'unqualified' : 'lost'}
+        saving={ws.lostSaving}
+        onCancel={ws.cancelLostPrompt}
+        onConfirm={ws.confirmLostReason}
       />
 
       <DemoScheduledModal

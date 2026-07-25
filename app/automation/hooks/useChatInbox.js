@@ -101,9 +101,13 @@ export function useChatInbox() {
 
   const fetchLeadDetail = useCallback(async (leadId) => {
     if (!leadId) return;
-    const res = await authFetch(`/api/automation/leads/${leadId}`);
-    const data = await res.json();
-    if (data.success) setLeadDetail(data.data);
+    try {
+      const res = await authFetch(`/api/automation/leads/${leadId}`);
+      const data = await res.json();
+      if (data.success) setLeadDetail(data.data);
+    } catch (err) {
+      console.warn('[ChatInbox] Failed to load lead detail:', err?.message || err);
+    }
   }, []);
 
   const fetchTeam = useCallback(async () => {

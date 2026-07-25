@@ -53,6 +53,7 @@ const TaskSchema = new mongoose.Schema(
     reminderAt: Date,
     reminderSent: { type: Boolean, default: false },
     autoSend: { type: Boolean, default: false },
+    autoSendAttempts: { type: Number, default: 0 },
     messageContent: { type: String, trim: true },
     tags: [{ type: String, trim: true }],
     archived: { type: Boolean, default: false },
@@ -62,10 +63,9 @@ const TaskSchema = new mongoose.Schema(
 
 TaskSchema.plugin(baseSchemaPlugin);
 
+// leadId/dealId/contactId/companyId already indexed via field-level `index: true`
 TaskSchema.index({ businessId: 1, status: 1, dueDate: 1 });
-TaskSchema.index({ assignedTo: 1, status: 1 });
-TaskSchema.index({ leadId: 1 });
-TaskSchema.index({ dealId: 1 });
+TaskSchema.index({ businessId: 1, assignedTo: 1, status: 1 });
 TaskSchema.index({ businessId: 1, priority: 1, dueDate: 1 });
 
 TaskSchema.virtual('isOverdue').get(function () {

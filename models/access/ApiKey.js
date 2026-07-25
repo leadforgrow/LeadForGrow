@@ -22,6 +22,9 @@ const ApiKeySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Auth lookups are by keyHash — must be indexed
+ApiKeySchema.index({ keyHash: 1 }, { unique: true, sparse: true });
+
 ApiKeySchema.statics.hashKey = function (raw) {
   return crypto.createHash('sha256').update(raw).digest('hex');
 };

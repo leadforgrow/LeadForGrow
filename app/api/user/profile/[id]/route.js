@@ -7,12 +7,29 @@ import Lead from '@/models/automation/Lead';
 import { resolveFeatureFlags, resolveQuotas, groupFeatures } from '@/lib/business/featureCatalog';
 import { getPlanLabel } from '@/lib/plans';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth';
 
 function isValidObjectId(id) {
   return id && mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
 }
 
-export async function GET(request, { params }) {
+const ADMIN_ROLES = ['owner', 'admin', 'CLIENT_ADMIN', 'SUPER_ADMIN', 'super'];
+
+/** A user may access their own profile; workspace admins may access members of the same business. */
+function canAccessProfile(requester, targetUser) {
+  if (requester.userId === String(targetUser._id)) return true;
+  if (
+    ADMIN_ROLES.includes(requester.role) &&
+    requester.businessId &&
+    targetUser.businessId &&
+    String(targetUser.businessId) === String(requester.businessId)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export const GET = withAuth()(async (request, { params }) => {
   try {
     const { id } = await params;
 
@@ -26,6 +43,10 @@ export async function GET(request, { params }) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (!canAccessProfile(request.user, user)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     let business = null;
@@ -98,11 +119,11 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return NextResponse.json({ error: 'Failed to fetch profile', detail: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
   }
-}
+});
 
-export async function PUT(request, { params }) {
+export const PUT = withAuth()(async (request, { params }) => {
   try {
     const { id } = await params;
 
@@ -118,6 +139,10 @@ export async function PUT(request, { params }) {
     const user = await User.findById(id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (!canAccessProfile(request.user, user)) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     if (firstName !== undefined) user.firstName = firstName;
@@ -141,4 +166,4 @@ export async function PUT(request, { params }) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }
-}
+});

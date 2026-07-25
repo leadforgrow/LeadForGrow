@@ -16,6 +16,13 @@ export const POST = withTenantAuth(async (request) => {
       );
     }
 
+    if (leads.length > 5000) {
+      return NextResponse.json(
+        { success: false, error: 'Export limited to 5000 leads at a time' },
+        { status: 400 }
+      );
+    }
+
     // Create workbook and worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
@@ -114,7 +121,7 @@ export const POST = withTenantAuth(async (request) => {
       '',
       `Total: ${leads.length}`,
       '',
-      `Filter: ${filter.toUpperCase()}`,
+      `Filter: ${(filter || 'all').toUpperCase()}`,
       '',
       `Date: ${new Date().toLocaleDateString()}`
     ]);

@@ -30,7 +30,7 @@ export default function CRMKanban({ leads, onStatusChange, onOpenDrawer }) {
     leads.forEach((lead) => {
       const key = getLeadKanbanStage(lead);
       if (map[key]) map[key].push(lead);
-      else map.new_lead.push(lead);
+      else map.new.push(lead);
     });
     return map;
   }, [leads]);

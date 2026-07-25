@@ -13,6 +13,9 @@ import DealsKanban from '../components/deals/DealsKanban';
 import DealCreateModal from '../components/deals/DealCreateModal';
 import DealDrawer from '../components/deals/DealDrawer';
 import DealsSkeleton from '../components/deals/DealsSkeleton';
+import DemoScheduledModal from '../components/leads/DemoScheduledModal';
+import QuotationSentModal from '../components/leads/QuotationSentModal';
+import LostReasonModal from '../components/leads/LostReasonModal';
 
 function filterAndSortDeals(deals, filters, stages) {
   let list = [...(deals || [])];
@@ -173,6 +176,32 @@ function DealsContent() {
         stages={stages}
         onClose={() => ws.setDrawerId(null)}
         onUpdated={() => ws.fetchDeals(true)}
+        onStageChange={ws.updateDealStage}
+      />
+
+      <DemoScheduledModal
+        open={!!ws.demoPrompt}
+        entityName={ws.demoPrompt?.dealName}
+        saving={ws.demoSaving}
+        onCancel={ws.cancelDemoPrompt}
+        onConfirm={ws.confirmDemoScheduled}
+      />
+
+      <QuotationSentModal
+        open={!!ws.quotationPrompt}
+        entityName={ws.quotationPrompt?.dealName}
+        dealId={ws.quotationPrompt?.dealId}
+        saving={ws.quotationSaving}
+        onCancel={ws.cancelQuotationPrompt}
+        onConfirm={ws.confirmQuotationSent}
+      />
+
+      <LostReasonModal
+        open={!!ws.lostPrompt}
+        entityName={ws.lostPrompt?.dealName}
+        saving={ws.lostSaving}
+        onCancel={ws.cancelLostPrompt}
+        onConfirm={ws.confirmLostReason}
       />
     </div>
   );

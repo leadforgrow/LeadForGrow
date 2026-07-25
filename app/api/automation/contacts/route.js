@@ -81,9 +81,18 @@ export const POST = withTenantAuth(async (request) => {
       emails: (body.emails || []).map((e) => e.address),
     });
 
+    // Block silent duplicates unless the client explicitly allows them
+    if (duplicates?.length && body.allowDuplicate !== true) {
+      return NextResponse.json(
+        { success: false, error: 'A contact with this email or phone already exists', code: 'DUPLICATE', duplicates },
+        { status: 409 }
+      );
+    }
+
     const contact = await Contact.create({
-      businessId: tenant.business._id,
       ...body,
+      // Tenant/audit fields last so client payloads can never override them
+      businessId: tenant.business._id,
       ownerId: body.ownerId || tenant.user._id,
       createdBy: tenant.user._id,
     });

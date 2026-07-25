@@ -10,41 +10,58 @@ function CompleteInner() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = params.get('token');
-    const userId = params.get('userId');
-    const email = params.get('email');
-    const role = params.get('role');
-    const plan = params.get('plan');
-    const businessId = params.get('businessId');
-    const refreshToken = params.get('refreshToken');
-    const isNewUser = params.get('isNewUser') === '1';
+    const exchangeCode = params.get('code');
 
-    if (!token || !userId || !email || !businessId) {
+    if (!exchangeCode) {
       setError('Google sign-in incomplete. Please try again.');
       return;
     }
 
-    try {
-      localStorage.setItem('userid', userId);
-      localStorage.setItem('userToken', token);
-      localStorage.setItem('token', token);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('userRole', role || 'owner');
-      localStorage.setItem('userPlan', plan || 'free');
-      localStorage.setItem('businessId', businessId);
-      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-      document.cookie = `token=${token}; path=/; max-age=604800; samesite=lax`;
+    let cancelled = false;
 
-      const roleLower = (role || 'owner').toLowerCase();
-      const planLower = (plan || 'free').toLowerCase();
-      if (roleLower.includes('owner') || roleLower.includes('admin')) {
-        router.replace(planLower.includes('agency') ? '/agency' : '/automation');
-      } else {
-        router.replace('/automation/leads');
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/google/exchange', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: exchangeCode }),
+        });
+        const result = await res.json();
+        if (cancelled) return;
+
+        if (!result.success || !result.data?.token) {
+          setError(result.error || 'Google sign-in incomplete. Please try again.');
+          return;
+        }
+
+        const { token, refreshToken, userId, email, role, plan, businessId } = result.data;
+
+        localStorage.setItem('userid', userId);
+        localStorage.setItem('userToken', token);
+        localStorage.setItem('token', token);
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userRole', role || 'owner');
+        localStorage.setItem('userPlan', plan || 'free');
+        localStorage.setItem('businessId', businessId);
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        const secure = window.location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = `token=${token}; path=/; max-age=604800; samesite=lax${secure}`;
+
+        const roleLower = (role || 'owner').toLowerCase();
+        const planLower = (plan || 'free').toLowerCase();
+        if (roleLower.includes('owner') || roleLower.includes('admin')) {
+          router.replace(planLower.includes('agency') ? '/agency' : '/automation');
+        } else {
+          router.replace('/automation/leads');
+        }
+      } catch {
+        if (!cancelled) setError('Session failed. Please try again.');
       }
-    } catch {
-      setError(isNewUser ? 'Account created but session failed. Please sign in.' : 'Session failed. Please try again.');
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [params, router]);
 
   if (error) {

@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckSquare, Square, ChevronUp, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { CheckSquare, Square, ChevronUp, ChevronDown, Users, Plus } from 'lucide-react';
 import { TABLE_COLUMNS, TABLE_COL_LINE, TABLE_ROW_LINE } from './constants';
 import LeadRow from './LeadRow';
 
@@ -74,8 +75,22 @@ export default function LeadTable({
           <tbody>
             {leads.length === 0 ? (
               <tr>
-                <td colSpan={TABLE_COLUMNS.length + 2} className="py-16 text-center text-sm text-[#667085]">
-                  No leads match your filters.
+                <td colSpan={TABLE_COLUMNS.length + 2} className="py-16">
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[#F2F4F7] flex items-center justify-center">
+                      <Users className="w-5 h-5 text-[#98A2B3]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#344054]">No leads found</p>
+                      <p className="text-sm text-[#667085] mt-0.5">Try clearing filters, or capture your first lead.</p>
+                    </div>
+                    <Link
+                      href="/automation/integrations"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-[#1A45A5] hover:bg-[#163B8E] rounded-lg"
+                    >
+                      <Plus className="w-4 h-4" /> Add lead source
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ) : (

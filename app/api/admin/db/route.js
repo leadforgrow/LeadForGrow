@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import { applyPlanQuotas } from '@/lib/plans';
@@ -53,7 +54,29 @@ function requireAdminPassword(password) {
     }
     return false;
   }
-  return password === ADMIN_PASSWORD;
+  if (typeof password !== 'string') return false;
+  // Constant-time comparison to prevent timing attacks
+  const a = crypto.createHash('sha256').update(password).digest();
+  const b = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+/** Strip MongoDB operators from a client-supplied filter object (defense against query injection). */
+function sanitizeFilter(input, depth = 0) {
+  if (depth > 5 || !input || typeof input !== 'object' || Array.isArray(input)) return {};
+  const out = {};
+  for (const [key, val] of Object.entries(input)) {
+    if (key.startsWith('$') || key.includes('.')) continue;
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      // Only allow plain equality on nested objects — drop operator objects
+      const hasOperator = Object.keys(val).some((k) => k.startsWith('$'));
+      if (hasOperator) continue;
+      out[key] = sanitizeFilter(val, depth + 1);
+    } else {
+      out[key] = val;
+    }
+  }
+  return out;
 }
 
 function getSchemaDef(Model) {
@@ -133,7 +156,7 @@ export async function POST(request) {
 
     switch (action) {
       case 'find': {
-        const findQuery = { ...(query || {}), ...buildSearchQuery(Model, search) };
+        const findQuery = { ...sanitizeFilter(query || {}), ...buildSearchQuery(Model, search) };
         const skip = Math.max(0, (page - 1) * limit);
         const safeLimit = Math.min(Math.max(1, limit), 200);
 

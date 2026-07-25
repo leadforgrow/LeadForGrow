@@ -12,8 +12,10 @@ export const GET = withTenantAuth(async (request) => {
 
     await dbConnect();
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const rawLimit = parseInt(searchParams.get('limit') || '20', 10);
+    const rawPage = parseInt(searchParams.get('page') || '1', 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(1, rawLimit), 100) : 20;
+    const page = Number.isFinite(rawPage) ? Math.max(1, rawPage) : 1;
     const skip = (page - 1) * limit;
 
     const query = { businessId: tenant.business._id };

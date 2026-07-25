@@ -33,4 +33,7 @@ const ActivityLogSchema = new mongoose.Schema({
   collection: 'cms_activity_logs'
 });
 
+ActivityLogSchema.index({ businessId: 1, createdAt: -1 });
+ActivityLogSchema.index({ businessId: 1, clientId: 1, createdAt: -1 });
+
 export default mongoose.models.CMS_ActivityLog || mongoose.model('CMS_ActivityLog', ActivityLogSchema);

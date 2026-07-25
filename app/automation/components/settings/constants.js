@@ -95,7 +95,7 @@ export const SECTION_META = {
   integrations: { title: 'Integrations', description: 'Connect apps and services to your workspace', color: 'cyan' },
   admin: { title: 'Admin & Security', description: 'Permissions, billing, API keys, audit logs, and security', color: 'indigo' },
   team: { title: 'Team & Roles', description: 'Manage users, roles, permissions, and departments', color: 'indigo' },
-  crm: { title: 'CRM Settings', description: 'Configure pipelines, fields, tags, and lead management', color: 'violet' },
+  crm: { title: 'CRM Configuration', description: 'Pipeline governance, messaging automation, and team notifications', color: 'violet' },
   automation: { title: 'Automation Settings', description: 'Working hours, SLAs, assignment logic, and defaults', color: 'amber' },
   hub: { title: 'Settings', description: 'Manage your workspace, CRM, integrations, and team' }
 };
@@ -113,7 +113,7 @@ export const SETTINGS_HUB_CARDS = [
   { id: 'integrations', href: '/automation/settings/integrations', icon: Plug, color: 'cyan', title: 'Integrations', description: 'Connect WhatsApp, Meta Ads, Stripe, Zapier, and 20+ apps', count: 25 },
   { id: 'admin', href: '/automation/settings/team-permissions', icon: ShieldCheck, color: 'indigo', title: 'Team & Permissions', description: 'Enterprise access control, roles, usage limits, and audit logs', count: 7 },
   { id: 'team', href: '/automation/settings/team', icon: Users, color: 'indigo', title: 'Team Management', description: 'Invite users and manage members', count: 2 },
-  { id: 'crm', href: '/automation/settings/crm', icon: GitBranch, color: 'violet', title: 'CRM Settings', description: 'Lead stages, pipelines, custom fields, tags, and tasks', count: 7 },
+  { id: 'crm', href: '/automation/settings/crm', icon: GitBranch, color: 'violet', title: 'CRM Configuration', description: 'Pipeline governance, messaging templates, and automation rules', count: 5 },
   { id: 'automation', href: '/automation/settings/automation', icon: Zap, color: 'amber', title: 'Automation', description: 'Working hours, SLA rules, follow-ups, and assignment logic', count: 6 }
 ];
 

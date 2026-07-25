@@ -14,7 +14,8 @@ const PLATFORMS = [
   { value: 'custom', label: 'Custom Link' },
 ];
 
-export default function DemoScheduledModal({ open, leadName, onConfirm, onCancel, saving }) {
+export default function DemoScheduledModal({ open, leadName, entityName, onConfirm, onCancel, saving }) {
+  const name = entityName || leadName || 'this deal';
   const [form, setForm] = useState({
     meetingDate: '',
     meetingTime: '',
@@ -60,7 +61,7 @@ export default function DemoScheduledModal({ open, leadName, onConfirm, onCancel
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Meeting details for <span className="font-medium">{leadName || 'this lead'}</span>
+            Meeting details for <span className="font-medium">{name}</span>
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div>

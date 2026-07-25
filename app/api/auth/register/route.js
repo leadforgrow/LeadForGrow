@@ -6,14 +6,19 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { getDefaultLimitsForTier } from "@/lib/agency/planResolver";
+import { withRateLimit } from "@/lib/rateLimit";
 
-export async function POST(req) {
+async function registerHandler(req) {
   try {
     await dbConnect();
     const { companyName, email, password, isAgency } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json({ success: false, error: "Email and password are required" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ success: false, error: "Password must be at least 8 characters" }, { status: 400 });
     }
     
     if (!companyName) {
@@ -100,6 +105,15 @@ export async function POST(req) {
         console.error('[Register] Email error:', emailError);
       }
 
+      // Issue a real token pair so the user is signed in immediately (same as login)
+      const { generateTokenPair } = await import("@/lib/security/refreshToken");
+      const RefreshToken = (await import("@/models/access/RefreshToken")).default;
+      const { accessToken, refreshToken, expiresIn } = generateTokenPair(user[0], { plan: workspace.plan });
+      await RefreshToken.store(user[0]._id, refreshToken, {
+        userAgent: req.headers.get('user-agent'),
+        ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+      });
+
       return NextResponse.json({ 
         success: true, 
         data: { 
@@ -107,7 +121,9 @@ export async function POST(req) {
           email: user[0].email,
           role: 'owner',
           business: workspace, // Keeping 'business' key for frontend backward compatibility
-          token: "dummy-token-" + user[0]._id 
+          token: accessToken,
+          refreshToken,
+          expiresIn,
         } 
       });
     } catch (error) {
@@ -118,6 +134,8 @@ export async function POST(req) {
     }
   } catch (error) {
     console.error('Registration error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Registration failed. Please try again.' }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(5, 60, registerHandler);

@@ -17,7 +17,7 @@ const RefreshTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
+      // Indexed via the TTL index below — a second plain index here would be a duplicate
     },
     revokedAt: {
       type: Date,

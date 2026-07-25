@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { withTenantAuth } from '@/lib/auth';
 
-export async function POST(request) {
+export const POST = withTenantAuth(async (request) => {
   try {
     const body = await request.json();
     const response = await fetch('https://lfg-v2.onrender.com/ai/sentiment-pulse', {
@@ -13,4 +14,4 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json({ success: false, error: 'AI Backend unreachable' }, { status: 500 });
   }
-}
+});

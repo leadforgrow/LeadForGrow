@@ -17,11 +17,11 @@ export default function SequenceAnalytics({ analytics, loading }) {
   }
 
   const cards = [
-    { label: 'Enrolled', value: analytics.enrolled, icon: Users, color: 'blue' },
-    { label: 'Completion rate', value: `${analytics.completionRate}%`, icon: CheckCircle2, color: 'emerald' },
-    { label: 'Active runs', value: analytics.activeRuns, icon: Activity, color: 'amber' },
-    { label: 'Response rate', value: `${analytics.responseRate}%`, icon: TrendingUp, color: 'violet' },
-    { label: 'Failed', value: analytics.failed, icon: AlertTriangle, color: 'red' },
+    { label: 'Enrolled', value: analytics.enrolled, icon: Users, iconClass: 'text-blue-500' },
+    { label: 'Completion rate', value: `${analytics.completionRate}%`, icon: CheckCircle2, iconClass: 'text-emerald-500' },
+    { label: 'Active runs', value: analytics.activeRuns, icon: Activity, iconClass: 'text-amber-500' },
+    { label: 'Response rate', value: `${analytics.responseRate}%`, icon: TrendingUp, iconClass: 'text-violet-500' },
+    { label: 'Failed', value: analytics.failed, icon: AlertTriangle, iconClass: 'text-red-500' },
   ];
 
   const revenue = analytics.revenue;
@@ -37,7 +37,7 @@ export default function SequenceAnalytics({ analytics, loading }) {
             transition={{ delay: i * 0.05 }}
             className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
           >
-            <c.icon className={`w-4 h-4 text-${c.color}-500 mb-2`} />
+            <c.icon className={`w-4 h-4 ${c.iconClass} mb-2`} />
             <p className="text-2xl font-bold text-slate-900 dark:text-white">{c.value}</p>
             <p className="text-xs text-slate-500">{c.label}</p>
           </motion.div>

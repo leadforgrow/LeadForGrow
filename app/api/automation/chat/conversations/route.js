@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { escapeRegex } from '@/lib/crm/queryBuilder';
 import { dbConnect } from '../../../../../lib/mongodb';
 import WhatsAppConversation from '../../../../../models/automation/WhatsAppConversation';
 import Lead from '../../../../../models/automation/Lead';
@@ -14,7 +15,7 @@ async function handler(req) {
     const { searchParams } = new URL(req.url);
     
     const status = searchParams.get('status'); // 'unread', 'read', or null for all
-    const search = searchParams.get('search'); // search by name or number
+    const search = escapeRegex(searchParams.get('search') || '').slice(0, 200); // search by name or number
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
     const skip = (page - 1) * limit;

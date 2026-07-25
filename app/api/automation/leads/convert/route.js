@@ -22,6 +22,7 @@ export const POST = withTenantAuth(async (request) => {
       expectedCloseDate: body.expectedCloseDate,
       assignedTo: body.assignedTo,
       linkExistingContact: body.linkExistingContact,
+      archiveLead: body.archiveLead,
     });
 
     return NextResponse.json({
@@ -40,6 +41,11 @@ export const POST = withTenantAuth(async (request) => {
     });
   } catch (error) {
     console.error('[Leads Convert]', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const status = error.status || 500;
+    const message = status === 500 ? 'Failed to convert lead' : error.message;
+    return NextResponse.json(
+      { success: false, error: message, ...(error.code ? { code: error.code } : {}) },
+      { status }
+    );
   }
 });

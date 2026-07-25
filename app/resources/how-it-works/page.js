@@ -312,25 +312,25 @@ export default function HowItWorks() {
 
               <div className="space-y-10 relative">
                 {[
-                  { text: "Lead submits website form", color: "blue", icon: <Globe className="w-5 h-5" /> },
-                  { text: "Lead captured instantly in DB", color: "indigo", icon: <Database className="w-5 h-5" /> },
-                  { text: "Assigned to best sales rep", color: "purple", icon: <Network className="w-5 h-5" /> },
-                  { text: "Rep gets WhatsApp notification", color: "green", icon: <MessageSquare className="w-5 h-5" /> },
-                  { text: "Rep calls lead via system", color: "orange", icon: <Smartphone className="w-5 h-5" /> },
-                  { text: "Lead qualification status updated", color: "yellow", icon: <TrendingUp className="w-5 h-5" /> },
-                  { text: "Revenue dashboard metrics updated", color: "emerald", icon: <BarChart3 className="w-5 h-5" /> },
+                  { text: "Lead submits website form", badgeClass: "bg-blue-50 text-blue-600", hoverClass: "hover:border-blue-300", icon: <Globe className="w-5 h-5" /> },
+                  { text: "Lead captured instantly in DB", badgeClass: "bg-indigo-50 text-indigo-600", hoverClass: "hover:border-indigo-300", icon: <Database className="w-5 h-5" /> },
+                  { text: "Assigned to best sales rep", badgeClass: "bg-purple-50 text-purple-600", hoverClass: "hover:border-purple-300", icon: <Network className="w-5 h-5" /> },
+                  { text: "Rep gets WhatsApp notification", badgeClass: "bg-green-50 text-green-600", hoverClass: "hover:border-green-300", icon: <MessageSquare className="w-5 h-5" /> },
+                  { text: "Rep calls lead via system", badgeClass: "bg-orange-50 text-orange-600", hoverClass: "hover:border-orange-300", icon: <Smartphone className="w-5 h-5" /> },
+                  { text: "Lead qualification status updated", badgeClass: "bg-yellow-50 text-yellow-600", hoverClass: "hover:border-yellow-300", icon: <TrendingUp className="w-5 h-5" /> },
+                  { text: "Revenue dashboard metrics updated", badgeClass: "bg-emerald-50 text-emerald-600", hoverClass: "hover:border-emerald-300", icon: <BarChart3 className="w-5 h-5" /> },
                 ].map((step, idx) => (
                   <div key={idx} className="flex items-center gap-6 md:gap-0 justify-start md:justify-center relative group">
                     <div className="w-16 md:w-1/2 md:text-right md:pr-12 text-slate-400 dark:text-slate-500 font-medium md:group-hover:text-slate-900 dark:text-white transition-colors hidden md:block">
                       Step {idx + 1}
                     </div>
 
-                    <div className={`relative z-10 w-12 h-12 rounded-full border-4 border-white shadow-sm flex items-center justify-center shrink-0 bg-${step.color}-50 text-${step.color}-600`}>
+                    <div className={`relative z-10 w-12 h-12 rounded-full border-4 border-white shadow-sm flex items-center justify-center shrink-0 ${step.badgeClass}`}>
                       {step.icon}
                     </div>
 
                     <div className="md:w-1/2 md:pl-12 w-full">
-                      <div className={`bg-white dark:bg-slate-900/30 border hover:border-${step.color}-300 hover:shadow-md transition-all border-slate-100 dark:border-slate-800 p-4 rounded-xl shadow-sm text-lg font-bold text-slate-800 dark:text-slate-200`}>
+                      <div className={`bg-white dark:bg-slate-900/30 border ${step.hoverClass} hover:shadow-md transition-all border-slate-100 dark:border-slate-800 p-4 rounded-xl shadow-sm text-lg font-bold text-slate-800 dark:text-slate-200`}>
                         {step.text}
                       </div>
                     </div>

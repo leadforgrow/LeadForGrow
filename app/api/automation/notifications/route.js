@@ -8,7 +8,11 @@ export const GET = withAuth()(async (req) => {
     await dbConnect();
     const userId = req.user.userId;
 
-    const notifications = await Notification.find({ userId })
+    // Scope by business too — multi-workspace users must not see cross-tenant notifications
+    const query = { userId };
+    if (req.user.businessId) query.businessId = req.user.businessId;
+
+    const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();

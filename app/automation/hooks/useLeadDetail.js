@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
+import { validateStageTransition } from '@/lib/crm/leadStages';
 
 export function useLeadDetail(leadId) {
   const router = useRouter();
@@ -15,6 +16,10 @@ export function useLeadDetail(leadId) {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [lostPrompt, setLostPrompt] = useState(null);
+  const [lostSaving, setLostSaving] = useState(false);
+  const [qualifiedPrompt, setQualifiedPrompt] = useState(false);
+  const [qualifying, setQualifying] = useState(false);
 
   const fetchLead = useCallback(async () => {
     if (!leadId) return;
@@ -67,28 +72,107 @@ export function useLeadDetail(leadId) {
     await Promise.all([fetchLead(), fetchTasks()]);
   }, [fetchLead, fetchTasks]);
 
-  const updateStatus = useCallback(
-    async (status) => {
+  const applyStatusUpdate = useCallback(
+    async (status, extra = {}) => {
       setUpdating(true);
       try {
         const userId = getUserId();
+        const payload = { status, performedBy: userId };
+        if (extra.lostReason) payload.lostReason = String(extra.lostReason).trim();
+        if (extra.unqualifiedReason) payload.unqualifiedReason = String(extra.unqualifiedReason).trim();
+        if (extra.note) payload.note = extra.note;
+        if (extra.dealAmount != null) payload.dealAmount = extra.dealAmount;
+        if (extra.expectedTimeline) payload.expectedTimeline = extra.expectedTimeline;
+        if (extra.requirements) payload.requirements = extra.requirements;
+        if (extra.decisionMaker) payload.decisionMaker = extra.decisionMaker;
+        if (extra.nextFollowUpAt) payload.nextFollowUpAt = extra.nextFollowUpAt;
+
         const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status, performedBy: userId })
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success) {
-          toast.success(`Marked as ${status}`);
-          await refresh();
-        } else toast.error(data.error || 'Update failed');
+          setLead(data.data);
+          toast.success('Stage updated');
+          await fetchTasks();
+          return data.data;
+        }
+        if (data.code === 'LOST_REASON_REQUIRED') toast.error('Lost reason is required');
+        else toast.error(data.error || 'Update failed');
+        return null;
       } catch {
         toast.error('Update failed');
+        return null;
       } finally {
         setUpdating(false);
       }
     },
-    [leadId, refresh]
+    [leadId, fetchTasks]
+  );
+
+  const updateStatus = useCallback(
+    async (status, options = {}) => {
+      const validation = validateStageTransition(lead?.status, status);
+      if (!validation.ok) {
+        toast.error(validation.message);
+        return null;
+      }
+      if (status === 'qualified' && options.dealAmount == null) {
+        setQualifiedPrompt(true);
+        return null;
+      }
+      const isLost = status === 'lost' || status === 'closed_lost';
+      if (isLost && !options.lostReason) {
+        setLostPrompt({ status: 'lost' });
+        return null;
+      }
+      if (status === 'unqualified' && !options.unqualifiedReason) {
+        setLostPrompt({ status: 'unqualified' });
+        return null;
+      }
+      return applyStatusUpdate(status, options);
+    },
+    [lead?.status, applyStatusUpdate]
+  );
+
+  const cancelLostPrompt = useCallback(() => setLostPrompt(null), []);
+
+  const confirmLostReason = useCallback(
+    async ({ reason, comments }) => {
+      if (!lostPrompt) return null;
+      setLostSaving(true);
+      try {
+        const targetStatus = lostPrompt.status === 'unqualified' ? 'unqualified' : 'lost';
+        const extra =
+          lostPrompt.status === 'unqualified'
+            ? { unqualifiedReason: reason, note: comments }
+            : { lostReason: reason, note: comments };
+        const updated = await applyStatusUpdate(targetStatus, extra);
+        if (updated) setLostPrompt(null);
+        return updated;
+      } finally {
+        setLostSaving(false);
+      }
+    },
+    [lostPrompt, applyStatusUpdate]
+  );
+
+  const cancelQualifiedPrompt = useCallback(() => setQualifiedPrompt(false), []);
+
+  const confirmQualifiedAmount = useCallback(
+    async (summary) => {
+      setQualifying(true);
+      try {
+        const updated = await applyStatusUpdate('qualified', summary);
+        if (updated) setQualifiedPrompt(false);
+        return updated;
+      } finally {
+        setQualifying(false);
+      }
+    },
+    [applyStatusUpdate]
   );
 
   const assignLead = useCallback(
@@ -326,6 +410,14 @@ export function useLeadDetail(leadId) {
     refresh,
     updateStatus,
     assignLead,
+    lostPrompt,
+    lostSaving,
+    confirmLostReason,
+    cancelLostPrompt,
+    qualifiedPrompt,
+    qualifying,
+    confirmQualifiedAmount,
+    cancelQualifiedPrompt,
     addNote,
     createTask,
     completeTask,

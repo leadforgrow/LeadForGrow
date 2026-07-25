@@ -10,7 +10,7 @@ const InvoiceSchema = new mongoose.Schema(
     },
     subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' },
     provider: { type: String, enum: ['stripe', 'razorpay', 'manual'], default: 'manual' },
-    externalId: { type: String, sparse: true },
+    externalId: { type: String },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'INR' },
     status: {

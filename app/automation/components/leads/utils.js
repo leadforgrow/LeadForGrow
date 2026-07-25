@@ -149,6 +149,7 @@ export function buildLeadsQuery(filters) {
   }
   if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
   if (filters.dateTo) params.set('dateTo', filters.dateTo);
+  if (filters.showConverted) params.set('showConverted', '1');
   if (filters.page) params.set('page', String(filters.page));
   if (filters.limit) params.set('limit', String(filters.limit));
   return params.toString();
@@ -221,16 +222,13 @@ export function resolveAssignedToId(lead) {
 /** Stage value for &lt;select&gt; — includes converted and legacy keys */
 export function resolveStageSelectValue(status) {
   const key = normalizeLeadStatus(status);
-  const known = [...PIPELINE_STAGES.map((s) => s.key), 'converted', 'won', 'lost'];
+  const known = PIPELINE_STAGES.map((s) => s.key);
   if (known.includes(key)) return key;
   if (status && known.includes(status)) return status;
-  return 'new_lead';
+  return 'new';
 }
 
-export const STAGE_SELECT_OPTIONS = [
-  ...PIPELINE_STAGES,
-  { key: 'converted', label: 'Converted' },
-];
+export const STAGE_SELECT_OPTIONS = [...PIPELINE_STAGES];
 
 export { validateStageTransition } from '@/lib/crm/leadStages';
 

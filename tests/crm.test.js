@@ -29,8 +29,9 @@ describe('CRM queryBuilder', () => {
 });
 
 describe('CRM models constants', () => {
-  it('DEFAULT_DEAL_STAGES has 12 production stages', () => {
-    assert.equal(DEFAULT_DEAL_STAGES.length, 12);
+  it('DEFAULT_DEAL_STAGES has 8 deal pipeline stages', () => {
+    assert.equal(DEFAULT_DEAL_STAGES.length, 8);
+    assert.equal(DEFAULT_DEAL_STAGES.find((s) => s.key === 'discovery')?.label, 'Discovery');
     assert.equal(DEFAULT_DEAL_STAGES.find((s) => s.key === 'won')?.isWon, true);
     assert.equal(DEFAULT_DEAL_STAGES.find((s) => s.key === 'lost')?.isLost, true);
   });

@@ -17,6 +17,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/webhooks/',
   '/api/public/',
   '/api/cron/',
+  '/api/website-funnel/leads', // public lead capture from published funnel sites (validated in handler)
 ];
 
 /** Protected API prefixes — JWT required */
@@ -37,6 +38,9 @@ const PROTECTED_API_PREFIXES = [
   '/api/auth/me',
   '/api/realtime/',
   '/api/access/',
+  '/api/user/',
+  '/api/meetings/',
+  '/api/website-funnel/',
 ];
 
 const PROTECTED_PAGE_PREFIXES = ['/automation', '/agency', '/lfgadmin'];
@@ -62,9 +66,11 @@ function extractToken(request) {
     request.cookies.get('token')?.value || request.cookies.get('userToken')?.value;
   if (cookieToken) return cookieToken;
 
-  // EventSource cannot send Authorization headers
-  const queryToken = request.nextUrl.searchParams.get('token');
-  if (queryToken) return queryToken;
+  // EventSource cannot send Authorization headers — allow ?token= only for SSE stream
+  if (request.nextUrl.pathname.startsWith('/api/realtime/')) {
+    const queryToken = request.nextUrl.searchParams.get('token');
+    if (queryToken) return queryToken;
+  }
 
   return null;
 }

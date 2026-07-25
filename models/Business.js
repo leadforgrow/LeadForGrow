@@ -193,7 +193,13 @@ const BusinessSettingsSchema = new mongoose.Schema({
     model: { type: String, default: 'llama-3.1-8b-instant' },
     agentEnabled: { type: Boolean, default: false },
     replyAssistEnabled: { type: Boolean, default: true },
-  }
+  },
+
+  /** CRM pipeline, messaging templates, and automation toggles */
+  crm: {
+    type: mongoose.Schema.Types.Mixed,
+    default: () => ({}),
+  },
 }, { _id: false });
 
 const IntegrationCredentialsSchema = new mongoose.Schema({

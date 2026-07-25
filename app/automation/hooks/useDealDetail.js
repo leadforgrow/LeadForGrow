@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
-import { isStageLost, resolveStages } from '@/lib/crm/pipelineUtils';
+import { resolveStages } from '@/lib/crm/pipelineUtils';
+import { useDealStageModals } from './useDealStageModals';
 
 export function useDealDetail(dealId) {
   const router = useRouter();
@@ -24,6 +25,11 @@ export function useDealDetail(dealId) {
     setLoading(true);
     fetchDeal().finally(() => setLoading(false));
   }, [fetchDeal]);
+
+  const stageModals = useDealStageModals({
+    getStages: () => resolveStages(deal?.pipelineId?.stages),
+    onUpdated: (updated) => setDeal(updated),
+  });
 
   const updateDeal = async (payload) => {
     setSaving(true);
@@ -46,19 +52,12 @@ export function useDealDetail(dealId) {
     }
   };
 
-  const changeStage = async (stage) => {
-    const stages = resolveStages(deal?.pipelineId?.stages);
-    const payload = { stage };
-    if (isStageLost(stage, stages)) {
-      const reason = window.prompt('Why was this deal lost?');
-      if (!reason?.trim()) {
-        toast.error('Lost reason is required');
-        return false;
-      }
-      payload.lostReason = reason.trim();
-    }
-    return updateDeal(payload);
-  };
+  const changeStage = useCallback(
+    async (stage) => {
+      return stageModals.requestDealStageChange(dealId, stage, { title: deal?.title });
+    },
+    [dealId, deal?.title, stageModals]
+  );
 
   const archiveDeal = async () => {
     if (!window.confirm('Archive this deal?')) return;
@@ -66,5 +65,25 @@ export function useDealDetail(dealId) {
     if (ok) router.push('/automation/deals');
   };
 
-  return { deal, loading, saving, fetchDeal, updateDeal, changeStage, archiveDeal };
+  return {
+    deal,
+    loading,
+    saving,
+    fetchDeal,
+    updateDeal,
+    changeStage,
+    archiveDeal,
+    demoPrompt: stageModals.demoPrompt,
+    demoSaving: stageModals.demoSaving,
+    confirmDemoScheduled: stageModals.confirmDemoScheduled,
+    cancelDemoPrompt: stageModals.cancelDemoPrompt,
+    quotationPrompt: stageModals.quotationPrompt,
+    quotationSaving: stageModals.quotationSaving,
+    confirmQuotationSent: stageModals.confirmQuotationSent,
+    cancelQuotationPrompt: stageModals.cancelQuotationPrompt,
+    lostPrompt: stageModals.lostPrompt,
+    lostSaving: stageModals.lostSaving,
+    confirmLostReason: stageModals.confirmLostReason,
+    cancelLostPrompt: stageModals.cancelLostPrompt,
+  };
 }

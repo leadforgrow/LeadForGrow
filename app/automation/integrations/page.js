@@ -86,6 +86,14 @@ export default function IntegrationsPage() {
 
   const scriptTag = `<script src="https://api.leadforgrow.com/v1/lfg.js" data-id="${userId}"></script>`;
 
+  // Static class maps — Tailwind JIT cannot compile interpolated class names
+  const colorClasses = {
+    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600' },
+    purple: { bg: 'bg-purple-50', text: 'text-purple-600' },
+    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+    blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
+  };
+
   const activeSources = [
     {
       name: 'Website Forms',
@@ -222,8 +230,8 @@ export default function IntegrationsPage() {
                     className="bg-white rounded-lg border border-emerald-200 p-5 shadow-sm hover:shadow-md transition-all duration-150"
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 bg-${source.color}-50 rounded-lg flex items-center justify-center shrink-0`}>
-                        <Icon className={`w-6 h-6 text-${source.color}-600`} />
+                      <div className={`w-12 h-12 ${(colorClasses[source.color] || colorClasses.indigo).bg} rounded-lg flex items-center justify-center shrink-0`}>
+                        <Icon className={`w-6 h-6 ${(colorClasses[source.color] || colorClasses.indigo).text}`} />
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -283,8 +291,8 @@ export default function IntegrationsPage() {
                   className="bg-white rounded-lg border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-150"
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 bg-${source.color}-50 rounded-lg flex items-center justify-center shrink-0`}>
-                      <Icon className={`w-6 h-6 text-${source.color}-600`} />
+                    <div className={`w-12 h-12 ${(colorClasses[source.color] || colorClasses.indigo).bg} rounded-lg flex items-center justify-center shrink-0`}>
+                      <Icon className={`w-6 h-6 ${(colorClasses[source.color] || colorClasses.indigo).text}`} />
                     </div>
                     
                     <div className="flex-1 min-w-0">

@@ -54,5 +54,7 @@ const WhatsAppConversationSchema = new mongoose.Schema({
 // Compound index for efficient list fetching
 WhatsAppConversationSchema.index({ businessId: 1, status: 1, lastMessageAt: -1 });
 WhatsAppConversationSchema.index({ businessId: 1, lastMessageAt: -1 });
+// One conversation per lead per business (previously only enforced by ensure-indexes script)
+WhatsAppConversationSchema.index({ businessId: 1, leadId: 1 }, { unique: true });
 
 export default mongoose.models.WhatsAppConversation || mongoose.model('WhatsAppConversation', WhatsAppConversationSchema);

@@ -17,6 +17,19 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
+    // The claimed business must exist and the website must belong to it —
+    // otherwise anyone could inject leads into an arbitrary tenant.
+    const [business, website] = await Promise.all([
+      Business.findById(businessId).select('_id').lean(),
+      Website.findById(websiteId).select('businessId owner').lean(),
+    ]);
+    if (!business || !website) {
+      return NextResponse.json({ success: false, error: 'Invalid website or business' }, { status: 404 });
+    }
+    if (website.businessId && String(website.businessId) !== String(businessId)) {
+      return NextResponse.json({ success: false, error: 'Website does not belong to this business' }, { status: 403 });
+    }
+
     // 1. Create the lead
     const lead = await Lead.create({
       businessId,

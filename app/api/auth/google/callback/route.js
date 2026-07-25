@@ -38,8 +38,14 @@ export async function GET(req) {
     }
     if (!code) return failRedirect('google_missing_code');
 
-    const [mode, agencyFlag] = state.split(':');
+    const [mode, agencyFlag, stateNonce] = state.split(':');
     const isAgency = agencyFlag === '1';
+
+    // Verify the state nonce matches the httpOnly cookie set when the flow started
+    const cookieNonce = req.cookies?.get?.('g_oauth_state')?.value;
+    if (!stateNonce || !cookieNonce || stateNonce !== cookieNonce) {
+      return failRedirect('google_failed');
+    }
 
     const profile = await exchangeGoogleCode(code);
     if (!profile.email) return failRedirect('google_no_email');
@@ -204,8 +210,19 @@ export async function GET(req) {
       isNewUser: isNewUser ? '1' : '0',
     };
 
-    const qs = new URLSearchParams(payload).toString();
-    return NextResponse.redirect(`${appBase()}/auth/google/complete?${qs}`);
+    // Never put tokens in the redirect URL: store the payload server-side and
+    // hand the browser a one-time exchange code (5 minute TTL, single use).
+    const OAuthExchange = (await import('@/models/access/OAuthExchange')).default;
+    const exchangeCode = crypto.randomBytes(32).toString('hex');
+    await OAuthExchange.create({
+      codeHash: crypto.createHash('sha256').update(exchangeCode).digest('hex'),
+      payload,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
+
+    const res = NextResponse.redirect(`${appBase()}/auth/google/complete?code=${exchangeCode}`);
+    res.cookies.set('g_oauth_state', '', { maxAge: 0, path: '/' });
+    return res;
   } catch (error) {
     console.error('[Google OAuth] callback error:', error);
     return failRedirect('google_failed');

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { baseSchemaPlugin } from '../baseSchema.js';
+import { DEFAULT_DEAL_STAGES } from '../../lib/crm/pipelineStages.js';
 
 const ProductLineSchema = new mongoose.Schema(
   {
@@ -27,7 +28,7 @@ const DealSchema = new mongoose.Schema(
     amount: { type: Number, default: 0, min: 0 },
     currency: { type: String, default: 'INR' },
     probability: { type: Number, default: 10, min: 0, max: 100 },
-    stage: { type: String, default: 'new_lead', index: true },
+    stage: { type: String, default: 'discovery', index: true },
     expectedCloseDate: Date,
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
@@ -53,19 +54,6 @@ DealSchema.index({ businessId: 1, assignedTo: 1 });
 DealSchema.index({ businessId: 1, pipelineId: 1, stage: 1 });
 DealSchema.index({ businessId: 1, companyId: 1 });
 
-export const DEAL_STAGES = [
-  'new_lead',
-  'qualified',
-  'first_contact',
-  'demo_scheduled',
-  'demo_completed',
-  'quotation_sent',
-  'follow_up',
-  'negotiation',
-  'decision_pending',
-  'payment_pending',
-  'won',
-  'lost',
-];
+export const DEAL_STAGES = DEFAULT_DEAL_STAGES.map((s) => s.key);
 
 export default mongoose.models.Deal || mongoose.model('Deal', DealSchema);

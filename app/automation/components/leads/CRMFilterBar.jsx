@@ -25,11 +25,10 @@ export default function CRMFilterBar({
             key={view.id}
             type="button"
             onClick={() => onFilterChange({ view: view.id, status: 'all' })}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
-              filters.view === view.id
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${filters.view === view.id
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300'
-            }`}
+              }`}
           >
             {view.label}
           </button>
@@ -56,6 +55,7 @@ export default function CRMFilterBar({
           {PIPELINE_STAGES.map((s) => (
             <option key={s.key} value={s.key}>{s.label}</option>
           ))}
+          <option value="converted">Converted</option>
         </select>
 
         <select
@@ -80,6 +80,16 @@ export default function CRMFilterBar({
             <option key={m.id} value={m.id}>{m.label}</option>
           ))}
         </select>
+
+        <label className="inline-flex items-center gap-2 text-xs px-2.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!filters.showConverted}
+            onChange={(e) => onFilterChange({ showConverted: e.target.checked, view: 'all' })}
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          Show converted
+        </label>
 
         <button
           type="button"

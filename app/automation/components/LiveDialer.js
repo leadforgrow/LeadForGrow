@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, Timer, Recording, X, Minus, Calendar } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Volume2, X, Minus, Calendar } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { authFetch } from '@/lib/apiClient';
 
 export default function LiveDialer({ callData, onHangup }) {
     const [status, setStatus] = useState('connecting'); // connecting, live, ended
@@ -23,17 +24,18 @@ export default function LiveDialer({ callData, onHangup }) {
             initTwilio();
         }
 
-        const timer = setInterval(() => {
-            if (status === 'live') {
-                setDuration(prev => prev + 1);
-            }
-        }, 1000);
-
         return () => {
-            clearInterval(timer);
             cleanup();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [callData]);
+
+    // Timer effect keyed to status so it starts ticking when the call goes live
+    useEffect(() => {
+        if (status !== 'live') return undefined;
+        const timer = setInterval(() => setDuration((prev) => prev + 1), 1000);
+        return () => clearInterval(timer);
+    }, [status]);
 
     const initVapi = async () => {
         try {
@@ -102,12 +104,9 @@ export default function LiveDialer({ callData, onHangup }) {
             // Save notes to backend before closing
             const bId = localStorage.getItem('businessId');
             const uId = localStorage.getItem('userid');
-            await fetch('/api/automation/calls/complete', {
+            await authFetch('/api/automation/calls/complete', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('userToken') || localStorage.getItem('token')}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     businessId: bId,
                     userId: uId,

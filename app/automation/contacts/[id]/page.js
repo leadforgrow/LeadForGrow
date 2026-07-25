@@ -11,15 +11,40 @@ export default function ContactDetailPage() {
   const { id } = useParams();
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError('');
     authFetch(`/api/automation/contacts/${id}`)
       .then((r) => r.json())
-      .then((d) => { if (d.success) setContact(d.data); })
-      .finally(() => setLoading(false));
-  }, [id]);
+      .then((d) => {
+        if (cancelled) return;
+        if (d.success) setContact(d.data);
+        else setError(d.error || 'Failed to load contact');
+      })
+      .catch(() => { if (!cancelled) setError('Could not reach the server'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [id, reloadKey]);
 
   if (loading) return <LeadsSkeleton />;
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-sm text-red-600 mb-3">{error}</p>
+        <button
+          type="button"
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
   if (!contact) return <div className="p-8 text-center text-slate-500">Contact not found</div>;
 
   return (

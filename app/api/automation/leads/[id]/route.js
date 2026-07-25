@@ -96,7 +96,10 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
     const user = req.user;
     const businessId = user.businessId;
     const body = await req.json();
-    const { performedBy, status, assignedTo, priority, nextFollowUpAt, note, lostReason, dealAmount, location } = body;
+    const {
+      performedBy, status, assignedTo, priority, nextFollowUpAt, note, lostReason,
+      dealAmount, location, expectedTimeline, requirements, decisionMaker, unqualifiedReason,
+    } = body;
 
     const lead = await Lead.findOne({ _id: id, businessId });
     if (!lead) {
@@ -128,9 +131,11 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       updates.status = newStatus;
       updates.rowColor = LEAD_STATUS_ROW_COLORS[newStatus] || null;
 
-      if (newStatus === 'converted' || newStatus === 'won') {
+      if (newStatus === 'converted') {
         updates.convertedAt = new Date();
       } else if (newStatus === 'lost') {
+        updates.lostAt = new Date();
+      } else if (newStatus === 'unqualified') {
         updates.lostAt = new Date();
       }
 
@@ -190,17 +195,24 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
       updates.rowColor = body.rowColor || null;
     }
 
-    if (dealAmount != null) {
-      const amount = Number(dealAmount);
-      if (!Number.isNaN(amount) && amount > 0) {
-        const metaObj = lead.metadata
-          ? (lead.metadata instanceof Map ? Object.fromEntries(lead.metadata) : { ...lead.metadata })
-          : {};
-        metaObj.amount = amount;
-        metaObj.dealAmount = amount;
-        metaObj.currency = body.currency || metaObj.currency || 'INR';
-        updates.metadata = metaObj;
+    if (dealAmount != null || expectedTimeline || requirements || decisionMaker) {
+      const metaObj = lead.metadata
+        ? (lead.metadata instanceof Map ? Object.fromEntries(lead.metadata) : { ...lead.metadata })
+        : {};
+      if (dealAmount != null) {
+        const amount = Number(dealAmount);
+        if (!Number.isNaN(amount) && amount > 0) {
+          metaObj.estimatedBudget = amount;
+          metaObj.amount = amount;
+          metaObj.dealAmount = amount;
+          metaObj.currency = body.currency || metaObj.currency || 'INR';
+        }
       }
+      if (expectedTimeline) metaObj.expectedTimeline = String(expectedTimeline).trim();
+      if (requirements) metaObj.requirements = String(requirements).trim();
+      if (decisionMaker) metaObj.decisionMaker = String(decisionMaker).trim();
+      if (unqualifiedReason) metaObj.unqualifiedReason = String(unqualifiedReason).trim();
+      updates.metadata = metaObj;
     }
 
     if (location !== undefined) {

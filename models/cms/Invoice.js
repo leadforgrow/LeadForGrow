@@ -46,4 +46,8 @@ const InvoiceSchema = new mongoose.Schema({
   collection: 'cms_invoices'
 });
 
+InvoiceSchema.index({ businessId: 1, status: 1 });
+InvoiceSchema.index({ businessId: 1, clientId: 1 });
+InvoiceSchema.index({ businessId: 1, createdAt: -1 });
+
 export default mongoose.models.CMS_Invoice || mongoose.model('CMS_Invoice', InvoiceSchema);

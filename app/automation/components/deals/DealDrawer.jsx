@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
-import { getStageLabel, isStageLost } from '@/lib/crm/pipelineUtils';
+import { getStageLabel } from '@/lib/crm/pipelineUtils';
 import DealStageBadge from './DealStageBadge';
 import {
   initials,
@@ -43,10 +43,9 @@ function Avatar({ name, size = 'md' }) {
   );
 }
 
-export default function DealDrawer({ dealId, stages: pipelineStages = [], onClose, onUpdated }) {
+export default function DealDrawer({ dealId, stages: pipelineStages = [], onClose, onUpdated, onStageChange }) {
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState('overview');
 
   useEffect(() => {
@@ -63,34 +62,29 @@ export default function DealDrawer({ dealId, stages: pipelineStages = [], onClos
       .finally(() => setLoading(false));
   }, [dealId]);
 
+  useEffect(() => {
+    const refresh = () => {
+      if (!dealId) return;
+      authFetch(`/api/automation/deals/${dealId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success) setDeal(data.data);
+        })
+        .catch(() => {});
+    };
+    window.addEventListener('lfg-crm-refresh', refresh);
+    return () => window.removeEventListener('lfg-crm-refresh', refresh);
+  }, [dealId]);
+
   const stages = deal?.pipelineId?.stages?.length ? deal.pipelineId.stages : pipelineStages;
   const prob = deal ? dealProbability(deal, stages) : 0;
 
   const handleStageChange = async (newStage) => {
     if (!deal || newStage === deal.stage) return;
-    const payload = { stage: newStage };
-    if (isStageLost(newStage, stages)) {
-      const reason = window.prompt('Why was this deal lost?');
-      if (!reason?.trim()) {
-        toast.error('Lost reason is required');
-        return;
-      }
-      payload.lostReason = reason.trim();
-    }
-    setSaving(true);
-    try {
-      const res = await authFetch(`/api/automation/deals/${deal._id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDeal(data.data);
-        toast.success('Stage updated');
-        onUpdated?.();
-      } else toast.error(data.error || 'Update failed');
-    } finally {
-      setSaving(false);
+    if (onStageChange) {
+      const updated = await onStageChange(deal._id, newStage);
+      if (updated) setDeal(updated);
+      return updated;
     }
   };
 
@@ -151,9 +145,8 @@ export default function DealDrawer({ dealId, stages: pipelineStages = [], onClos
                   key={t.id}
                   type="button"
                   onClick={() => setTab(t.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg whitespace-nowrap transition-colors ${
-                    tab === t.id ? 'bg-[#101828] text-white' : 'text-[#667085] hover:bg-[#F2F4F7]'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg whitespace-nowrap transition-colors ${tab === t.id ? 'bg-[#101828] text-white' : 'text-[#667085] hover:bg-[#F2F4F7]'
+                    }`}
                 >
                   <t.icon className="w-3.5 h-3.5" /> {t.label}
                 </button>
@@ -165,7 +158,7 @@ export default function DealDrawer({ dealId, stages: pipelineStages = [], onClos
                 <DrawerSkeleton />
               ) : deal ? (
                 <>
-                  {tab === 'overview' && <OverviewTab deal={deal} stages={stages} prob={prob} onStageChange={handleStageChange} saving={saving} />}
+                  {tab === 'overview' && <OverviewTab deal={deal} stages={stages} prob={prob} onStageChange={handleStageChange} />}
                   {tab === 'timeline' && <TimelineTab timeline={deal.timeline || []} />}
                   {tab === 'notes' && <NotesTab notes={deal.notes || []} />}
                 </>
@@ -180,8 +173,17 @@ export default function DealDrawer({ dealId, stages: pipelineStages = [], onClos
   );
 }
 
-function OverviewTab({ deal, stages, prob, onStageChange, saving }) {
+function OverviewTab({ deal, stages, prob, onStageChange }) {
   const contact = companyOrContact(deal);
+
+  const handleSelectChange = async (e) => {
+    const newStage = e.target.value;
+    if (newStage === deal.stage) return;
+    const prev = deal.stage;
+    const updated = await onStageChange?.(newStage);
+    if (!updated) e.target.value = prev;
+  };
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -206,8 +208,7 @@ function OverviewTab({ deal, stages, prob, onStageChange, saving }) {
             <dd className="flex items-center gap-2 flex-wrap">
               <select
                 value={deal.stage}
-                disabled={saving}
-                onChange={(e) => onStageChange?.(e.target.value)}
+                onChange={handleSelectChange}
                 className="text-[12px] px-2 py-1 border border-[#E5E7EB] rounded-lg bg-white text-[#344054]"
               >
                 {stages.map((s) => (

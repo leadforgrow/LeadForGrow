@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import { leadManager } from '@/lib/automation/leadManager';
+import { extractToken, verifyToken } from '@/lib/auth';
 
 /**
- * Direct test lead injection — bypasses Meta entirely
- * GET: https://leadforgrow.com/api/webhooks/meta/inject-test-lead?businessId=696956dce910b99089019e27
+ * Direct test lead injection — bypasses Meta entirely.
+ * Requires an authenticated user of the target business.
+ * GET: /api/webhooks/meta/inject-test-lead?businessId=<own business id>
  */
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -12,6 +14,12 @@ export async function GET(request) {
 
     if (!businessId) {
         return NextResponse.json({ error: 'businessId required' }, { status: 400 });
+    }
+
+    const token = extractToken(request);
+    const user = token ? verifyToken(token) : null;
+    if (!user?.businessId || String(user.businessId) !== String(businessId)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     console.log(`[Inject Test Lead] Starting for business: ${businessId}`);

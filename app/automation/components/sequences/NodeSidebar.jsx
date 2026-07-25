@@ -7,10 +7,10 @@ import {
 import { TRIGGER_TYPES, ACTION_TYPES, AI_ACTION_TYPES } from '@/lib/sequences/constants';
 
 const SECTIONS = [
-  { id: 'triggers', label: 'Triggers', icon: Zap, items: TRIGGER_TYPES, color: 'blue' },
-  { id: 'actions', label: 'Actions', icon: MessageCircle, items: ACTION_TYPES.filter((a) => a.category === 'action'), color: 'emerald' },
-  { id: 'logic', label: 'Logic', icon: Split, items: ACTION_TYPES.filter((a) => a.category === 'logic' || a.category === 'end'), color: 'amber' },
-  { id: 'ai', label: 'AI Actions', icon: Sparkles, items: AI_ACTION_TYPES, color: 'cyan' },
+  { id: 'triggers', label: 'Triggers', icon: Zap, items: TRIGGER_TYPES, iconClass: 'text-blue-500' },
+  { id: 'actions', label: 'Actions', icon: MessageCircle, items: ACTION_TYPES.filter((a) => a.category === 'action'), iconClass: 'text-emerald-500' },
+  { id: 'logic', label: 'Logic', icon: Split, items: ACTION_TYPES.filter((a) => a.category === 'logic' || a.category === 'end'), iconClass: 'text-amber-500' },
+  { id: 'ai', label: 'AI Actions', icon: Sparkles, items: AI_ACTION_TYPES, iconClass: 'text-cyan-500' },
 ];
 
 export default function NodeSidebar({ onAddNode }) {
@@ -37,7 +37,7 @@ export default function NodeSidebar({ onAddNode }) {
               className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
             >
               {open[sec.id] ? <ChevronDown className="w-3.5 h-3.5 text-slate-400" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-400" />}
-              <sec.icon className={`w-3.5 h-3.5 text-${sec.color}-500`} />
+              <sec.icon className={`w-3.5 h-3.5 ${sec.iconClass}`} />
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{sec.label}</span>
             </button>
             {open[sec.id] && (

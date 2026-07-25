@@ -16,6 +16,8 @@ export const POST = withTenantAuth(async (request) => {
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error('[Leads Merge]', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const status = error.status || 500;
+    const message = status === 500 ? 'Failed to merge leads' : error.message;
+    return NextResponse.json({ success: false, error: message }, { status });
   }
 });

@@ -15,6 +15,9 @@ import {
 import { getStageLabel, resolveStages } from '@/lib/crm/pipelineUtils';
 import { useDealDetail } from '../../hooks/useDealDetail';
 import LeadsSkeleton from '../leads/LeadsSkeleton';
+import DemoScheduledModal from '../leads/DemoScheduledModal';
+import QuotationSentModal from '../leads/QuotationSentModal';
+import LostReasonModal from '../leads/LostReasonModal';
 
 function formatCurrency(amount, currency = 'INR') {
   try {
@@ -32,7 +35,16 @@ function ownerLabel(owner) {
 
 export default function DealDetailWorkspace() {
   const { id } = useParams();
-  const { deal, loading, saving, changeStage, archiveDeal } = useDealDetail(id);
+  const detail = useDealDetail(id);
+  const { deal, loading, saving, changeStage, archiveDeal } = detail;
+
+  const handleStageChange = async (e) => {
+    const newStage = e.target.value;
+    if (!deal || newStage === deal.stage) return;
+    const prev = deal.stage;
+    const updated = await changeStage(newStage);
+    if (!updated) e.target.value = prev;
+  };
 
   if (loading) return <LeadsSkeleton />;
   if (!deal) return <div className="p-8 text-center text-slate-500">Deal not found</div>;
@@ -45,6 +57,28 @@ export default function DealDetailWorkspace() {
 
   return (
     <div className="min-h-full bg-[#FAFDFA] dark:bg-slate-950">
+      <DemoScheduledModal
+        open={!!detail.demoPrompt}
+        entityName={detail.demoPrompt?.dealName}
+        saving={detail.demoSaving}
+        onCancel={detail.cancelDemoPrompt}
+        onConfirm={detail.confirmDemoScheduled}
+      />
+      <QuotationSentModal
+        open={!!detail.quotationPrompt}
+        entityName={detail.quotationPrompt?.dealName}
+        dealId={detail.quotationPrompt?.dealId}
+        saving={detail.quotationSaving}
+        onCancel={detail.cancelQuotationPrompt}
+        onConfirm={detail.confirmQuotationSent}
+      />
+      <LostReasonModal
+        open={!!detail.lostPrompt}
+        entityName={detail.lostPrompt?.dealName}
+        saving={detail.lostSaving}
+        onCancel={detail.cancelLostPrompt}
+        onConfirm={detail.confirmLostReason}
+      />
       <div className="px-4 sm:px-6 py-5 max-w-[1400px] mx-auto">
         <Link href="/automation/deals" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-emerald-600 mb-4">
           <ArrowLeft className="w-4 h-4" /> Deals
@@ -64,8 +98,8 @@ export default function DealDetailWorkspace() {
           <div className="flex flex-wrap gap-2">
             <select
               value={deal.stage}
-              disabled={saving}
-              onChange={(e) => changeStage(e.target.value)}
+              disabled={saving || detail.demoSaving || detail.quotationSaving || detail.lostSaving}
+              onChange={handleStageChange}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900"
             >
               {stages.map((s) => (

@@ -11,19 +11,22 @@ function getCloudinaryConfig() {
   };
 }
 
-export const POST = withAuth()(async () => {
+export const POST = withAuth()(async (req) => {
   try {
     const config = getCloudinaryConfig();
     cloudinary.config(config);
 
     const timestamp = Math.round(new Date().getTime() / 1000);
+    // Scope uploads to a per-tenant folder so signed uploads can't write elsewhere
+    const folder = `lfg/${req.user.businessId || req.user.userId}`;
 
-    const signature = cloudinary.utils.api_sign_request({ timestamp }, config.api_secret);
+    const signature = cloudinary.utils.api_sign_request({ timestamp, folder }, config.api_secret);
 
     return NextResponse.json({
       success: true,
       signature,
       timestamp,
+      folder,
       apiKey: config.api_key,
       cloudName: config.cloud_name,
     });

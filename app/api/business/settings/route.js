@@ -14,12 +14,13 @@ export const GET = withPlanAccess('revenue-config', async (req) => {
       return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
     }
 
-    // Return existing revenue config or defaults + integration info
+    // Return existing revenue config or defaults + integration info.
+    // Credentials are redacted: the client only needs to know what is configured.
     return NextResponse.json({
       success: true,
       data: {
         revenueConfig: business.revenueConfig || getDefaultConfig(),
-        integrationCredentials: business.integrationCredentials,
+        integrationCredentials: redactCredentials(business.integrationCredentials),
         settings: business.settings
       }
     });
@@ -139,6 +140,34 @@ export const PUT = withPlanAccess('revenue-config', async (req) => {
     return NextResponse.json({ success: false, error: 'Failed to save' }, { status: 500 });
   }
 });
+
+const SECRET_CRED_KEYS = new Set([
+  'apiKey', 'interaktApiKey', 'appSecret', 'verifyToken', 'accessToken', 'password',
+  'clientSecret', 'refreshToken', 'privateKey', 'authToken',
+]);
+
+/** Replace secret credential values with a boolean "configured" flag. */
+function redactCredentials(creds) {
+  if (!creds) return creds;
+  const raw = typeof creds.toObject === 'function' ? creds.toObject() : creds;
+
+  const redact = (obj) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+    const out = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (SECRET_CRED_KEYS.has(key)) {
+        out[`${key}Configured`] = Boolean(val);
+      } else if (val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+        out[key] = redact(val);
+      } else {
+        out[key] = val;
+      }
+    }
+    return out;
+  };
+
+  return redact(raw);
+}
 
 // Helper function for default configuration
 function getDefaultConfig() {

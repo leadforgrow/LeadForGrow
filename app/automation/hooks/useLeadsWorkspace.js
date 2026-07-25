@@ -17,7 +17,8 @@ const DEFAULT_FILTERS = {
   dateFrom: '',
   dateTo: '',
   page: 1,
-  limit: 50
+  limit: 50,
+  showConverted: false,
 };
 
 export function useLeadsWorkspace() {
@@ -37,6 +38,7 @@ export function useLeadsWorkspace() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 50, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
   const [teamMembers, setTeamMembers] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [drawerLeadId, setDrawerLeadId] = useState(null);
@@ -45,6 +47,8 @@ export function useLeadsWorkspace() {
   const [converting, setConverting] = useState(false);
   const [qualifiedPrompt, setQualifiedPrompt] = useState(null);
   const [qualifying, setQualifying] = useState(false);
+  const [lostPrompt, setLostPrompt] = useState(null);
+  const [lostSaving, setLostSaving] = useState(false);
   const [demoPrompt, setDemoPrompt] = useState(null);
   const [demoSaving, setDemoSaving] = useState(false);
   const [quotationPrompt, setQuotationPrompt] = useState(null);
@@ -93,6 +97,7 @@ export function useLeadsWorkspace() {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
+      setError('');
 
       const qs = buildLeadsQuery({
         ...filters,
@@ -109,6 +114,7 @@ export function useLeadsWorkspace() {
       setPagination(data.pagination || { total: data.data?.length || 0, page: 1, limit: 50, pages: 1 });
     } catch (err) {
       console.error(err);
+      setError(err?.message || 'Failed to load leads');
       toast.error('Failed to load leads');
     } finally {
       setLoading(false);
@@ -240,37 +246,20 @@ export function useLeadsWorkspace() {
 
   const applyLeadStatusUpdate = useCallback(
     async (leadId, status, extra = {}) => {
-      let lostReason = extra.lostReason;
-      if (status === 'lost' || status === 'closed_lost') {
-        if (!lostReason) {
-          lostReason = window.prompt(
-            'Lost reason (required): price, competitor, budget, no_response, timing, not_interested, other'
-          );
-          if (!lostReason?.trim()) {
-            toast.error('Lost reason is required');
-            return null;
-          }
-        }
-      }
       try {
         const userId = getUserId();
         const payload = {
           status,
           performedBy: userId,
-          lostReason: lostReason?.trim(),
         };
+        if (extra.lostReason) payload.lostReason = String(extra.lostReason).trim();
+        if (extra.unqualifiedReason) payload.unqualifiedReason = String(extra.unqualifiedReason).trim();
+        if (extra.note) payload.note = extra.note;
         if (extra.dealAmount != null) payload.dealAmount = extra.dealAmount;
-        if (extra.meetingDate) {
-          payload.meetingDate = extra.meetingDate;
-          payload.meetingTime = extra.meetingTime;
-          payload.meetingDuration = extra.meetingDuration;
-          payload.meetingPlatform = extra.meetingPlatform;
-          payload.meetingLink = extra.meetingLink;
-        }
-        if (extra.quotationUrl) {
-          payload.quotationUrl = extra.quotationUrl;
-          payload.quotationMessage = extra.quotationMessage;
-        }
+        if (extra.expectedTimeline) payload.expectedTimeline = extra.expectedTimeline;
+        if (extra.requirements) payload.requirements = extra.requirements;
+        if (extra.decisionMaker) payload.decisionMaker = extra.decisionMaker;
+        if (extra.nextFollowUpAt) payload.nextFollowUpAt = extra.nextFollowUpAt;
         const res = await authFetch(`/api/automation/leads/${leadId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -279,14 +268,15 @@ export function useLeadsWorkspace() {
         const data = await res.json();
         if (data.success) {
           const updated = data.data;
-          const statusColor = getStatusRowColor(status);
+          const savedStatus = updated.status || status;
+          const statusColor = getStatusRowColor(savedStatus);
           setLeads((prev) =>
             prev.map((l) =>
               l._id === leadId
                 ? {
                     ...l,
                     ...updated,
-                    status: updated.status || status,
+                    status: savedStatus,
                     rowColor: statusColor || l.rowColor,
                     dealAmount: extra.dealAmount ?? l.dealAmount,
                     dealCurrency: l.dealCurrency || 'INR',
@@ -325,12 +315,13 @@ export function useLeadsWorkspace() {
         setQualifiedPrompt({ leadId, status, leadName: lead?.name });
         return null;
       }
-      if (status === 'demo_scheduled' && !options.meetingDate) {
-        setDemoPrompt({ leadId, status, leadName: lead?.name });
+      const isLost = status === 'lost' || status === 'closed_lost';
+      if (isLost && !options.lostReason) {
+        setLostPrompt({ leadId, leadName: lead?.name, status: 'lost' });
         return null;
       }
-      if (status === 'quotation_sent' && !options.quotationUrl) {
-        setQuotationPrompt({ leadId, status, leadName: lead?.name });
+      if (status === 'unqualified' && !options.unqualifiedReason) {
+        setLostPrompt({ leadId, leadName: lead?.name, status: 'unqualified' });
         return null;
       }
       return applyLeadStatusUpdate(leadId, status, options);
@@ -338,18 +329,40 @@ export function useLeadsWorkspace() {
     [leads, beginLeadConvert, applyLeadStatusUpdate]
   );
 
+  const cancelLostPrompt = useCallback(() => {
+    setLostPrompt(null);
+  }, []);
+
+  const confirmLostReason = useCallback(
+    async ({ reason, comments }) => {
+      if (!lostPrompt) return null;
+      setLostSaving(true);
+      try {
+        const targetStatus = lostPrompt.status === 'unqualified' ? 'unqualified' : 'lost';
+        const extra =
+          lostPrompt.status === 'unqualified'
+            ? { unqualifiedReason: reason, note: comments }
+            : { lostReason: reason, note: comments };
+        const updated = await applyLeadStatusUpdate(lostPrompt.leadId, targetStatus, extra);
+        if (updated) setLostPrompt(null);
+        return updated;
+      } finally {
+        setLostSaving(false);
+      }
+    },
+    [lostPrompt, applyLeadStatusUpdate]
+  );
+
   const cancelQualifiedPrompt = useCallback(() => {
     setQualifiedPrompt(null);
   }, []);
 
   const confirmQualifiedAmount = useCallback(
-    async (amount) => {
+    async (summary) => {
       if (!qualifiedPrompt) return null;
       setQualifying(true);
       try {
-        const updated = await applyLeadStatusUpdate(qualifiedPrompt.leadId, 'qualified', {
-          dealAmount: amount,
-        });
+        const updated = await applyLeadStatusUpdate(qualifiedPrompt.leadId, 'qualified', summary);
         if (updated) setQualifiedPrompt(null);
         return updated;
       } finally {
@@ -411,10 +424,12 @@ export function useLeadsWorkspace() {
             leadId: id,
             dealTitle: form.dealTitle,
             dealAmount: form.dealAmount ? Number(form.dealAmount) : 0,
+            companyName: form.companyName || undefined,
             pipelineId: form.pipelineId,
-            dealStage: form.dealStage,
+            dealStage: form.dealStage || 'discovery',
             expectedCloseDate: form.expectedCloseDate || undefined,
             assignedTo: form.assignedTo,
+            archiveLead: form.archiveLead !== false,
             createDeal: true,
           }),
         });
@@ -612,6 +627,7 @@ export function useLeadsWorkspace() {
     pagination,
     loading,
     refreshing,
+    error,
     teamMembers,
     selectedIds,
     setSelectedIds,
@@ -643,6 +659,10 @@ export function useLeadsWorkspace() {
     qualifying,
     confirmQualifiedAmount,
     cancelQualifiedPrompt,
+    lostPrompt,
+    lostSaving,
+    confirmLostReason,
+    cancelLostPrompt,
     demoPrompt,
     demoSaving,
     confirmDemoScheduled,

@@ -183,12 +183,6 @@ export function RegisterPage() {
             </button>
           ))}
         </div>
-        <GoogleButton
-          mode="register"
-          isAgency={accountType === 'agency'}
-          label="Continue with Google"
-        />
-        <AuthDivider />
         <form onSubmit={handleSubmit} className="space-y-5">
           <Field icon={Building2} label={accountType === 'agency' ? 'Agency name' : 'Business name'} value={form.companyName} onChange={(v) => setForm({ ...form, companyName: v })} />
           <Field icon={Mail} label="Work email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
@@ -269,16 +263,33 @@ export function ForgotPasswordPage() {
 export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ password: '', confirm: '' });
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) return toast.error('Passwords do not match');
+    if (form.password.length < 8) return toast.error('Password must be at least 8 characters');
+    if (!token) return toast.error('Reset link is invalid. Please request a new one.');
     setLoading(true);
-    setTimeout(() => {
-      toast.success('Password updated!');
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: form.password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Password updated! Please sign in.');
+        window.location.href = '/login';
+      } else {
+        toast.error(data.error || 'Failed to reset password');
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
       setLoading(false);
-      window.location.href = '/login';
-    }, 1000);
+    }
   };
 
   return (

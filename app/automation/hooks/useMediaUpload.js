@@ -58,6 +58,7 @@ export function useMediaUpload() {
             cloudData.append('api_key', sigData.apiKey);
             cloudData.append('timestamp', sigData.timestamp);
             cloudData.append('signature', sigData.signature);
+            if (sigData.folder) cloudData.append('folder', sigData.folder);
 
             const xhr = new XMLHttpRequest();
             fullUrl = await new Promise((resolve, reject) => {

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 import { DEFAULT_FILTERS, EMPTY_FORM } from '../components/deals/constants';
-import { getDefaultStageKey, isStageLost, resolveStages, getStageLabel } from '@/lib/crm/pipelineUtils';
+import { getDefaultStageKey, resolveStages, getStageLabel } from '@/lib/crm/pipelineUtils';
+import { useDealStageModals } from './useDealStageModals';
 
 export function useDealsWorkspace() {
   const [deals, setDeals] = useState([]);
@@ -53,7 +54,7 @@ export function useDealsWorkspace() {
       title: deal.title || '',
       amount: deal.amount != null ? String(deal.amount) : '',
       currency: deal.currency || 'INR',
-      stage: deal.stage || 'qualified',
+      stage: deal.stage || 'discovery',
       expectedCloseDate: deal.expectedCloseDate
         ? new Date(deal.expectedCloseDate).toISOString().split('T')[0]
         : '',
@@ -104,8 +105,12 @@ export function useDealsWorkspace() {
       }
       if (pipelinesData.success) {
         setPipelines(pipelinesData.data || []);
-        if (!selectedPipeline && pipelinesData.data?.length) {
-          setSelectedPipeline(pipelinesData.data.find((p) => p.isDefault)?._id || pipelinesData.data[0]._id);
+        if (pipelinesData.data?.length) {
+          // Functional update keeps selectedPipeline out of the deps — otherwise
+          // setting it here re-creates fetchDeals and triggers a second fetch on mount
+          setSelectedPipeline((prev) =>
+            prev || pipelinesData.data.find((p) => p.isDefault)?._id || pipelinesData.data[0]._id
+          );
         }
       }
     } catch {
@@ -114,7 +119,7 @@ export function useDealsWorkspace() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedPipeline]);
+  }, []);
 
   useEffect(() => { fetchStats(); fetchTeam(); }, [fetchStats, fetchTeam]);
   useEffect(() => { fetchDeals(); }, [fetchDeals]);
@@ -193,36 +198,33 @@ export function useDealsWorkspace() {
     } else toast.error(data.error || 'Failed to delete');
   };
 
-  const updateDealStage = async (dealId, stage) => {
-    const active = pipelines.find((p) => p._id === selectedPipeline);
-    const pipelineStages = resolveStages(active?.stages);
-    const payload = { stage };
-    if (isStageLost(stage, pipelineStages)) {
-      const reason = window.prompt('Why was this deal lost?');
-      if (!reason?.trim()) {
-        toast.error('Lost reason is required');
-        return;
-      }
-      payload.lostReason = reason.trim();
-    }
-    const res = await authFetch(`/api/automation/deals/${dealId}`, { method: 'PUT', body: JSON.stringify(payload) });
-    const data = await res.json();
-    if (data.success) {
-      const updated = data.data || {};
-      setDeals((prev) => prev.map((d) => (d._id === dealId ? { ...d, stage, probability: updated.probability ?? d.probability } : d)));
-      toast.success('Stage updated');
+  const activePipeline = pipelines.find((p) => p._id === selectedPipeline);
+  const stages = resolveStages(activePipeline?.stages);
+
+  const stageModals = useDealStageModals({
+    getStages: () => stages,
+    onUpdated: (updated) => {
+      setDeals((prev) =>
+        prev.map((d) => (d._id === updated._id ? { ...d, ...updated } : d))
+      );
       fetchStats();
-      window.dispatchEvent(new CustomEvent('lfg-crm-refresh'));
-    } else toast.error(data.error || 'Update failed');
-  };
+    },
+  });
+
+  const updateDealStage = useCallback(
+    async (dealId, stage) => {
+      const deal = deals.find((d) => d._id === dealId);
+      return stageModals.requestDealStageChange(dealId, stage, { title: deal?.title });
+    },
+    [deals, stageModals]
+  );
 
   const exportDeals = useCallback(() => {
     if (!deals.length) {
       toast.error('No deals to export');
       return;
     }
-    const active = pipelines.find((p) => p._id === selectedPipeline);
-    const exportStages = resolveStages(active?.stages);
+    const exportStages = resolveStages(activePipeline?.stages);
     const headers = ['Title', 'Stage', 'Amount', 'Currency', 'Probability', 'Close Date', 'Owner'];
     const rows = deals.map((d) => {
       const owner = d.assignedTo
@@ -247,10 +249,7 @@ export function useDealsWorkspace() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Deals exported');
-  }, [deals, pipelines, selectedPipeline]);
-
-  const activePipeline = pipelines.find((p) => p._id === selectedPipeline);
-  const stages = resolveStages(activePipeline?.stages);
+  }, [deals, activePipeline]);
 
   const dealsByStage = stages.reduce((acc, stage) => {
     acc[stage.key] = deals.filter((d) => d.stage === stage.key);
@@ -288,6 +287,18 @@ export function useDealsWorkspace() {
     saveDeal,
     deleteDeal,
     updateDealStage,
+    demoPrompt: stageModals.demoPrompt,
+    demoSaving: stageModals.demoSaving,
+    confirmDemoScheduled: stageModals.confirmDemoScheduled,
+    cancelDemoPrompt: stageModals.cancelDemoPrompt,
+    quotationPrompt: stageModals.quotationPrompt,
+    quotationSaving: stageModals.quotationSaving,
+    confirmQuotationSent: stageModals.confirmQuotationSent,
+    cancelQuotationPrompt: stageModals.cancelQuotationPrompt,
+    lostPrompt: stageModals.lostPrompt,
+    lostSaving: stageModals.lostSaving,
+    confirmLostReason: stageModals.confirmLostReason,
+    cancelLostPrompt: stageModals.cancelLostPrompt,
     searchInput,
     setSearchInput,
     filters,

@@ -12,10 +12,11 @@ export const GET = withTenantAuth(async (request) => {
 
     const { business } = tenant;
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || '30';
+    const rawPeriod = parseInt(searchParams.get('period') || '30', 10);
+    const period = Number.isFinite(rawPeriod) ? Math.min(Math.max(1, rawPeriod), 365) : 30;
 
     const periodDate = new Date();
-    periodDate.setDate(periodDate.getDate() - parseInt(period));
+    periodDate.setDate(periodDate.getDate() - period);
 
     const totalLeads = await Lead.countDocuments({
       businessId: business._id,
@@ -187,7 +188,7 @@ export const GET = withTenantAuth(async (request) => {
     return NextResponse.json({
       success: true,
       data: {
-        period: parseInt(period),
+        period,
         totalLeads,
         statusCounts,
         converted: statusCounts.converted || 0,

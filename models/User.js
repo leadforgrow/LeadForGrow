@@ -86,14 +86,25 @@ const UserSchema = new mongoose.Schema({
     default: Date.now
   },
 
+  // Password reset (stores only the SHA-256 hash of the reset token)
+  resetPasswordTokenHash: {
+    type: String,
+    select: false,
+  },
+  resetPasswordExpiresAt: {
+    type: Date,
+    select: false,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
   }
-});
+}, { timestamps: true });
 
 // Indexes (email unique index is auto-created by unique:true)
 UserSchema.index({ businessId: 1, role: 1 });
+UserSchema.index({ agencyId: 1 }, { sparse: true });
 
 // Virtual for full name
 UserSchema.virtual('fullName').get(function () {

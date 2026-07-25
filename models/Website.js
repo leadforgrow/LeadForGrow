@@ -109,4 +109,7 @@ const WebsiteSchema = new mongoose.Schema({
   timestamps: true
 });
 
+WebsiteSchema.index({ owner: 1, createdAt: -1 });
+WebsiteSchema.index({ businessId: 1 });
+
 export default mongoose.models.Website || mongoose.model('Website', WebsiteSchema);
