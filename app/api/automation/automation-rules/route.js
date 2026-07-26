@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from "@/lib/mongodb";
 import AutomationRule from '@/models/automation/AutomationRule';
+import WhatsAppFlow from '@/models/automation/WhatsAppFlow';
 import { withPlanAccess } from '@/lib/accessControl';
 
-// GET - Fetch all rules for a business
+// GET - Fetch all rules + WhatsApp flows for a business
 export const GET = withPlanAccess('automation', async (req) => {
   try {
     await dbConnect();
@@ -59,7 +60,42 @@ export const GET = withPlanAccess('automation', async (req) => {
       rules = await AutomationRule.insertMany(defaultRules);
     }
 
-    return NextResponse.json({ success: true, data: rules });
+    // Fetch published WhatsApp flows
+    const whatsappFlows = await WhatsAppFlow.find({ businessId, status: 'published' })
+      .select('name description status triggerType totalExecutions completed failed active publishedAt')
+      .lean();
+
+    // Transform WhatsApp flows to match automation rules format
+    const transformedFlows = whatsappFlows.map((flow) => ({
+      _id: flow._id,
+      id: flow._id.toString(),
+      name: flow.name,
+      description: flow.description || '',
+      type: 'whatsapp_flow',
+      category: 'whatsapp',
+      enabled: true, // Published flows are always active
+      icon: '💬',
+      channel: 'whatsapp',
+      trigger: flow.triggerType || 'incoming_message',
+      runs: flow.totalExecutions || 0,
+      config: {
+        flowType: 'whatsapp_flow',
+        triggerType: flow.triggerType,
+        totalExecutions: flow.totalExecutions || 0,
+        completed: flow.completed || 0,
+        failed: flow.failed || 0,
+      },
+      triggers: { onIncomingWhatsApp: true },
+      createdAt: flow.publishedAt || new Date(),
+      updatedAt: flow.publishedAt || new Date(),
+    }));
+
+    // Combine CRM rules + WhatsApp flows
+    const allRules = [...rules, ...transformedFlows].sort((a, b) => 
+      new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+    );
+
+    return NextResponse.json({ success: true, data: allRules });
   } catch (error) {
     console.error('Error fetching/creating rules:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch automation rules' }, { status: 500 });

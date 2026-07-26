@@ -54,6 +54,22 @@ function AutomationRulesContent() {
           </Link>
         </div>
 
+        <div className="mt-4 mb-4 p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">💬 WhatsApp Interactive Flows</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Automated customer conversations - garage bookings, service selection, quotes, and more. Triggers on incoming WhatsApp messages.
+            </p>
+          </div>
+          <Link
+            href="/automation/whatsapp-flows"
+            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shrink-0"
+          >
+            <Settings2 className="w-3.5 h-3.5" />
+            Manage flows
+          </Link>
+        </div>
+
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">
             <AutomationList

@@ -55,6 +55,7 @@ export const RULE_ICONS = {
   lost_lead_reengagement: RotateCcw,
   manual_template: FileText,
   sequence_runner: GitBranch,
+  whatsapp_flow: MessageCircleMore,
 };
 
 export const RULE_ICON_FALLBACK = Zap;
@@ -68,7 +69,7 @@ export function getRuleIcon(rule) {
   if (name.includes('notify')) return BellRing;
   if (name.includes('assign')) return UserRoundPlus;
   if (name.includes('follow') || name.includes('reminder')) return Clock3;
-  if (name.includes('whatsapp') || name.includes('reply')) return MessageCircleMore;
+  if (name.includes('whatsapp') || name.includes('reply') || name.includes('flow')) return MessageCircleMore;
   if (name.includes('recovery') || name.includes('recover')) return RotateCcw;
   if (name.includes('task')) return CheckSquare;
   if (name.includes('form') || name.includes('trigger')) return FileText;
@@ -79,6 +80,7 @@ export function getRuleIcon(rule) {
 
 export function getTriggerLabel(rule) {
   const t = rule?.triggers || {};
+  if (t.onIncomingWhatsApp) return 'Incoming WhatsApp';
   if (t.onLeadReceived) return 'New lead';
   if (t.onStatusChange) return 'Status change';
   if (t.onNoResponse) return 'No response';
@@ -87,6 +89,9 @@ export function getTriggerLabel(rule) {
 
 export function getChannelLabel(rule) {
   const ch = rule?.config?.channel;
+  const type = rule?.type;
+  
+  if (type === 'whatsapp_flow') return 'WhatsApp Flow';
   if (!ch) return '—';
   if (ch === 'both') return 'Email + WhatsApp';
   if (ch === 'email') return 'Email';

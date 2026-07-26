@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { DEFAULT_SYSTEM_VARIABLES } from '@/lib/whatsappFlows/constants';
 
 function Field({ label, children }) {
@@ -14,8 +15,62 @@ function Field({ label, children }) {
 const inputClass =
   'w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-400 transition';
 
+// Helper to count total rows across all sections
+function getTotalRows(sections) {
+  return (sections || []).reduce((total, section) => total + (section.rows || []).length, 0);
+}
+
 export default function NodeEditor({ node, onChange, onDelete, variables = [] }) {
   const vars = variables.length ? variables : DEFAULT_SYSTEM_VARIABLES;
+  const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [syncingTemplates, setSyncingTemplates] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+
+  // Fetch available templates on mount
+  useEffect(() => {
+    if (node?.type === 'action_send_template') {
+      fetchTemplates();
+    }
+  }, [node?.type]);
+
+  const fetchTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const response = await fetch('/api/automation/templates');
+      const data = await response.json();
+      if (data.success && data.manual) {
+        setTemplates(data.manual);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const syncTemplatesFromMeta = async () => {
+    setSyncingTemplates(true);
+    setSyncMessage('Syncing...');
+    try {
+      const response = await fetch('/api/automation/templates/sync', { method: 'POST' });
+      const data = await response.json();
+      if (data.success) {
+        setSyncMessage('✓ ' + data.message);
+        await fetchTemplates(); // Refresh the list
+        setTimeout(() => setSyncMessage(''), 3000);
+      } else {
+        setSyncMessage('❌ ' + (data.error || 'Sync failed'));
+        setTimeout(() => setSyncMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error syncing templates:', error);
+      setSyncMessage('❌ Failed to sync templates');
+      setTimeout(() => setSyncMessage(''), 3000);
+    } finally {
+      setSyncingTemplates(false);
+    }
+  };
 
   if (!node) {
     return (
@@ -73,7 +128,7 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-        <Field label="Label">
+        <Field label="Node Name">
           <input className={inputClass} value={data.label || ''} onChange={(e) => set('label', e.target.value)} />
         </Field>
 
@@ -91,11 +146,87 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
 
         {node.type === 'action_send_template' && (
           <>
-            <Field label="Template name">
-              <input className={inputClass} value={data.templateName || ''} onChange={(e) => set('templateName', e.target.value)} />
+            <Field label="Template">
+              <div className="space-y-2">
+                <select
+                  className={`${inputClass} cursor-pointer bg-white`}
+                  value={data.templateName || ''}
+                  onChange={(e) => {
+                    const templateName = e.target.value;
+                    console.log('[NodeEditor] Template selected:', templateName);
+                    if (templateName && templateName.trim()) {
+                      const selected = templates.find((t) => t.name === templateName);
+                      console.log('[NodeEditor] Found template:', selected);
+                      if (selected) {
+                        const newData = {
+                          ...data,
+                          templateName: selected.name,
+                          language: selected.language || 'en',
+                        };
+                        console.log('[NodeEditor] Updating data:', newData);
+                        onChange(newData);
+                      }
+                    } else if (!templateName) {
+                      // Clear selection
+                      onChange({
+                        ...data,
+                        templateName: '',
+                      });
+                    }
+                  }}
+                  disabled={loadingTemplates || syncingTemplates}
+                >
+                  <option value="">
+                    {syncingTemplates ? 'Syncing templates...' : loadingTemplates ? 'Loading templates...' : 'Select a template'}
+                  </option>
+                  {templates && templates.length > 0 ? (
+                    templates.map((t) => (
+                      <option key={t.id || t.name} value={t.name}>
+                        {t.name} {t.isMetaTemplate ? '⭐ (Meta)' : ''}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No templates available</option>
+                  )}
+                </select>
+              </div>
+
+              {templates.length === 0 && !loadingTemplates && !syncingTemplates && (
+                <div className="mt-2 space-y-1.5">
+                  <p className="text-[11px] text-amber-600 font-medium">No templates found</p>
+                  <button
+                    type="button"
+                    onClick={syncTemplatesFromMeta}
+                    disabled={syncingTemplates}
+                    className="text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline disabled:opacity-50"
+                  >
+                    ↻ Sync templates from WhatsApp
+                  </button>
+                </div>
+              )}
+
+              {data.templateName && templates.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <p className="text-[11px] text-emerald-600 font-medium">✓ {data.templateName}</p>
+                  <p className="text-[10px] text-slate-500">Language: {data.language || 'en'}</p>
+                </div>
+              )}
+
+              {syncMessage && (
+                <p className={`text-[11px] font-medium mt-1.5 ${syncMessage.startsWith('✓') ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {syncMessage}
+                </p>
+              )}
             </Field>
+
             <Field label="Language">
-              <input className={inputClass} value={data.language || 'en'} onChange={(e) => set('language', e.target.value)} />
+              <input
+                className={inputClass}
+                value={data.language || 'en'}
+                onChange={(e) => set('language', e.target.value)}
+                placeholder="en"
+                disabled={!data.templateName}
+              />
             </Field>
           </>
         )}
@@ -139,12 +270,217 @@ export default function NodeEditor({ node, onChange, onDelete, variables = [] })
 
         {node.type === 'action_send_list' && (
           <>
+            {/* Header */}
+            <Field label="Header (Optional)">
+              <input 
+                className={inputClass} 
+                value={data.header || ''} 
+                onChange={(e) => set('header', e.target.value)}
+                placeholder="e.g., Select a service"
+              />
+            </Field>
+
+            {/* Body */}
             <Field label="Body">
-              <textarea rows={3} className={inputClass} value={data.body || ''} onChange={(e) => set('body', e.target.value)} />
+              <textarea 
+                rows={3} 
+                className={inputClass} 
+                value={data.body || ''} 
+                onChange={(e) => set('body', e.target.value)}
+                placeholder="Pick from the list:"
+              />
+              {(!data.body || !data.body.trim()) && (
+                <p className="text-[11px] text-red-600 mt-1">Required</p>
+              )}
             </Field>
-            <Field label="Button text">
-              <input className={inputClass} value={data.buttonText || ''} onChange={(e) => set('buttonText', e.target.value)} />
+
+            {/* Footer */}
+            <Field label="Footer (Optional)">
+              <input 
+                className={inputClass} 
+                value={data.footer || ''} 
+                onChange={(e) => set('footer', e.target.value)}
+                placeholder="e.g., Reply with selection"
+              />
             </Field>
+
+            {/* Button Text */}
+            <Field label="Button Text">
+              <input 
+                className={inputClass} 
+                value={data.buttonText || ''} 
+                onChange={(e) => set('buttonText', e.target.value)}
+                placeholder="View options"
+              />
+              {(!data.buttonText || !data.buttonText.trim()) && (
+                <p className="text-[11px] text-red-600 mt-1">Required</p>
+              )}
+            </Field>
+
+            {/* Sections Builder */}
+            <Field label="Sections">
+              <div className="space-y-3 border border-slate-200 rounded-lg p-3 bg-slate-50">
+                {(data.sections || []).map((section, sIdx) => (
+                  <div key={sIdx} className="border-l-2 border-blue-400 pl-3 py-2 bg-white rounded px-2">
+                    {/* Section Title */}
+                    <div className="mb-2">
+                      <label className="text-[11px] font-medium text-slate-600">Section Title</label>
+                      <input
+                        className={`${inputClass} text-xs`}
+                        value={section.title || ''}
+                        onChange={(e) => {
+                          const newSections = [...(data.sections || [])];
+                          newSections[sIdx].title = e.target.value;
+                          set('sections', newSections);
+                        }}
+                        placeholder="e.g., Services"
+                      />
+                    </div>
+
+                    {/* Rows */}
+                    <div className="space-y-1.5 mb-2">
+                      <div className="text-[10px] font-semibold text-slate-500 uppercase">Rows</div>
+                      {(section.rows || []).map((row, rIdx) => (
+                        <div key={rIdx} className="flex gap-1.5 items-start bg-slate-50 p-1.5 rounded border border-slate-200">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <input
+                              className={`${inputClass} text-xs`}
+                              value={row.id || ''}
+                              onChange={(e) => {
+                                const newSections = [...(data.sections || [])];
+                                newSections[sIdx].rows[rIdx].id = e.target.value;
+                                set('sections', newSections);
+                              }}
+                              placeholder="Value/ID (e.g., complete_service)"
+                            />
+                            <input
+                              className={`${inputClass} text-xs`}
+                              value={row.title || ''}
+                              onChange={(e) => {
+                                const newSections = [...(data.sections || [])];
+                                newSections[sIdx].rows[rIdx].title = e.target.value;
+                                set('sections', newSections);
+                              }}
+                              placeholder="Title (e.g., Complete Service)"
+                            />
+                            <input
+                              className={`${inputClass} text-xs`}
+                              value={row.description || ''}
+                              onChange={(e) => {
+                                const newSections = [...(data.sections || [])];
+                                newSections[sIdx].rows[rIdx].description = e.target.value;
+                                set('sections', newSections);
+                              }}
+                              placeholder="Description (optional)"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newSections = [...(data.sections || [])];
+                              newSections[sIdx].rows.splice(rIdx, 1);
+                              set('sections', newSections);
+                            }}
+                            className="text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-1.5 py-1 rounded whitespace-nowrap mt-6"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Row */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSections = [...(data.sections || [])];
+                        if (!newSections[sIdx].rows) newSections[sIdx].rows = [];
+                        newSections[sIdx].rows.push({
+                          id: `row_${Date.now()}`,
+                          title: 'New Row',
+                          description: '',
+                        });
+                        set('sections', newSections);
+                      }}
+                      disabled={(section.rows || []).length >= 10}
+                      className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                    >
+                      + Add Row
+                    </button>
+
+                    {/* Delete Section */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSections = (data.sections || []).filter((_, i) => i !== sIdx);
+                        set('sections', newSections);
+                      }}
+                      disabled={(data.sections || []).length === 1}
+                      className="text-[11px] font-medium text-red-600 hover:text-red-700 ml-2 disabled:opacity-50"
+                    >
+                      Delete Section
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add Section */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newSections = [...(data.sections || [])];
+                    newSections.push({
+                      title: `Section ${newSections.length + 1}`,
+                      rows: [{ id: 'row_1', title: 'Option 1', description: '' }],
+                    });
+                    set('sections', newSections);
+                  }}
+                  className="text-[11px] font-medium text-blue-600 hover:text-blue-700 w-full py-1"
+                >
+                  + Add Section
+                </button>
+
+                {/* Validation */}
+                {getTotalRows(data.sections) > 10 && (
+                  <p className="text-[11px] text-red-600 font-medium">⚠ Maximum 10 rows total. Current: {getTotalRows(data.sections)}</p>
+                )}
+              </div>
+            </Field>
+
+            {/* Store Response */}
+            <Field label="Store selected value as">
+              <input
+                className={inputClass}
+                value={data.saveAs || 'selected_option'}
+                onChange={(e) => set('saveAs', e.target.value)}
+                placeholder="Variable name (e.g., service)"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">e.g., service = complete_service</p>
+            </Field>
+
+            {/* WhatsApp Preview */}
+            <div className="mt-4 p-3 bg-gradient-to-b from-emerald-50 to-emerald-50 border border-emerald-200 rounded-lg">
+              <p className="text-[10px] font-semibold text-emerald-800 mb-2">📱 WhatsApp Preview</p>
+              <div className="text-[11px] space-y-2">
+                {data.header && <div className="font-medium text-slate-900">{data.header}</div>}
+                <div className="text-slate-700">{data.body || '(Empty body)'}</div>
+                {data.footer && <div className="text-slate-600 text-[10px]">{data.footer}</div>}
+                <div className="bg-white rounded p-2 border border-emerald-200 space-y-1 mt-1">
+                  {(data.sections || []).map((section, sIdx) => (
+                    <div key={sIdx}>
+                      <div className="font-medium text-slate-800 text-[10px]">{section.title}</div>
+                      {(section.rows || []).map((row, rIdx) => (
+                        <div key={rIdx} className="text-slate-600 pl-2 text-[10px]">
+                          • {row.title} {row.description ? `- ${row.description}` : ''}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center text-slate-600 font-medium text-[10px] bg-blue-100 py-1 rounded">
+                  {data.buttonText || 'View options'}
+                </div>
+              </div>
+            </div>
           </>
         )}
 
