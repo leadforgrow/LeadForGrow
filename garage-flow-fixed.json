@@ -1,0 +1,363 @@
+{
+  "format": "leadforgrow-whatsapp-flow",
+  "version": 1,
+  "exportedAt": "2026-07-26T12:00:00.000Z",
+  "flow": {
+    "name": "Garage Booking Flow - Fixed",
+    "description": "Complete garage booking flow with all conditions properly wired",
+    "triggerType": "incoming_message",
+    "tags": ["garage", "booking"]
+  },
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger_incoming_message",
+      "position": { "x": 50, "y": 50 },
+      "data": { "label": "Incoming WhatsApp Message", "category": "trigger" }
+    },
+    {
+      "id": "action_welcome",
+      "type": "action_send_template",
+      "position": { "x": 300, "y": 50 },
+      "data": {
+        "label": "Send Welcome Template",
+        "category": "action",
+        "templateName": "garage_welcome",
+        "language": "en",
+        "components": []
+      }
+    },
+    {
+      "id": "wait_vehicle_type",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 50 },
+      "data": {
+        "label": "Wait for Vehicle Type",
+        "category": "logic",
+        "saveAs": "vehicle_type",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "list_services",
+      "type": "action_send_list",
+      "position": { "x": 300, "y": 200 },
+      "data": {
+        "label": "Choose Service",
+        "category": "action",
+        "body": "Please select the service you need for your vehicle.",
+        "buttonText": "View Services",
+        "sections": [
+          {
+            "title": "Available Services",
+            "rows": [
+              { "id": "row_1", "title": "Complete Service", "description": "Full vehicle inspection & maintenance" },
+              { "id": "row_2", "title": "Oil Change", "description": "Engine oil replacement" },
+              { "id": "row_3", "title": "Battery", "description": "Battery replacement & checkup" },
+              { "id": "row_4", "title": "AC Service", "description": "Cooling & gas refill" },
+              { "id": "row_5", "title": "Jump Start", "description": "Battery emergency support" },
+              { "id": "row_6", "title": "Wheel Alignment", "description": "Alignment & balancing" }
+            ]
+          }
+        ],
+        "header": "🔧 Select Service",
+        "footer": "Pistons Garage",
+        "saveAs": "service"
+      }
+    },
+    {
+      "id": "wait_service",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 200 },
+      "data": {
+        "label": "Wait for Service Selection",
+        "category": "logic",
+        "saveAs": "service",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "list_brand",
+      "type": "action_send_list",
+      "position": { "x": 300, "y": 350 },
+      "data": {
+        "label": "Choose Brand",
+        "category": "action",
+        "header": "🚗 Vehicle Brand",
+        "body": "Please select your vehicle brand.",
+        "footer": "Pistons Garage",
+        "buttonText": "View options",
+        "sections": [
+          {
+            "title": "Popular Brands",
+            "rows": [
+              { "id": "row_1", "title": "Maruti Suzuki", "description": "" },
+              { "id": "row_2", "title": "Hyundai", "description": "" },
+              { "id": "row_3", "title": "Honda", "description": "" },
+              { "id": "row_4", "title": "Toyota", "description": "" },
+              { "id": "row_5", "title": "Mahindra", "description": "" },
+              { "id": "row_6", "title": "Tata", "description": "" }
+            ]
+          }
+        ],
+        "saveAs": "brand"
+      }
+    },
+    {
+      "id": "wait_brand",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 350 },
+      "data": {
+        "label": "Wait for Brand",
+        "category": "logic",
+        "saveAs": "brand",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "list_model",
+      "type": "action_send_list",
+      "position": { "x": 300, "y": 500 },
+      "data": {
+        "label": "Choose Model",
+        "category": "action",
+        "header": "🚗 Vehicle Model",
+        "body": "Select your vehicle model.",
+        "footer": "Pistons Garage",
+        "buttonText": "View models",
+        "sections": [
+          {
+            "title": "Maruti Models",
+            "rows": [
+              { "id": "row_1", "title": "Swift", "description": "" },
+              { "id": "row_2", "title": "Baleno", "description": "" },
+              { "id": "row_3", "title": "Alto", "description": "" },
+              { "id": "row_4", "title": "Dzire", "description": "" },
+              { "id": "row_5", "title": "WagonR", "description": "" }
+            ]
+          }
+        ],
+        "saveAs": "model"
+      }
+    },
+    {
+      "id": "wait_model",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 500 },
+      "data": {
+        "label": "Wait for Model",
+        "category": "logic",
+        "saveAs": "model",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "buttons_fuel",
+      "type": "action_send_buttons",
+      "position": { "x": 300, "y": 650 },
+      "data": {
+        "label": "Choose Fuel Type",
+        "category": "action",
+        "body": "Please select your vehicle fuel type.",
+        "buttons": [
+          { "id": "btn_1", "title": "Petrol" },
+          { "id": "btn_2", "title": "Diesel" },
+          { "id": "btn_3", "title": "CNG" }
+        ],
+        "footer": "Pistons Garage",
+        "header": "⛽ Fuel Type"
+      }
+    },
+    {
+      "id": "wait_fuel",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 650 },
+      "data": {
+        "label": "Wait for Fuel Type",
+        "category": "logic",
+        "saveAs": "fuel_type",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "buttons_pickup",
+      "type": "action_send_buttons",
+      "position": { "x": 300, "y": 800 },
+      "data": {
+        "label": "Pickup Required?",
+        "category": "action",
+        "body": "Do you need free pickup & drop service?",
+        "buttons": [
+          { "id": "btn_yes", "title": "Yes" },
+          { "id": "btn_no", "title": "No" }
+        ],
+        "footer": "Pistons Garage",
+        "header": "🚙 Pickup"
+      }
+    },
+    {
+      "id": "wait_pickup",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 800 },
+      "data": {
+        "label": "Wait for Pickup",
+        "category": "logic",
+        "saveAs": "pickup_choice",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "if_pickup",
+      "type": "logic_if_else",
+      "position": { "x": 800, "y": 800 },
+      "data": {
+        "label": "Pickup needed?",
+        "category": "logic",
+        "variable": "pickup_choice",
+        "operator": "contains",
+        "value": "Yes"
+      }
+    },
+    {
+      "id": "text_address",
+      "type": "action_send_text",
+      "position": { "x": 300, "y": 950 },
+      "data": {
+        "label": "Ask for Address",
+        "category": "action",
+        "text": "Please share your pickup address or live location."
+      }
+    },
+    {
+      "id": "wait_address",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 950 },
+      "data": {
+        "label": "Wait for Address",
+        "category": "logic",
+        "saveAs": "location",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "buttons_time",
+      "type": "action_send_buttons",
+      "position": { "x": 300, "y": 1100 },
+      "data": {
+        "label": "Preferred Time",
+        "category": "action",
+        "body": "When would you prefer service?",
+        "buttons": [
+          { "id": "btn_1", "title": "Morning (9-12)" },
+          { "id": "btn_2", "title": "Afternoon (12-4)" },
+          { "id": "btn_3", "title": "Evening (4-7)" }
+        ],
+        "footer": "Pistons Garage",
+        "header": "⏰ Time Slot"
+      }
+    },
+    {
+      "id": "wait_time",
+      "type": "logic_wait_reply",
+      "position": { "x": 550, "y": 1100 },
+      "data": {
+        "label": "Wait for Time",
+        "category": "logic",
+        "saveAs": "preferred_time",
+        "timeoutMinutes": 1440
+      }
+    },
+    {
+      "id": "text_skip_address",
+      "type": "action_send_text",
+      "position": { "x": 1050, "y": 800 },
+      "data": {
+        "label": "Skip Address",
+        "category": "action",
+        "text": "No problem! Please proceed to the next step."
+      }
+    },
+    {
+      "id": "wait_skip",
+      "type": "logic_wait_reply",
+      "position": { "x": 1300, "y": 800 },
+      "data": {
+        "label": "Continue",
+        "category": "logic",
+        "saveAs": "skip_reply",
+        "timeoutMinutes": 60
+      }
+    },
+    {
+      "id": "text_confirmation",
+      "type": "action_send_text",
+      "position": { "x": 300, "y": 1250 },
+      "data": {
+        "label": "Send Confirmation",
+        "category": "action",
+        "text": "Hi {{customer_name}}, thanks for reaching out! 🙏\n\nService: {{service}}\nVehicle: {{brand}} {{model}} ({{fuel_type}})\nPickup: {{pickup_choice}}\nTime: {{preferred_time}}\n\nOur team will confirm shortly!"
+      }
+    },
+    {
+      "id": "action_create_booking",
+      "type": "action_update_lead",
+      "position": { "x": 550, "y": 1250 },
+      "data": {
+        "label": "Save Booking Details",
+        "category": "action",
+        "fields": {
+          "serviceInterest": "{{service}}",
+          "tags": "garage_booking,{{brand}}"
+        }
+      }
+    },
+    {
+      "id": "action_end",
+      "type": "action_end",
+      "position": { "x": 800, "y": 1250 },
+      "data": {
+        "label": "End Flow",
+        "category": "action",
+        "markConverted": true
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "trigger_1", "target": "action_welcome", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e2", "source": "action_welcome", "target": "wait_vehicle_type", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e3", "source": "wait_vehicle_type", "target": "list_services", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e4", "source": "list_services", "target": "wait_service", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e5", "source": "wait_service", "target": "list_brand", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e6", "source": "list_brand", "target": "wait_brand", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e7", "source": "wait_brand", "target": "list_model", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e8", "source": "list_model", "target": "wait_model", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e9", "source": "wait_model", "target": "buttons_fuel", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e10", "source": "buttons_fuel", "target": "wait_fuel", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e11", "source": "wait_fuel", "target": "buttons_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e12", "source": "buttons_pickup", "target": "wait_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e13", "source": "wait_pickup", "target": "if_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e14", "source": "if_pickup", "target": "text_address", "sourceHandle": "true", "targetHandle": "default", "label": "Yes" },
+    { "id": "e15", "source": "if_pickup", "target": "text_skip_address", "sourceHandle": "false", "targetHandle": "default", "label": "No" },
+    { "id": "e16", "source": "text_address", "target": "wait_address", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e17", "source": "wait_address", "target": "buttons_time", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e18", "source": "text_skip_address", "target": "wait_skip", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e19", "source": "wait_skip", "target": "buttons_time", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e20", "source": "buttons_time", "target": "wait_time", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e21", "source": "wait_time", "target": "text_confirmation", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e22", "source": "text_confirmation", "target": "action_create_booking", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e23", "source": "action_create_booking", "target": "action_end", "sourceHandle": "default", "targetHandle": "default", "label": "" }
+  ],
+  "variables": [
+    { "key": "customer_name", "label": "Customer Name", "defaultValue": "", "source": "system" },
+    { "key": "phone", "label": "Phone", "defaultValue": "", "source": "system" },
+    { "key": "email", "label": "Email", "defaultValue": "", "source": "system" },
+    { "key": "vehicle_type", "label": "Vehicle Type", "defaultValue": "", "source": "custom" },
+    { "key": "service", "label": "Service", "defaultValue": "", "source": "custom" },
+    { "key": "brand", "label": "Brand", "defaultValue": "", "source": "custom" },
+    { "key": "model", "label": "Model", "defaultValue": "", "source": "custom" },
+    { "key": "fuel_type", "label": "Fuel Type", "defaultValue": "", "source": "custom" },
+    { "key": "pickup_choice", "label": "Pickup Choice", "defaultValue": "", "source": "custom" },
+    { "key": "location", "label": "Location", "defaultValue": "", "source": "custom" },
+    { "key": "preferred_time", "label": "Preferred Time", "defaultValue": "", "source": "custom" }
+  ]
+}
