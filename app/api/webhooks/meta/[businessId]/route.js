@@ -276,7 +276,9 @@ export async function POST(request, { params }) {
             senderId: data.fromPhone,
             senderName: data.fromName,
             body: data.text,
-            type: 'text',
+            type: data.type || 'text',
+            buttonId: data.buttonId,
+            listId: data.listId,
             timestamp: data.timestamp,
             referral: data.referral,
             raw: data.rawMessage
