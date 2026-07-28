@@ -84,6 +84,17 @@ export default function AiSettingsPage() {
         <Toggle label="Enable AI" checked={settings?.enabled !== false} onChange={(v) => update('enabled', v)} />
         <Toggle label="AI Sales Agent (customer-facing)" checked={settings?.agentEnabled !== false} onChange={(v) => update('agentEnabled', v)} />
         <Toggle label="AI Reply Assist (inbox)" checked={settings?.replyAssistEnabled !== false} onChange={(v) => update('replyAssistEnabled', v)} />
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <Toggle
+            label="WhatsApp AI Agent — auto-reply to customers"
+            checked={settings?.whatsappAutoReply === true}
+            onChange={(v) => update('whatsappAutoReply', v)}
+          />
+          <p className="text-xs text-slate-500 mt-1 ml-1">
+            When ON, the AI answers incoming WhatsApp messages automatically using your Knowledge Base
+            (instead of only suggesting a reply). Skipped while a flow is running or a human has taken over.
+          </p>
+        </div>
       </section>
 
       <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">

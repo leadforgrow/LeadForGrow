@@ -193,6 +193,9 @@ const BusinessSettingsSchema = new mongoose.Schema({
     model: { type: String, default: 'llama-3.1-8b-instant' },
     agentEnabled: { type: Boolean, default: false },
     replyAssistEnabled: { type: Boolean, default: true },
+    /** When true, the AI auto-replies to incoming WhatsApp messages from the
+     *  knowledge base instead of only suggesting a reply to the agent. */
+    whatsappAutoReply: { type: Boolean, default: false },
   },
 
   /** CRM pipeline, messaging templates, and automation toggles */

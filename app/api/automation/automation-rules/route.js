@@ -60,9 +60,11 @@ export const GET = withPlanAccess('automation', async (req) => {
       rules = await AutomationRule.insertMany(defaultRules);
     }
 
-    // Fetch published WhatsApp flows
-    const whatsappFlows = await WhatsAppFlow.find({ businessId, status: 'published' })
-      .select('name description status triggerType totalExecutions completed failed active publishedAt')
+    // Fetch WhatsApp flows — published = active (ON), archived = paused (OFF).
+    // Both are shown so the toggle can turn a flow back on. Drafts (still being
+    // built in the flow editor) are intentionally excluded here.
+    const whatsappFlows = await WhatsAppFlow.find({ businessId, status: { $in: ['published', 'archived'] } })
+      .select('name description status triggerType analytics publishedAt updatedAt')
       .lean();
 
     // Transform WhatsApp flows to match automation rules format
@@ -73,21 +75,21 @@ export const GET = withPlanAccess('automation', async (req) => {
       description: flow.description || '',
       type: 'whatsapp_flow',
       category: 'whatsapp',
-      enabled: true, // Published flows are always active
+      enabled: flow.status === 'published',
       icon: '💬',
       channel: 'whatsapp',
       trigger: flow.triggerType || 'incoming_message',
-      runs: flow.totalExecutions || 0,
+      runs: flow.analytics?.totalExecutions || 0,
       config: {
         flowType: 'whatsapp_flow',
         triggerType: flow.triggerType,
-        totalExecutions: flow.totalExecutions || 0,
-        completed: flow.completed || 0,
-        failed: flow.failed || 0,
+        totalExecutions: flow.analytics?.totalExecutions || 0,
+        completed: flow.analytics?.completed || 0,
+        failed: flow.analytics?.failed || 0,
       },
       triggers: { onIncomingWhatsApp: true },
       createdAt: flow.publishedAt || new Date(),
-      updatedAt: flow.publishedAt || new Date(),
+      updatedAt: flow.updatedAt || flow.publishedAt || new Date(),
     }));
 
     // Combine CRM rules + WhatsApp flows
@@ -144,6 +146,27 @@ export const PUT = withPlanAccess('automation', async (req) => {
     // Find rule and verify ownership
     const rule = await AutomationRule.findOne({ _id: ruleId, businessId });
     if (!rule) {
+      // The list also includes WhatsApp flows — toggle those via their status
+      // (published = ON, archived = OFF) instead of the AutomationRule model.
+      const flow = await WhatsAppFlow.findOne({ _id: ruleId, businessId });
+      if (flow) {
+        if (updates.enabled !== undefined) {
+          flow.status = updates.enabled ? 'published' : 'archived';
+        }
+        if (typeof updates.name === 'string') flow.name = updates.name;
+        if (typeof updates.description === 'string') flow.description = updates.description;
+        await flow.save();
+        return NextResponse.json({
+          success: true,
+          data: {
+            _id: flow._id,
+            name: flow.name,
+            description: flow.description || '',
+            type: 'whatsapp_flow',
+            enabled: flow.status === 'published',
+          },
+        });
+      }
       return NextResponse.json({ success: false, error: 'Rule not found' }, { status: 404 });
     }
 
