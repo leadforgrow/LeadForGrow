@@ -90,34 +90,48 @@ function MessageBubble({ message }) {
   const bodyText = message.content?.body || message.content?.caption;
 
   return (
-    <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'} mb-[3px] px-1`}>
       <div
-        className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-sm shadow-sm ${
+        className={`relative max-w-[75%] pl-2.5 pr-2 py-1.5 text-sm shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] ${
           outgoing
-            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-slate-800 dark:text-slate-100 border border-emerald-100 dark:border-emerald-900 rounded-br-md'
-            : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-bl-md'
+            ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-lg rounded-tr-none'
+            : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-lg rounded-tl-none'
         }`}
       >
+        {/* WhatsApp bubble tail */}
+        <span
+          className={`absolute top-0 w-2 h-3 overflow-hidden ${outgoing ? '-right-1.5' : '-left-1.5'}`}
+          aria-hidden
+        >
+          <span
+            className={`absolute top-0 block w-3 h-3 rotate-45 ${
+              outgoing
+                ? 'right-1 bg-[#d9fdd3] dark:bg-[#005c4b]'
+                : 'left-1 bg-white dark:bg-[#202c33]'
+            }`}
+          />
+        </span>
+
         {message.subject && message.type === 'email' && (
-          <p className="text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">{message.subject}</p>
+          <p className="text-xs font-semibold mb-1 text-[#111b21]/80 dark:text-[#e9edef]/80">{message.subject}</p>
         )}
         {hasMedia && <MediaContent message={message} />}
         {bodyText && (
-          <p className="leading-relaxed whitespace-pre-wrap break-words">{bodyText}</p>
+          <p className="leading-[1.35] whitespace-pre-wrap break-words pr-10">{bodyText}</p>
         )}
-        <div className={`flex items-center justify-end gap-1 mt-1 ${outgoing ? 'text-emerald-700/60' : 'text-slate-400'}`}>
-          <span className="text-[10px] tabular-nums">{time}</span>
+        <div className={`flex items-center justify-end gap-1 -mt-1 float-right ${outgoing ? 'text-[#667781] dark:text-[#aebac1]' : 'text-[#667781] dark:text-[#8696a0]'}`}>
+          <span className="text-[10px] leading-none tabular-nums">{time}</span>
           {outgoing && (
             message.status === 'sending' ? (
-              <Clock className="w-3 h-3" />
+              <Clock className="w-3.5 h-3.5" />
             ) : message.status === 'failed' ? (
               <span className="text-[9px] text-red-500">Failed</span>
             ) : message.status === 'read' ? (
-              <CheckCheck className="w-3 h-3 text-blue-500" />
+              <CheckCheck className="w-4 h-4 text-[#53bdeb]" />
             ) : message.status === 'delivered' ? (
-              <CheckCheck className="w-3 h-3" />
+              <CheckCheck className="w-4 h-4" />
             ) : (
-              <Check className="w-3 h-3" />
+              <Check className="w-4 h-4" />
             )
           )}
         </div>

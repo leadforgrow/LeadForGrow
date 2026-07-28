@@ -287,14 +287,40 @@
       }
     },
     {
+      "id": "list_date",
+      "type": "action_send_list",
+      "position": { "x": 60, "y": 960 },
+      "data": {
+        "label": "Choose Date",
+        "category": "action",
+        "header": "📅 Preferred Date",
+        "body": "Which day would you like to book the service?",
+        "footer": "Pistons Garage",
+        "buttonText": "Select Date",
+        "saveAs": "preferred_date",
+        "sections": [
+          {
+            "title": "Pick a Day",
+            "rows": [
+              { "id": "date_today", "title": "Today", "description": "Same-day service" },
+              { "id": "date_tomorrow", "title": "Tomorrow", "description": "" },
+              { "id": "date_day_after", "title": "Day After Tomorrow", "description": "" },
+              { "id": "date_weekend", "title": "This Weekend", "description": "Saturday or Sunday" },
+              { "id": "date_next_week", "title": "Next Week", "description": "Any day next week" }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "id": "buttons_time",
       "type": "action_send_buttons",
-      "position": { "x": 300, "y": 960 },
+      "position": { "x": 320, "y": 960 },
       "data": {
         "label": "Preferred Time",
         "category": "action",
         "header": "⏰ Preferred Time",
-        "body": "When would you like the service?",
+        "body": "And what time works best on {{preferred_date}}?",
         "footer": "Pistons Garage",
         "saveAs": "preferred_time",
         "buttons": [
@@ -311,7 +337,7 @@
       "data": {
         "label": "Send Confirmation",
         "category": "action",
-        "text": "✅ Booking received, {{customer_name}}!\n\n🔧 Service: {{service}}\n🚗 Vehicle: {{brand}} {{model}}\n⛽ Fuel: {{fuel_type}}\n🚙 Pickup: {{pickup_choice}}\n📍 Address: {{address}}\n⏰ Time: {{preferred_time}}\n\nOur team will confirm your slot shortly. Thank you for choosing Pistons Garage! 🏁"
+        "text": "✅ Booking received, {{customer_name}}!\n\n🔧 Service: {{service}}\n🚗 Vehicle: {{brand}} {{model}}\n⛽ Fuel: {{fuel_type}}\n🚙 Pickup: {{pickup_choice}}\n📍 Address: {{address}}\n📅 Date: {{preferred_date}}\n⏰ Time: {{preferred_time}}\n\nOur team will confirm your slot shortly. Thank you for choosing Pistons Garage! 🏁"
       }
     },
     {
@@ -351,9 +377,10 @@
     { "id": "e14", "source": "buttons_fuel", "target": "buttons_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e15", "source": "buttons_pickup", "target": "if_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e16", "source": "if_pickup", "target": "text_ask_address", "sourceHandle": "true", "targetHandle": "default", "label": "Yes" },
-    { "id": "e17", "source": "if_pickup", "target": "buttons_time", "sourceHandle": "false", "targetHandle": "default", "label": "No" },
+    { "id": "e17", "source": "if_pickup", "target": "list_date", "sourceHandle": "false", "targetHandle": "default", "label": "No" },
     { "id": "e18", "source": "text_ask_address", "target": "wait_address", "sourceHandle": "default", "targetHandle": "default", "label": "" },
-    { "id": "e19", "source": "wait_address", "target": "buttons_time", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e19", "source": "wait_address", "target": "list_date", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e19b", "source": "list_date", "target": "buttons_time", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e20", "source": "buttons_time", "target": "text_confirm", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e21", "source": "text_confirm", "target": "action_save_lead", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e22", "source": "action_save_lead", "target": "action_end", "sourceHandle": "default", "targetHandle": "default", "label": "" }
@@ -369,6 +396,7 @@
     { "key": "fuel_type", "label": "Fuel Type", "defaultValue": "", "source": "custom" },
     { "key": "pickup_choice", "label": "Pickup Choice", "defaultValue": "", "source": "custom" },
     { "key": "address", "label": "Address", "defaultValue": "", "source": "custom" },
+    { "key": "preferred_date", "label": "Preferred Date", "defaultValue": "", "source": "custom" },
     { "key": "preferred_time", "label": "Preferred Time", "defaultValue": "", "source": "custom" },
     { "key": "last_reply", "label": "Last Reply", "defaultValue": "", "source": "reply" }
   ]
