@@ -85,6 +85,7 @@ function ChatInboxContent() {
           onLost={() => inbox.updateLeadStatus('lost')}
           onProfile={() => setProfileOpen(true)}
           onIntervene={inbox.intervene}
+          onReleaseIntervene={inbox.releaseIntervene}
           onUpdateConversation={inbox.updateConversation}
           onClaim={inbox.claimConversation}
           onAction={inbox.conversationAction}

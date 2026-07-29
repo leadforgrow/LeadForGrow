@@ -37,16 +37,37 @@ export default function LiveDialer({ callData, onHangup }) {
         return () => clearInterval(timer);
     }, [status]);
 
+    // When the in-app voice dialer can't run (no Vapi key, no mic, init error),
+    // fall back to the device dialpad so the user can still place the call.
+    const fallbackToDialpad = (reason) => {
+        const number = callData.leadPhone
+            || callData.config?.recipientPhoneNumber
+            || callData.recipientPhone;
+        const tel = String(number || '').replace(/[^\d+]/g, '');
+        if (tel) {
+            toast(`Opening dialpad to call ${number}`, { icon: '📞' });
+            window.location.href = `tel:${tel}`;
+        } else {
+            toast.error(reason || 'No phone number to call');
+        }
+        onHangup();
+    };
+
     const initVapi = async () => {
         try {
+            // No AI voice key configured → just open the phone dialpad.
+            if (!callData.apiKey) {
+                fallbackToDialpad();
+                return;
+            }
+
             // Check for microphone support
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Microphone access is not supported in this browser.');
+                fallbackToDialpad('Microphone not supported — opening dialpad');
+                return;
             }
 
             const Vapi = (await import('@vapi-ai/web')).default;
-            if (!callData.apiKey) throw new Error('Vapi Public Key is missing.');
-
             vapiClient.current = new Vapi(callData.apiKey);
 
             setStatus('connecting');
@@ -61,9 +82,8 @@ export default function LiveDialer({ callData, onHangup }) {
             setStatus('live');
         } catch (error) {
             console.error('[Global Dialer] Vapi Init Error:', error);
-            const msg = error.message || 'Failed to connect to Vapi service.';
-            toast.error(`Dialer Error: ${msg}`, { duration: 5000 });
-            onHangup();
+            // Any dialer failure → fall back to the device dialpad instead of erroring.
+            fallbackToDialpad('Voice dialer unavailable — opening dialpad');
         }
     };
 

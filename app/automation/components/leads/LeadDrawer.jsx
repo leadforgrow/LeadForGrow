@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowRightLeft,
   MapPin,
+  Share2,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
@@ -24,6 +25,7 @@ import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOp
 import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
 import ConvertLeadDialog from './ConvertLeadDialog';
+import ShareLeadModal from './ShareLeadModal';
 
 export default function LeadDrawer({
   leadId,
@@ -41,6 +43,7 @@ export default function LeadDrawer({
   const [note, setNote] = useState('');
   const [showConvert, setShowConvert] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [locationForm, setLocationForm] = useState({
     street: '',
     city: '',
@@ -190,6 +193,9 @@ export default function LeadDrawer({
                   <Link href={`/automation/chat?leadId=${leadId}`} className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
                     <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
                   </Link>
+                  <button type="button" onClick={() => setShowShare(true)} title="Share this lead on WhatsApp" className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <Share2 className="w-3.5 h-3.5" /> Share
+                  </button>
                 </div>
                 {lead.status !== 'converted' && (
                   <button
@@ -368,6 +374,10 @@ export default function LeadDrawer({
               </div>
             </>
           ) : null}
+
+          {lead && showShare && (
+            <ShareLeadModal lead={lead} onClose={() => setShowShare(false)} />
+          )}
 
           {lead && showConvert && (
             <ConvertLeadDialog

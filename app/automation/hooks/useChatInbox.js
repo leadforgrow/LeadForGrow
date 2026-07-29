@@ -285,29 +285,55 @@ export function useChatInbox() {
       if (!selectedChat?.leadId?._id) return;
       const leadId = selectedChat.leadId._id;
       try {
+        // Mark the conversation as human-handled. Do NOT auto-send any message
+        // to the customer — intervening should silently pause the AI/automation.
         await authFetch('/api/automation/chat/mark-read', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ leadId, status: 'intervened' })
         });
-        const intro = `Thanks for reaching out to ${businessName}. Our team has joined the chat.`;
-        await authFetch('/api/automation/chat/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ leadId, message: intro })
-        });
         setSelectedChat((prev) => ({ ...prev, status: 'intervened' }));
         setConversations((prev) =>
           prev.map((c) => (c.leadId?._id === leadId ? { ...c, status: 'intervened' } : c))
         );
-        await fetchMessages(selectedChat, false);
         if (showToast) toast.success('Chat taken over');
       } catch {
         toast.error('Intervene failed');
       }
     },
-    [selectedChat, businessName, fetchMessages]
+    [selectedChat]
   );
+
+  // Hand the conversation back to the AI agent: clears the 'intervened' state
+  // in both stores so the AI resumes auto-replying to new messages.
+  const releaseIntervene = useCallback(async () => {
+    if (!selectedChat) return;
+    const conversationId = selectedChat._id;
+    const leadId = selectedChat.leadId?._id || selectedChat.leadId;
+    try {
+      if (conversationId && !String(conversationId).startsWith('temp_')) {
+        await authFetch(`/api/automation/inbox/conversations/${conversationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markRead: true }),
+        });
+      }
+      if (leadId) {
+        await authFetch('/api/automation/chat/mark-read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leadId, status: 'read' }),
+        });
+      }
+      setSelectedChat((prev) => (prev ? { ...prev, status: 'read', inboxStatus: 'read' } : prev));
+      setConversations((prev) =>
+        prev.map((c) => (c._id === conversationId ? { ...c, status: 'read', inboxStatus: 'read' } : c))
+      );
+      toast.success('Handed back to AI — it will reply to new messages');
+    } catch {
+      toast.error('Failed to hand back to AI');
+    }
+  }, [selectedChat]);
 
   const loadOlderMessages = useCallback(async () => {
     if (!selectedChat || loadingMore || !hasMoreMessages) return;
@@ -626,6 +652,7 @@ export function useChatInbox() {
     selectChat,
     sendMessage,
     intervene,
+    releaseIntervene,
     assignChat,
     claimConversation,
     updateConversation,

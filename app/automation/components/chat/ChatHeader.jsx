@@ -8,7 +8,8 @@ import {
   Trophy,
   XCircle,
   Info,
-  Hand
+  Hand,
+  Bot
 } from 'lucide-react';
 import Link from 'next/link';
 import StatusBadge from '../leads/StatusBadge';
@@ -25,6 +26,7 @@ export default function ChatHeader({
   onLost,
   onProfile,
   onIntervene,
+  onReleaseIntervene,
   onUpdateConversation,
   onClaim,
   onAction,
@@ -41,10 +43,9 @@ export default function ChatHeader({
 
   const lead = chat.leadId || {};
   const assignee = chat.assignedTo || lead.assignedTo;
-  const canChat =
-    chat.channel !== 'whatsapp' ||
-    chat.status === 'intervened' ||
-    chat.inboxStatus === 'intervened';
+  const isIntervened =
+    chat.status === 'intervened' || chat.inboxStatus === 'intervened';
+  const canChat = chat.channel !== 'whatsapp' || isIntervened;
 
   return (
     <div className="h-14 flex-shrink-0 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-3 sm:px-4 gap-2">
@@ -69,13 +70,24 @@ export default function ChatHeader({
       </div>
 
       <div className="flex items-center gap-1 flex-shrink-0">
-        {!canChat && (
+        {chat.channel === 'whatsapp' && !isIntervened && (
           <button
             type="button"
             onClick={onIntervene}
+            title="Take over — pauses the AI agent"
             className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-violet-700 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900 rounded-lg hover:bg-violet-100"
           >
             <Hand className="w-3.5 h-3.5" /> Intervene
+          </button>
+        )}
+        {chat.channel === 'whatsapp' && isIntervened && (
+          <button
+            type="button"
+            onClick={onReleaseIntervene}
+            title="Hand back to AI — the AI agent resumes replying"
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-lg hover:bg-emerald-100"
+          >
+            <Bot className="w-3.5 h-3.5" /> Resume AI
           </button>
         )}
         <button type="button" onClick={onCall} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" title="Call">
