@@ -214,7 +214,13 @@ LeadSchema.index({ businessId: 1, assignedTo: 1, status: 1 });
 LeadSchema.index({ nextFollowUpAt: 1 });
 LeadSchema.index({ formId: 1 });
 LeadSchema.index({ adId: 1 });
-LeadSchema.index({ businessId: 1, metaLeadId: 1 }, { unique: true, sparse: true }); // Prevent duplicate Meta Leads
+// Prevent duplicate Meta Leads — partial index so multiple non-Meta leads
+// (metaLeadId null/absent, e.g. WhatsApp) don't collide. `sparse` is NOT enough
+// because it still indexes explicit null values.
+LeadSchema.index(
+  { businessId: 1, metaLeadId: 1 },
+  { unique: true, partialFilterExpression: { metaLeadId: { $type: 'string' } } }
+);
 
 // Agency-specific indexes (for agency users)
 LeadSchema.index({ agencyId: 1, clientId: 1 });
