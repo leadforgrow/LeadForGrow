@@ -32,33 +32,10 @@
       "type": "logic_wait_reply",
       "position": { "x": 560, "y": 60 },
       "data": {
-        "label": "Wait for First Reply",
+        "label": "Wait for Vehicle Type (template buttons)",
         "category": "logic",
-        "saveAs": "last_reply",
-        "timeoutMinutes": 1440
-      }
-    },
-    {
-      "id": "list_vehicle_type",
-      "type": "action_send_list",
-      "position": { "x": 820, "y": 60 },
-      "data": {
-        "label": "Choose Vehicle Type",
-        "category": "action",
-        "header": "🚗 Vehicle Type",
-        "body": "What type of vehicle do you own?",
-        "footer": "Pistons Garage",
-        "buttonText": "Select Vehicle Type",
         "saveAs": "vehicle_type",
-        "sections": [
-          {
-            "title": "Vehicle Categories",
-            "rows": [
-              { "id": "veh_four", "title": "Four Wheeler", "description": "Car, SUV, MUV, Sedan" },
-              { "id": "veh_two", "title": "Two Wheeler", "description": "Bike, Scooter, Motorcycle" }
-            ]
-          }
-        ]
+        "timeoutMinutes": 1440
       }
     },
     {
@@ -74,20 +51,113 @@
       }
     },
     {
-      "id": "text_two_wheeler",
-      "type": "action_send_text",
-      "position": { "x": 1080, "y": 260 },
+      "id": "list_service_2w",
+      "type": "action_send_list",
+      "position": { "x": 300, "y": 1500 },
       "data": {
-        "label": "Two Wheeler Info",
+        "label": "2W - Choose Service",
         "category": "action",
-        "text": "🏍️ Thanks! For two-wheeler service, our team will reach out to you shortly with available slots. You can also call us directly at Pistons Garage."
+        "header": "🏍️ Select Service",
+        "body": "Please select the service you need for your two-wheeler.",
+        "footer": "Pistons Garage",
+        "buttonText": "View Services",
+        "saveAs": "service",
+        "sections": [
+          {
+            "title": "Regular Services",
+            "rows": [
+              { "id": "svc2_general", "title": "General Service", "description": "Full check + oil change" },
+              { "id": "svc2_oil", "title": "Oil Change", "description": "Engine oil replacement" },
+              { "id": "svc2_battery", "title": "Battery", "description": "Battery replacement & checkup" }
+            ]
+          },
+          {
+            "title": "Repairs & Parts",
+            "rows": [
+              { "id": "svc2_tyre", "title": "Tyre Replacement", "description": "Front / rear tyre" },
+              { "id": "svc2_brake", "title": "Brake Service", "description": "Brake pads & adjustment" },
+              { "id": "svc2_chain", "title": "Chain & Sprocket", "description": "Clean, lube or replace" }
+            ]
+          },
+          {
+            "title": "Emergency",
+            "rows": [
+              { "id": "svc2_puncture", "title": "Puncture / Roadside", "description": "On-spot assistance" }
+            ]
+          }
+        ]
       }
     },
     {
-      "id": "end_two_wheeler",
-      "type": "action_end",
-      "position": { "x": 1340, "y": 260 },
-      "data": { "label": "End (Two Wheeler)", "category": "action", "markConverted": false }
+      "id": "list_brand_2w",
+      "type": "action_send_list",
+      "position": { "x": 560, "y": 1500 },
+      "data": {
+        "label": "2W - Choose Brand",
+        "category": "action",
+        "header": "🏍️ Vehicle Brand",
+        "body": "Please select your two-wheeler brand.",
+        "footer": "Pistons Garage",
+        "buttonText": "View Brands",
+        "saveAs": "brand",
+        "sections": [
+          {
+            "title": "Popular Brands",
+            "rows": [
+              { "id": "brand2_hero", "title": "Hero", "description": "Splendor, HF Deluxe, Passion" },
+              { "id": "brand2_honda", "title": "Honda", "description": "Activa, Shine, Unicorn" },
+              { "id": "brand2_bajaj", "title": "Bajaj", "description": "Pulsar, Platina, CT" },
+              { "id": "brand2_tvs", "title": "TVS", "description": "Apache, Jupiter, Raider" },
+              { "id": "brand2_royal", "title": "Royal Enfield", "description": "Classic, Bullet, Meteor" },
+              { "id": "brand2_yamaha", "title": "Yamaha", "description": "FZ, R15, Fascino" },
+              { "id": "brand2_suzuki", "title": "Suzuki", "description": "Access, Gixxer, Burgman" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "list_model_2w",
+      "type": "action_send_list",
+      "position": { "x": 820, "y": 1500 },
+      "data": {
+        "label": "2W - Vehicle Type",
+        "category": "action",
+        "header": "🏍️ Vehicle Type",
+        "body": "What type of two-wheeler is it?",
+        "footer": "Pistons Garage",
+        "buttonText": "Select Type",
+        "saveAs": "model",
+        "sections": [
+          {
+            "title": "Vehicle Type",
+            "rows": [
+              { "id": "mdl2_commuter", "title": "Commuter Bike", "description": "100-125cc" },
+              { "id": "mdl2_scooter", "title": "Scooter / Scooty", "description": "Automatic" },
+              { "id": "mdl2_sports", "title": "Sports Bike", "description": "150cc+" },
+              { "id": "mdl2_cruiser", "title": "Cruiser", "description": "Royal Enfield / 350cc+" },
+              { "id": "mdl2_electric", "title": "Electric Scooter", "description": "EV" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "buttons_fuel_2w",
+      "type": "action_send_buttons",
+      "position": { "x": 1080, "y": 1500 },
+      "data": {
+        "label": "2W - Fuel Type",
+        "category": "action",
+        "header": "⛽ Fuel Type",
+        "body": "What's your two-wheeler's fuel type?",
+        "footer": "Pistons Garage",
+        "saveAs": "fuel_type",
+        "buttons": [
+          { "id": "fuel2_petrol", "title": "Petrol" },
+          { "id": "fuel2_electric", "title": "Electric" }
+        ]
+      }
     },
     {
       "id": "list_service",
@@ -272,7 +342,7 @@
       "data": {
         "label": "Ask for Address",
         "category": "action",
-        "text": "📍 Please share your pickup address or send your live location."
+        "text": "📍 Please type your full pickup address:\n\nHouse/Flat No. & Building\nArea / Landmark\nCity & Pincode"
       }
     },
     {
@@ -363,11 +433,13 @@
   "edges": [
     { "id": "e1", "source": "trigger_incoming", "target": "action_welcome", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e2", "source": "action_welcome", "target": "wait_initial", "sourceHandle": "default", "targetHandle": "default", "label": "" },
-    { "id": "e3", "source": "wait_initial", "target": "list_vehicle_type", "sourceHandle": "default", "targetHandle": "default", "label": "" },
-    { "id": "e4", "source": "list_vehicle_type", "target": "if_vehicle", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e3", "source": "wait_initial", "target": "if_vehicle", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e5", "source": "if_vehicle", "target": "list_service", "sourceHandle": "true", "targetHandle": "default", "label": "Four Wheeler" },
-    { "id": "e6", "source": "if_vehicle", "target": "text_two_wheeler", "sourceHandle": "false", "targetHandle": "default", "label": "Other" },
-    { "id": "e7", "source": "text_two_wheeler", "target": "end_two_wheeler", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e6", "source": "if_vehicle", "target": "list_service_2w", "sourceHandle": "false", "targetHandle": "default", "label": "Two Wheeler" },
+    { "id": "e7", "source": "list_service_2w", "target": "list_brand_2w", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e7b", "source": "list_brand_2w", "target": "list_model_2w", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e7c", "source": "list_model_2w", "target": "buttons_fuel_2w", "sourceHandle": "default", "targetHandle": "default", "label": "" },
+    { "id": "e7d", "source": "buttons_fuel_2w", "target": "buttons_pickup", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e8", "source": "list_service", "target": "list_brand", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e9", "source": "list_brand", "target": "if_brand_maruti", "sourceHandle": "default", "targetHandle": "default", "label": "" },
     { "id": "e10", "source": "if_brand_maruti", "target": "list_model_maruti", "sourceHandle": "true", "targetHandle": "default", "label": "Maruti" },
