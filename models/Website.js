@@ -67,15 +67,10 @@ const WebsiteSchema = new mongoose.Schema({
     default: {}
   },
   slug: {
-    type: String,
-    unique: true,
-    sparse: true,
-    index: true
+    type: String
   },
   customDomain: {
-    type: String,
-    unique: true,
-    sparse: true
+    type: String
   },
   sections: [{
     id: String,
@@ -111,5 +106,8 @@ const WebsiteSchema = new mongoose.Schema({
 
 WebsiteSchema.index({ owner: 1, createdAt: -1 });
 WebsiteSchema.index({ businessId: 1 });
+// Partial (not sparse) so many sites with null slug/customDomain don't collide.
+WebsiteSchema.index({ slug: 1 }, { unique: true, partialFilterExpression: { slug: { $type: 'string' } } });
+WebsiteSchema.index({ customDomain: 1 }, { unique: true, partialFilterExpression: { customDomain: { $type: 'string' } } });
 
 export default mongoose.models.Website || mongoose.model('Website', WebsiteSchema);

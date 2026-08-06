@@ -7,7 +7,7 @@ import FollowupChip from './FollowupChip';
 import LeadScoreBadge from './LeadScoreBadge';
 import LeadActionsMenu from './LeadActionsMenu';
 import LeadColorPicker from './LeadColorPicker';
-import { assigneeName, formatRelative, formatSource, formatDate, getLeadTags, getLeadRowBackgroundStyle, getStatusRowColor, statusLabel } from './utils';
+import { assigneeName, formatRelative, formatSource, formatDate, getLeadRowBackgroundStyle, getStatusRowColor, statusLabel } from './utils';
 import { TABLE_COL_LINE, TABLE_ROW_LINE } from './constants';
 
 function LeadRow({
@@ -22,7 +22,7 @@ function LeadRow({
   onCall,
   onRowColorChange
 }) {
-  const tags = getLeadTags(lead);
+  const message = lead.lastMessagePreview || lead.message || '';
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const paletteRef = useRef(null);
   const rowBg = getLeadRowBackgroundStyle(lead);
@@ -98,19 +98,20 @@ function LeadRow({
         </div>
       </td>
 
-      <td className={`py-3 px-3 text-center ${TABLE_COL_LINE}`}>
-        <div className="flex flex-wrap justify-center gap-1 max-w-[140px] mx-auto">
-          {tags.length ? tags.map((t) => (
-            <span
-              key={t}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#F2F4F7] text-[#475467] dark:bg-slate-800 dark:text-slate-400 truncate max-w-full border border-[#EAECF0]"
-            >
-              {t}
-            </span>
-          )) : (
-            <span className="text-[12px] text-[#98A2B3]">—</span>
-          )}
-        </div>
+      <td className={`py-3 px-3 text-left ${TABLE_COL_LINE}`}>
+        {message ? (
+          <span
+            className="inline-flex items-center gap-1 text-[12px] text-[#475467] dark:text-slate-400 truncate max-w-[240px]"
+            title={message}
+          >
+            {lead.lastMessageDirection === 'incoming' && (
+              <MessageSquare className="w-3 h-3 text-emerald-500 shrink-0" />
+            )}
+            <span className="truncate">{message}</span>
+          </span>
+        ) : (
+          <span className="text-[12px] text-[#98A2B3]">—</span>
+        )}
       </td>
 
       <td className={`py-3 px-3 text-center ${TABLE_COL_LINE}`}>

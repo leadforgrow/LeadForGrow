@@ -175,6 +175,24 @@ export const GET = withTenantAuth(async (request) => {
         return l;
       });
       enrichedLeads = await enrichLeadsWithNextFollowUp(enrichedLeads, business._id);
+
+      // Attach each lead's most recent conversation message for the Message column.
+      const Conversation = (await import('@/models/omnichannel/Conversation')).default;
+      const convs = await Conversation.find({ businessId: business._id, leadId: { $in: leadIds } })
+        .select('leadId lastMessagePreview lastMessageAt lastMessageDirection')
+        .sort({ lastMessageAt: -1 })
+        .lean();
+      const msgByLead = {};
+      for (const c of convs) {
+        const k = String(c.leadId);
+        if (!msgByLead[k] && c.lastMessagePreview) msgByLead[k] = c;
+      }
+      enrichedLeads = enrichedLeads.map((l) => {
+        const c = msgByLead[String(l._id)];
+        return c
+          ? { ...l, lastMessagePreview: c.lastMessagePreview, lastMessageDirection: c.lastMessageDirection, lastMessageAt: c.lastMessageAt }
+          : l;
+      });
     }
 
     return NextResponse.json({

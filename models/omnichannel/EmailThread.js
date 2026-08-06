@@ -19,6 +19,6 @@ const EmailThreadSchema = new mongoose.Schema(
 );
 
 EmailThreadSchema.plugin(baseSchemaPlugin);
-EmailThreadSchema.index({ businessId: 1, externalThreadId: 1 }, { unique: true, sparse: true });
+EmailThreadSchema.index({ businessId: 1, externalThreadId: 1 }, { unique: true, partialFilterExpression: { externalThreadId: { $type: 'string' } } });
 
 export default mongoose.models.EmailThread || mongoose.model('EmailThread', EmailThreadSchema);

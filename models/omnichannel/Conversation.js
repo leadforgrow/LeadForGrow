@@ -60,7 +60,7 @@ ConversationSchema.plugin(baseSchemaPlugin);
 
 ConversationSchema.index({ businessId: 1, channel: 1, lastMessageAt: -1 });
 ConversationSchema.index({ businessId: 1, inboxStatus: 1, lastMessageAt: -1 });
-ConversationSchema.index({ businessId: 1, participantId: 1, channel: 1 }, { unique: true, sparse: true });
+ConversationSchema.index({ businessId: 1, participantId: 1, channel: 1 }, { unique: true, partialFilterExpression: { participantId: { $type: 'string' } } });
 ConversationSchema.index({ businessId: 1, isPinned: -1, lastMessageAt: -1 });
 
 export default mongoose.models.Conversation || mongoose.model('Conversation', ConversationSchema);

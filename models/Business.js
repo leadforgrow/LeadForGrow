@@ -360,15 +360,13 @@ const BusinessSchema = new mongoose.Schema({
   },
 
   // API & Webhook Security
+  // NOTE: uniqueness enforced via partial indexes at the bottom of this file,
+  // not `sparse` (sparse still indexes explicit null → duplicate-key crashes).
   apiKey: {
-    type: String,
-    unique: true,
-    sparse: true
+    type: String
   },
   webhookSecret: {
-    type: String,
-    unique: true,
-    sparse: true
+    type: String
   },
 
   // Onboarding Status
@@ -417,6 +415,9 @@ BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
 BusinessSchema.index({ 'integrationCredentials.whatsapp.phoneNumberId': 1 }, { sparse: true });
 BusinessSchema.index({ 'integrationCredentials.facebookAds.pageId': 1 }, { sparse: true });
+// Partial (not sparse) so many businesses with null apiKey/webhookSecret don't collide.
+BusinessSchema.index({ apiKey: 1 }, { unique: true, partialFilterExpression: { apiKey: { $type: 'string' } } });
+BusinessSchema.index({ webhookSecret: 1 }, { unique: true, partialFilterExpression: { webhookSecret: { $type: 'string' } } });
 
 // Methods
 BusinessSchema.methods.generateApiKey = function () {

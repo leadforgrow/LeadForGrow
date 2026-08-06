@@ -207,7 +207,12 @@ LeadSchema.plugin(baseSchemaPlugin);
 
 // Indexes for performance and deduplication
 LeadSchema.index({ businessId: 1, phone: 1 }); 
-LeadSchema.index({ businessId: 1, whatsappId: 1 }, { unique: true, sparse: true }); // HARDENED: Unique index to prevent duplicates
+// Unique per business — partial so leads without a WhatsApp id (null/absent,
+// e.g. manually-added leads) don't collide. `sparse` still indexes explicit null.
+LeadSchema.index(
+  { businessId: 1, whatsappId: 1 },
+  { unique: true, partialFilterExpression: { whatsappId: { $type: 'string' } } }
+);
 LeadSchema.index({ businessId: 1, status: 1 });
 LeadSchema.index({ businessId: 1, receivedAt: -1 });
 LeadSchema.index({ businessId: 1, assignedTo: 1, status: 1 });

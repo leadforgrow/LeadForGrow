@@ -25,7 +25,7 @@ import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOp
 import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
 import ConvertLeadDialog from './ConvertLeadDialog';
-import ShareLeadModal from './ShareLeadModal';
+import ShareLeadModal, { resolveLeadLocation } from './ShareLeadModal';
 
 export default function LeadDrawer({
   leadId,
@@ -52,10 +52,28 @@ export default function LeadDrawer({
     country: '',
   });
   const [savingLocation, setSavingLocation] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   useEffect(() => {
     setShowConvert(false);
   }, [leadId]);
+
+  useEffect(() => {
+    if (!leadId) return;
+    setMessagesLoading(true);
+    authFetch(`/api/automation/inbox/messages?leadId=${leadId}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setMessages(d.data || []); })
+      .catch(() => {})
+      .finally(() => setMessagesLoading(false));
+  }, [leadId]);
+
+  const lastMessage =
+    [...messages].reverse().find((m) => m.direction === 'incoming')?.content?.body ||
+    messages[messages.length - 1]?.content?.body ||
+    lead?.message ||
+    '';
 
   useEffect(() => {
     if (!leadId) return;
@@ -214,7 +232,7 @@ export default function LeadDrawer({
               </div>
 
               <div className="flex border-b border-slate-100 dark:border-slate-800 px-2">
-                {['overview', 'activity', 'notes'].map((t) => (
+                {['overview', 'messages', 'activity', 'notes'].map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -277,6 +295,11 @@ export default function LeadDrawer({
                       <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Location
                       </p>
+                      {resolveLeadLocation(lead) && (
+                        <p className="text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md px-2.5 py-2 break-words">
+                          {resolveLeadLocation(lead)}
+                        </p>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <input
                           type="text"
@@ -342,6 +365,38 @@ export default function LeadDrawer({
                   </>
                 )}
 
+                {tab === 'messages' && (
+                  <div className="space-y-2">
+                    {messagesLoading ? (
+                      <div className="flex justify-center py-6">
+                        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : messages.length ? (
+                      messages.map((m, i) => {
+                        const outgoing = m.direction === 'outgoing';
+                        const body = m.content?.body || m.content?.caption || `[${m.type || 'media'}]`;
+                        const time = m.timestamp
+                          ? new Date(m.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                          : '';
+                        return (
+                          <div key={m._id || i} className={`flex ${outgoing ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[82%] px-3 py-2 rounded-lg text-sm shadow-sm ${
+                              outgoing
+                                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-slate-800 dark:text-slate-100 rounded-tr-none'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
+                            }`}>
+                              <p className="whitespace-pre-wrap break-words leading-snug">{body}</p>
+                              <p className="text-[10px] text-slate-400 mt-1 text-right">{time}</p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-slate-500 text-center py-8">No messages yet with this lead.</p>
+                    )}
+                  </div>
+                )}
+
                 {tab === 'activity' && (
                   <LeadActivityTab activities={activities} expandWorkflows />
                 )}
@@ -376,7 +431,7 @@ export default function LeadDrawer({
           ) : null}
 
           {lead && showShare && (
-            <ShareLeadModal lead={lead} onClose={() => setShowShare(false)} />
+            <ShareLeadModal lead={lead} shareMessage={lastMessage} onClose={() => setShowShare(false)} />
           )}
 
           {lead && showConvert && (

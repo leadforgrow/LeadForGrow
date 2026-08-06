@@ -70,7 +70,7 @@ export const TABLE_COLUMNS = [
   { key: 'lastActivity', label: 'Last Activity', sortable: true, minWidth: 120, align: 'center' },
   { key: 'nextFollowUp', label: 'Follow-up', sortable: true, minWidth: 130, align: 'center' },
   { key: 'score', label: 'Score', sortable: true, minWidth: 80, align: 'center' },
-  { key: 'tags', label: 'Tags', sortable: false, minWidth: 120, align: 'center' },
+  { key: 'message', label: 'Message', sortable: false, minWidth: 180, align: 'left' },
   { key: 'receivedAt', label: 'Created', sortable: true, minWidth: 100, align: 'center' },
 ];
 

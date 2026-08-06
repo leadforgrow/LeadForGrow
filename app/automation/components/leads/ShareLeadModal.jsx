@@ -5,24 +5,38 @@ import { X, Plus, Trash2, Send, UserPlus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 
-function buildShareText(lead) {
+export function resolveLeadLocation(lead) {
+  const loc = lead?.location;
+  if (loc && (loc.street || loc.city || loc.state || loc.country || loc.postalCode)) {
+    return [loc.street, loc.city, loc.state, loc.country, loc.postalCode].filter(Boolean).join(', ');
+  }
+  // Form leads store the address inside metadata.formFields.address_*
+  const ff = lead?.metadata?.formFields;
+  if (ff && typeof ff === 'object') {
+    const key = Object.keys(ff).find((k) => /address|location/i.test(k));
+    if (key && ff[key]) return String(ff[key]);
+  }
+  return '';
+}
+
+function buildShareText(lead, shareMessage) {
+  const location = resolveLeadLocation(lead);
+  const msg = shareMessage || lead?.lastMessagePreview || lead?.message;
+  // Order: name → number → email → location → message
   const lines = [
     '📋 *Lead Details*',
     '',
     `👤 Name: ${lead?.name || '—'}`,
-    `📞 Phone: ${lead?.phone || lead?.whatsappId || '—'}`,
+    `📞 Number: ${lead?.phone || lead?.whatsappId || '—'}`,
   ];
   if (lead?.email) lines.push(`✉️ Email: ${lead.email}`);
+  if (location) lines.push(`📍 Location: ${location}`);
+  if (msg) lines.push(`💬 Message: ${msg}`);
   if (lead?.serviceInterest) lines.push(`🔧 Interest: ${lead.serviceInterest}`);
-  if (lead?.status) lines.push(`📊 Status: ${lead.status}`);
-  const loc = lead?.location;
-  if (loc && (loc.city || loc.street)) {
-    lines.push(`📍 Location: ${[loc.street, loc.city, loc.state].filter(Boolean).join(', ')}`);
-  }
   return lines.join('\n');
 }
 
-export default function ShareLeadModal({ lead, onClose }) {
+export default function ShareLeadModal({ lead, shareMessage, onClose }) {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -89,7 +103,7 @@ export default function ShareLeadModal({ lead, onClose }) {
 
   const shareTo = (contact) => {
     const number = String(contact.whatsapp).replace(/[^\d]/g, '');
-    const text = encodeURIComponent(buildShareText(lead));
+    const text = encodeURIComponent(buildShareText(lead, shareMessage));
     window.open(`https://wa.me/${number}?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
