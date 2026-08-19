@@ -11,6 +11,7 @@ import {
   GitBranch,
   Mail,
   Bot,
+  FileText,
   FileInput,
   PhoneCall,
   CalendarClock,
@@ -71,7 +72,8 @@ export const NAV_GROUPS = [
         icon: CalendarClock,
         matchPrefix: '/automation/meetings'
       },
-      { id: 'templates', name: 'Email Templates', href: '/automation/templates', icon: Mail },
+      { id: 'templates', name: 'Templates', href: '/automation/templates', icon: FileText },
+      { id: 'whatsapp-templates', name: 'WhatsApp Templates', href: '/automation/whatsapp-templates', icon: MessagesSquare, matchPrefix: '/automation/whatsapp-templates' },
       { id: 'chatbot', name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
       { id: 'forms', name: 'Forms', href: '/automation/forms', icon: FileInput, role: 'owner' },
       { id: 'call-recovery', name: 'Call Recovery', href: '/automation/call-integration', icon: PhoneCall }

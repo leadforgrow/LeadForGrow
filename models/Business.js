@@ -213,6 +213,9 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     interaktApiKey: { type: String },
     phoneNumberId: { type: String },
     businessAccountId: { type: String },
+    // Meta App ID that owns this WABA. Required for the Resumable Upload API
+    // used when submitting media (image/video/document) headers for template review.
+    appId: { type: String },
     appSecret: { type: String },
     verifyToken: { type: String },
     lastVerified: { type: Date }
@@ -414,6 +417,12 @@ BusinessSchema.index({ ownerId: 1 });
 BusinessSchema.index({ status: 1 });
 BusinessSchema.index({ plan: 1 });
 BusinessSchema.index({ 'integrationCredentials.whatsapp.phoneNumberId': 1 }, { sparse: true });
+BusinessSchema.index(
+  { 'integrationCredentials.whatsapp.businessAccountId': 1 },
+  {
+    partialFilterExpression: { 'integrationCredentials.whatsapp.businessAccountId': { $type: 'string' } },
+  }
+);
 BusinessSchema.index({ 'integrationCredentials.facebookAds.pageId': 1 }, { sparse: true });
 // Partial (not sparse) so many businesses with null apiKey/webhookSecret don't collide.
 BusinessSchema.index({ apiKey: 1 }, { unique: true, partialFilterExpression: { apiKey: { $type: 'string' } } });

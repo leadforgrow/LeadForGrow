@@ -166,6 +166,22 @@ export async function POST(req) {
       return NextResponse.json({ status: 'success' }, { status: 200 });
     }
 
+    // WhatsApp template status updates (auto-sync APPROVED/REJECTED/etc.)
+    const hasTemplateStatusEvent = (payload.entry || []).some((e) =>
+      (e.changes || []).some(
+        (c) => c.field === 'message_template_status_update' || c.field === 'template_category_update'
+      )
+    );
+    if (hasTemplateStatusEvent) {
+      const { processTemplateStatusPayload } = await import('@/lib/whatsapp/templateStatusWebhook');
+      const templateResult = await processTemplateStatusPayload(payload);
+      await finalizeMetaWebhookIngress(ingressId, {
+        outcome: templateResult.updated > 0 ? 'success' : 'noop',
+        processing: { step: 'template_status_processed', result: templateResult },
+      });
+      return NextResponse.json({ status: 'success', ...templateResult }, { status: 200 });
+    }
+
     // WhatsApp messages
     const value = payload.entry?.[0]?.changes?.[0]?.value;
     if (value?.statuses) {

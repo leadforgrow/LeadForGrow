@@ -46,13 +46,29 @@ export const POST = withPlanAccess('automation', async (req) => {
     });
 
     if (body.sendNow || body.testSend) {
-      await sendBroadcast(broadcast._id);
+      // Wrap send separately so a Meta/DB error never leaks as HTML — the
+      // broadcast already exists, so we return it in a failed state instead.
+      try {
+        await sendBroadcast(broadcast._id);
+      } catch (sendErr) {
+        console.error('[Broadcast] send failed:', sendErr);
+        await Broadcast.updateOne(
+          { _id: broadcast._id },
+          { $set: { status: 'failed', 'analytics.failed': 1 } }
+        ).catch(() => {});
+        const updated = await Broadcast.findById(broadcast._id).lean();
+        return NextResponse.json(
+          { success: false, error: sendErr.message || 'Send failed', data: updated },
+          { status: 200 }, // 200 so frontend can read the body without .json() crashing on error pages
+        );
+      }
       const updated = await Broadcast.findById(broadcast._id).lean();
       return NextResponse.json({ success: true, data: updated }, { status: 201 });
     }
 
     return NextResponse.json({ success: true, data: broadcast }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('[Broadcast POST] failed:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Server error' }, { status: 500 });
   }
 });
