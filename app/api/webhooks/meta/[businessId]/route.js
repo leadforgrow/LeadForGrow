@@ -238,6 +238,28 @@ export async function POST(request, { params }) {
 
         logStep(6, 'No leadgen change found — checking WhatsApp');
 
+        // Template approval / rejection updates
+        const hasTemplateStatusEvent = (payload.entry || []).some((e) =>
+          (e.changes || []).some(
+            (c) => c.field === 'message_template_status_update' || c.field === 'template_category_update'
+          )
+        );
+        if (hasTemplateStatusEvent) {
+          const { processTemplateStatusPayload } = await import('@/lib/whatsapp/templateStatusWebhook');
+          const templateResult = await processTemplateStatusPayload(payload);
+          logStep(14, 'Template status processing result', templateResult);
+          await finalizeMetaWebhookIngress(ingressId, {
+            outcome: templateResult.updated > 0 ? 'success' : 'noop',
+            processing: { step: 'template_status_processed', result: templateResult },
+          });
+          return respond200({
+            success: true,
+            channel: 'whatsapp',
+            status: 'template_status_processed',
+            ...templateResult,
+          }, '15-template-status');
+        }
+
         // Delivery / read / failed status updates (field=messages, value.statuses)
         const statusValue = (payload.entry || [])
           .flatMap((entry) => entry.changes || [])

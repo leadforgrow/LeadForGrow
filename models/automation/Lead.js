@@ -172,6 +172,21 @@ const LeadSchema = new mongoose.Schema({
     default: false
   },
   archivedAt: Date,
+
+  // Opt-out compliance (Meta WhatsApp policy)
+  // When true, this lead has asked to stop receiving WhatsApp broadcasts.
+  // buildAudience must exclude these leads, and inbound STOP replies auto-set this.
+  optedOutOfWhatsApp: { type: Boolean, default: false, index: true },
+  optedOutAt: Date,
+  optedOutReason: String,
+  optedOutSource: { type: String, enum: ['auto_stop_reply', 'manual', 'imported'] },
+
+  // Email opt-out — set when the recipient clicks the unsubscribe link in
+  // a broadcast email. Regulatory (CAN-SPAM / GDPR) requires honoring this.
+  optedOutOfEmail: { type: Boolean, default: false, index: true },
+  optedOutOfEmailAt: Date,
+  optedOutOfEmailReason: String,
+  optedOutOfEmailSource: { type: String, enum: ['unsubscribe_link', 'manual', 'imported', 'bounce'] },
   metadata: {
     type: Map,
     of: mongoose.Schema.Types.Mixed

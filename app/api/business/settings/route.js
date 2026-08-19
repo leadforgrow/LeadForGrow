@@ -130,9 +130,12 @@ export const PUT = withPlanAccess('revenue-config', async (req) => {
 
     await business.save();
 
+    const safe = business.toObject();
+    safe.integrationCredentials = redactCredentials(business.integrationCredentials);
+
     return NextResponse.json({
       success: true,
-      data: business,
+      data: safe,
       message: 'Settings updated successfully'
     });
   } catch (error) {

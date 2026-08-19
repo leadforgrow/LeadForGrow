@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bold, Italic, Eye, Send, MessageCircle, ChevronDown } from 'lucide-react';
+import { authFetch } from '@/lib/apiClient';
 import { TEMPLATE_VARIABLES, applyPreviewVars } from './constants';
 
 function VariableChips({ onInsert }) {
@@ -41,6 +42,21 @@ export default function TemplateEditor({
   onUploadMedia
 }) {
   const [showPreview, setShowPreview] = useState(false);
+  const [approvedTemplates, setApprovedTemplates] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch('/api/automation/whatsapp-templates?status=APPROVED');
+        const data = await res.json();
+        if (!cancelled && data.success) setApprovedTemplates(data.data);
+      } catch {
+        /* ignore — dropdown falls back to legacy templateRules */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const insertVar = (text, field) => {
     onChange({ ...form, [field]: (form[field] || '') + text });
@@ -132,20 +148,41 @@ export default function TemplateEditor({
                 value={form.whatsappTemplateName}
                 onChange={(e) => {
                   const selectedName = e.target.value;
-                  const selected = templateRules.find((t) => t.name === selectedName);
+                  const approved = approvedTemplates.find((t) => t.name === selectedName);
+                  const legacy = !approved && templateRules.find((t) => t.name === selectedName);
+                  const bodyText =
+                    approved?.components?.find((c) => c.type === 'BODY')?.text
+                    || legacy?.config?.whatsappTemplate
+                    || form.whatsappTemplate;
                   onChange({
                     ...form,
                     whatsappTemplateName: selectedName,
-                    whatsappTemplate: selected?.config?.whatsappTemplate || form.whatsappTemplate
+                    whatsappTemplate: bodyText,
                   });
                 }}
                 className="w-full px-3 py-2 pr-8 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 <option value="">Custom text message</option>
-                {templateRules.map((t) => (
-                  <option key={t._id} value={t.name}>{t.name}</option>
-                ))}
+                {approvedTemplates.length > 0 && (
+                  <optgroup label="Meta approved">
+                    {approvedTemplates.map((t) => (
+                      <option key={t._id} value={t.name}>{t.name} · {t.language}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {templateRules.length > 0 && (
+                  <optgroup label="Legacy templates">
+                    {templateRules.map((t) => (
+                      <option key={t._id} value={t.name}>{t.name}</option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
+              {approvedTemplates.length === 0 && (
+                <p className="text-[10px] text-slate-500 mt-1">
+                  No approved templates yet — <a href="/automation/whatsapp-templates" className="underline">build & submit one</a>.
+                </p>
+              )}
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           </div>
