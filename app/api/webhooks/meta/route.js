@@ -91,15 +91,22 @@ export async function POST(req) {
         }
       }
 
-      if (business && signature) {
+      if (business) {
         const candidates = await collectMetaAppSecretCandidates(metaCreds, business);
-        const signatureResult = verifyMetaWebhookSignature(rawBody, signature, candidates);
+        const signatureResult = signature
+          ? verifyMetaWebhookSignature(rawBody, signature, candidates)
+          : { valid: false, received: null, expected: null, candidates: candidates?.length ?? 0 };
         metaLog('Webhook Generic', 'Leadgen signature verification', signatureResult);
 
-        if (signatureResult.valid === false) {
+        if (signatureResult.valid !== true) {
+          const reason = !signature
+            ? 'Missing signature'
+            : signatureResult.reason === 'no_app_secret_candidates'
+              ? 'No app secret configured for this business'
+              : 'Invalid signature';
           await finalizeMetaWebhookIngress(ingressId, {
             outcome: 'rejected',
-            processing: { step: 'signature_invalid', error: 'Invalid signature', result: signatureResult },
+            processing: { step: 'signature_invalid', error: reason, result: signatureResult },
             signature: {
               received: signatureResult.received,
               expected: signatureResult.expected,
@@ -108,7 +115,7 @@ export async function POST(req) {
             }
           });
           return NextResponse.json(
-            { success: false, error: 'Invalid signature', step: 'signature', signatureResult },
+            { success: false, error: reason, step: 'signature', signatureResult },
             { status: 200 }
           );
         }

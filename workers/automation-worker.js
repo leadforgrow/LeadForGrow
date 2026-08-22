@@ -54,3 +54,16 @@ setInterval(async () => {
     /* engine may fail if Mongo not ready — ignore */
   }
 }, 60_000);
+
+// Dispatch due autoSend follow-up tasks (email/WhatsApp) — this is what actually
+// sends delayed automated follow-ups. Without this interval, tasks created with
+// autoSend:true would sit pending forever on any deployment with no external cron.
+setInterval(async () => {
+  try {
+    const { processDueTasks } = await import('../lib/automation/processDueTasks.js');
+    const { processed } = await processDueTasks();
+    if (processed > 0) console.log(`[Worker] Processed ${processed} due follow-up task(s)`);
+  } catch (err) {
+    /* engine may fail if Mongo not ready — ignore */
+  }
+}, 60_000);

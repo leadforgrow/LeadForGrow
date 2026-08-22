@@ -555,7 +555,9 @@ export default function BroadcastsPage() {
         <div className="space-y-3">
           {broadcasts.map((b) => {
             const a = b.analytics || {};
-            const reached = (a.delivered || 0) + (a.read || 0);
+            // 'read' is a subset of 'delivered' (every read message was already counted as
+            // delivered), so take the furthest-reached stage rather than summing them.
+            const reached = Math.max(a.delivered || 0, a.read || 0);
             const total = a.total || 0;
             const successRate = total > 0 ? Math.round((reached / total) * 100) : null;
             return (

@@ -241,10 +241,32 @@ export default function Chatbot({
     } else if (step === messageStep) {
       const current = leadRef.current;
       const finalLead = { ...current, supportMessage: userText, businessId };
-      botResponse = cfg?.messages?.thankYou || DEFAULT_CHATBOT_CONFIG.messages.thankYou;
       nextStep = messageStep + 1;
       setSubmitted(true);
       setLeadData((prev) => ({ ...prev, supportMessage: userText }));
+
+      if (flow.aiEnabled && !isPreview) {
+        try {
+          const aiRes = await fetch('/api/public/chatbot/reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessId,
+              message: userText,
+              history: messages.slice(-10),
+            }),
+          });
+          const aiData = await aiRes.json();
+          botResponse = aiData.success && aiData.reply
+            ? aiData.reply
+            : (cfg?.messages?.thankYou || DEFAULT_CHATBOT_CONFIG.messages.thankYou);
+        } catch (err) {
+          console.error('[Chatbot] AI reply failed:', err);
+          botResponse = cfg?.messages?.thankYou || DEFAULT_CHATBOT_CONFIG.messages.thankYou;
+        }
+      } else {
+        botResponse = cfg?.messages?.thankYou || DEFAULT_CHATBOT_CONFIG.messages.thankYou;
+      }
 
       const transcript = [...messages, { type: 'user', text: userText }, { type: 'bot', text: botResponse }];
 

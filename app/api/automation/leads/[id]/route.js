@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { Types } from 'mongoose';
 import Lead from '@/models/automation/Lead';
 import Activity from '@/models/automation/Activity';
 import Task from '@/models/automation/Task';
@@ -18,6 +19,9 @@ import { formatTimelineItems } from '@/lib/crm/timelinePresentation';
 export const GET = withPlanAccess('leads', async (req, { params }) => {
   try {
     const { id } = await params;
+    if (!Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ success: false, error: 'Invalid lead id' }, { status: 400 });
+    }
     const user = req.user;
     const businessId = user.businessId;
 
@@ -93,6 +97,9 @@ export const GET = withPlanAccess('leads', async (req, { params }) => {
 export const PUT = withPlanAccess('leads', async (req, { params }) => {
   try {
     const { id } = await params;
+    if (!Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ success: false, error: 'Invalid lead id' }, { status: 400 });
+    }
     const user = req.user;
     const businessId = user.businessId;
     const body = await req.json();
@@ -286,6 +293,9 @@ export const PUT = withPlanAccess('leads', async (req, { params }) => {
 export const DELETE = withPlanAccess('leads', async (req, { params }) => {
   try {
     const { id } = await params;
+    if (!Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ success: false, error: 'Invalid lead id' }, { status: 400 });
+    }
     const user = req.user;
     const businessId = user.businessId;
 

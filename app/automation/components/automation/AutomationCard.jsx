@@ -38,10 +38,17 @@ function AutomationCard({ rule, selected, onSelect, onToggle }) {
   const channel = rule.config?.channel;
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(rule)}
-      className={`w-full text-left p-3.5 rounded-xl border transition-all ${
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(rule);
+        }
+      }}
+      className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
         selected
           ? 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 shadow-sm'
           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm'
@@ -94,7 +101,7 @@ function AutomationCard({ rule, selected, onSelect, onToggle }) {
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
