@@ -22,9 +22,10 @@ export default function ReminderMonitor() {
                 const now = new Date();
                 const upcomingTasks = data.data.filter(task => {
                     const dueDate = new Date(task.dueDate);
-                    // Alert if due within next 5 mins or overdue by less than 24h
+                    // Alert if due within the next 5 mins, or any time in the past —
+                    // overdue follow-ups must never silently stop being surfaced.
                     const diffInMins = (dueDate - now) / (1000 * 60);
-                    return diffInMins <= 5 && diffInMins > -1440;
+                    return diffInMins <= 5;
                 });
 
                 // Filter out those already notified in this session to avoid spamming
@@ -89,9 +90,27 @@ export default function ReminderMonitor() {
 
     if (reminders.length === 0) return null;
 
+    // Cap simultaneous popups so a backlog of overdue follow-ups doesn't flood the
+    // screen — show the most urgent ones and summarize the rest instead of hiding them.
+    const MAX_VISIBLE = 3;
+    const sorted = [...reminders].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    const visible = sorted.slice(0, MAX_VISIBLE);
+    const overflowCount = sorted.length - visible.length;
+
     return (
         <div className="fixed top-20 right-6 z-[100] flex flex-col gap-4 max-w-sm w-full pointer-events-none">
-            {reminders.map((task) => (
+            {overflowCount > 0 && (
+                <div className="pointer-events-auto bg-indigo-600 text-white rounded-xl shadow-2xl p-4 flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold">+{overflowCount} more follow-up{overflowCount === 1 ? '' : 's'} need attention</span>
+                    <button
+                        onClick={() => router.push('/automation/tasks')}
+                        className="shrink-0 bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                    >
+                        View all
+                    </button>
+                </div>
+            )}
+            {visible.map((task) => (
                 <div
                     key={task._id}
                     className="pointer-events-auto bg-white border-l-4 border-indigo-600 rounded-xl shadow-2xl p-4 animate-in slide-in-from-right-10 duration-500 overflow-hidden"

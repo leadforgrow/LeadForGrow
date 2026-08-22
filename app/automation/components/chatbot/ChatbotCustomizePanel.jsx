@@ -121,6 +121,7 @@ export default function ChatbotCustomizePanel({ config, onChange }) {
             { key: 'collectEmail', label: 'Ask for email' },
             { key: 'collectPhone', label: 'Ask for phone' },
             { key: 'askSupportType', label: 'Ask sales vs support' },
+            { key: 'aiEnabled', label: 'Answer their final message with AI (using your Knowledge Base) instead of a canned "thank you"' },
           ].map(({ key, label }) => (
             <label key={key} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
               <input

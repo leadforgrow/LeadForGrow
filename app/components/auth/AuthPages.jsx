@@ -136,10 +136,15 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState('business');
   const [form, setForm] = useState({ companyName: '', email: '', password: '', confirmPassword: '' });
+
+  if (searchParams.get('mode') === 'login') {
+    return <LoginPage />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

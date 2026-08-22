@@ -49,7 +49,19 @@ export const GET = withTenantAuth(async (request) => {
       .sort({ dueDate: 1 })
       .lean();
 
-    return NextResponse.json({ success: true, data: tasks });
+    // A task whose lead was deleted (without going through a cascade-delete path,
+    // e.g. legacy/seed data) can never be actioned — auto-cancel it here so it
+    // stops permanently polluting overdue counts and follow-up reminders.
+    const orphaned = tasks.filter((t) => t.leadId == null);
+    const valid = tasks.filter((t) => t.leadId != null);
+    if (orphaned.length) {
+      await Task.updateMany(
+        { _id: { $in: orphaned.map((t) => t._id) } },
+        { $set: { status: 'cancelled', notes: 'Auto-cancelled: associated lead no longer exists' } }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: valid });
   } catch (error) {
     console.error('Error fetching tasks:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch tasks' }, { status: 500 });

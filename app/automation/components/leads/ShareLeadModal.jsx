@@ -13,7 +13,7 @@ export function resolveLeadLocation(lead) {
   // Form leads store the address inside metadata.formFields.address_*
   const ff = lead?.metadata?.formFields;
   if (ff && typeof ff === 'object') {
-    const key = Object.keys(ff).find((k) => /address|location/i.test(k));
+    const key = Object.keys(ff).find((k) => /address|location/i.test(k) && !/\bip\b|ip[-_]?address/i.test(k));
     if (key && ff[key]) return String(ff[key]);
   }
   return '';

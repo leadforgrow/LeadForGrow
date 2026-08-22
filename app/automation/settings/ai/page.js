@@ -134,10 +134,18 @@ export default function AiSettingsPage() {
         <Field label="Handoff keywords (comma separated)">
           <input
             type="text"
-            value={(settings?.handoffKeywords || ['human', 'agent', 'call me']).join(', ')}
+            value={(settings?.handoffKeywords || [
+              'human', 'agent', 'call me', 'speak to someone', 'talk to someone',
+              'refund', 'cancel', 'cancellation', 'complaint', 'complain',
+              'chargeback', 'lawyer', 'legal', 'sue', 'unhappy', 'angry', 'scam', 'fraud',
+            ]).join(', ')}
             onChange={(e) => update('handoffKeywords', e.target.value.split(',').map((k) => k.trim()).filter(Boolean))}
             className="w-full text-sm px-3 py-2 border rounded-lg bg-slate-50 dark:bg-slate-800"
           />
+          <p className="text-xs text-slate-500 mt-1">
+            Any message containing one of these words skips auto-reply and waits for a human —
+            covers both explicit requests for a person and topics too sensitive to answer unsupervised.
+          </p>
         </Field>
         <Field label={`Confidence threshold (${Math.round((settings?.confidenceThreshold ?? 0.6) * 100)}%)`}>
           <input
@@ -149,8 +157,14 @@ export default function AiSettingsPage() {
             onChange={(e) => update('confidenceThreshold', parseFloat(e.target.value))}
             className="w-full"
           />
+          <p className="text-xs text-slate-500 mt-1">
+            Below this confidence, the AI leaves the message for a human instead of auto-sending a guess.
+          </p>
         </Field>
         <Toggle label="AI only during working hours" checked={!!settings?.workingHoursOnly} onChange={(v) => update('workingHoursOnly', v)} />
+        <p className="text-xs text-slate-500 -mt-2 ml-1">
+          Outside your configured business hours, messages wait for a human instead of getting an auto-reply.
+        </p>
       </section>
 
       <div className="flex gap-3">

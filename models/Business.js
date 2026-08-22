@@ -141,6 +141,7 @@ const BusinessSettingsSchema = new mongoose.Schema({
       collectEmail: { type: Boolean, default: true },
       collectPhone: { type: Boolean, default: true },
       askSupportType: { type: Boolean, default: true },
+      aiEnabled: { type: Boolean, default: false },
       questions: {
         type: [String],
         default: [
