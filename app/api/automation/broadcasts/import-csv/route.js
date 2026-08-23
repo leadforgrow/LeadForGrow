@@ -172,7 +172,8 @@ export const POST = withPlanAccess('automation', async (req) => {
           name: r.name,
           phone: r.phone,
           email: r.email || undefined,
-          source: 'csv_import',
+          source: 'bulk',
+          sourceDetails: `CSV import · ${campaignName}`,
           status: 'new_lead',
           tags: [tag],
         });
