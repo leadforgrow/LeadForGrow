@@ -123,6 +123,7 @@ function ChatInboxContent() {
             {showTemplateBar ? (
               <OutOfWindowTemplateBar
                 leadName={inbox.selectedChat?.leadId?.name}
+                lead={inbox.selectedChat?.leadId}
                 onSend={(template) =>
                   inbox.sendMessage('', { template })
                 }

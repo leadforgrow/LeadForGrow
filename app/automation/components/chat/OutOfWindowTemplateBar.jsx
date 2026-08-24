@@ -10,11 +10,12 @@ import { authFetch } from '@/lib/apiClient';
  * closed. Meta only allows approved templates in this state — this bar swaps
  * out the free-text reply box for an approved-template picker + send.
  */
-export default function OutOfWindowTemplateBar({ leadName, onSend }) {
+export default function OutOfWindowTemplateBar({ leadName, lead, onSend }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pick, setPick] = useState('');
   const [headerMediaUrl, setHeaderMediaUrl] = useState('');
+  const [variableValues, setVariableValues] = useState([]);
   const [sending, setSending] = useState(false);
 
   const fetchTemplates = useCallback(async () => {
@@ -50,7 +51,23 @@ export default function OutOfWindowTemplateBar({ leadName, onSend }) {
     return header && ['IMAGE', 'VIDEO', 'DOCUMENT'].includes(header.format);
   })();
 
-  const canSend = selected && (!headerNeedsMedia || headerMediaUrl.trim());
+  const bodyText = selected?.components?.find((c) => c.type === 'BODY')?.text || '';
+  const varCount = (bodyText.match(/\{\{\d+\}\}/g) || []).length;
+
+  // When the template changes, pre-fill variable inputs with sensible defaults from the lead
+  useEffect(() => {
+    if (varCount === 0) { setVariableValues([]); return; }
+    const firstName = String(lead?.name || leadName || 'Customer').split(' ')[0];
+    const defaults = Array.from({ length: varCount }, (_, i) => {
+      if (i === 0) return firstName;
+      return '';
+    });
+    setVariableValues(defaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?._id, varCount]);
+
+  const allVarsFilled = variableValues.every((v) => String(v || '').trim());
+  const canSend = selected && (!headerNeedsMedia || headerMediaUrl.trim()) && allVarsFilled;
 
   const handleSend = async () => {
     if (!selected) return;
@@ -60,10 +77,12 @@ export default function OutOfWindowTemplateBar({ leadName, onSend }) {
         name: selected.name,
         language: selected.language,
         headerMediaUrl: headerMediaUrl || undefined,
+        variables: variableValues.length ? variableValues.map((v) => String(v || '').trim() || 'Customer') : undefined,
       });
       toast.success('Template sent');
       setPick('');
       setHeaderMediaUrl('');
+      setVariableValues([]);
     } catch (e) {
       toast.error(e.message || 'Send failed');
     } finally {
@@ -121,6 +140,31 @@ export default function OutOfWindowTemplateBar({ leadName, onSend }) {
         />
       )}
 
+      {selected && varCount > 0 && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+            Fill template variables ({varCount})
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {Array.from({ length: varCount }).map((_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-slate-500 shrink-0 w-8">{`{{${i + 1}}}`}</span>
+                <input
+                  value={variableValues[i] || ''}
+                  onChange={(e) => {
+                    const next = [...variableValues];
+                    next[i] = e.target.value;
+                    setVariableValues(next);
+                  }}
+                  placeholder={i === 0 ? "Recipient's first name" : `Value for {{${i + 1}}}`}
+                  className="flex-1 px-2 py-1.5 rounded-lg border border-amber-300 bg-white dark:bg-slate-900 text-xs"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <a href="/automation/whatsapp-templates" className="text-[11px] text-amber-700 hover:underline">
           + Build a new template
@@ -136,7 +180,9 @@ export default function OutOfWindowTemplateBar({ leadName, onSend }) {
         <p className="text-[11px] text-amber-700">
           {headerNeedsMedia && !headerMediaUrl.trim()
             ? `${selected.components.find((c) => c.type === 'HEADER').format.toLowerCase()} URL required for this template's header`
-            : ''}
+            : !allVarsFilled
+              ? `Fill all ${varCount} template variable${varCount === 1 ? '' : 's'} above`
+              : ''}
         </p>
       )}
     </div>

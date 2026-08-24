@@ -1,10 +1,11 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import {
-  Check, CheckCheck, Clock, StickyNote, Download, FileText,
+  Check, CheckCheck, Clock, StickyNote, Download, FileText, AlertCircle,
 } from 'lucide-react';
 import { formatFileSize } from '@/lib/omnichannel/mediaTypes';
+import { decodeMetaError, extractErrorCode } from '@/lib/whatsapp/metaErrors';
 
 function MediaContent({ message }) {
   const { type, content } = message;
@@ -125,7 +126,7 @@ function MessageBubble({ message }) {
             message.status === 'sending' ? (
               <Clock className="w-3.5 h-3.5" />
             ) : message.status === 'failed' ? (
-              <span className="text-[9px] text-red-500">Failed</span>
+              <FailedIndicator message={message} />
             ) : message.status === 'read' ? (
               <CheckCheck className="w-4 h-4 text-[#53bdeb]" />
             ) : message.status === 'delivered' ? (
@@ -137,6 +138,68 @@ function MessageBubble({ message }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function FailedIndicator({ message }) {
+  const [open, setOpen] = useState(false);
+  const err = message.rawMetadata?.deliveryError || message.error;
+  const raw = typeof err === 'string' ? err : (err?.details || err?.message || '');
+  const code = err?.code || extractErrorCode(raw);
+  const decoded = code ? decodeMetaError(code, raw) : null;
+
+  if (!raw && !decoded) {
+    return <span className="text-[9px] text-red-500">Failed</span>;
+  }
+
+  return (
+    <span className="relative inline-flex items-center">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        className="inline-flex items-center gap-1 text-[9px] font-semibold text-red-500 hover:text-red-700 cursor-pointer"
+        title="Click to see why it failed"
+      >
+        <AlertCircle className="w-3 h-3" /> Failed
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 bottom-full mb-2 z-20 w-64 rounded-lg border border-red-200 bg-white dark:bg-slate-900 dark:border-red-900 shadow-xl p-3 text-left"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start gap-2 mb-1.5">
+            {decoded?.code && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-50 border border-red-200 text-red-700 shrink-0">
+                {decoded.code}
+              </span>
+            )}
+            <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+              {decoded?.title || 'Delivery failed'}
+            </p>
+          </div>
+          {decoded?.explanation && (
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mb-1.5">
+              <span className="font-semibold">Why:</span> {decoded.explanation}
+            </p>
+          )}
+          {decoded?.actionable && (
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mb-1.5">
+              <span className="font-semibold">Fix:</span> {decoded.actionable}
+            </p>
+          )}
+          {raw && !decoded?.isKnown && (
+            <p className="text-[10px] text-slate-500 font-mono break-words">{String(raw).slice(0, 240)}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="mt-2 text-[10px] text-slate-500 hover:underline"
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </span>
   );
 }
 
