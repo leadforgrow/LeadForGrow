@@ -21,6 +21,7 @@ import StatusBadge from './StatusBadge';
 import FollowupChip from './FollowupChip';
 import LeadActivityTab from './detail/LeadDetailTabs';
 import LeadScoreBadge from './LeadScoreBadge';
+import PageLoader from '../PageLoader';
 import { assigneeName, formatSource, formatRelative, formatDate, mapTeamMemberOptions, resolveAssignedToId, resolveStageSelectValue, STAGE_SELECT_OPTIONS } from './utils';
 import { normalizeLeadStatus } from '@/lib/crm/leadStages';
 import { computeLeadIntelligence } from '@/lib/leadIntelligence';
@@ -185,9 +186,7 @@ export default function LeadDrawer({
           </div>
 
           {loading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
+            <div className="flex-1"><PageLoader label="Loading lead…" height="100%" /></div>
           ) : lead ? (
             <>
               <div className="px-4 py-4 border-b border-slate-100 dark:border-slate-800">

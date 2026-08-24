@@ -369,9 +369,11 @@ export function useChatInbox() {
         subject,
         cc,
         scheduledAt,
+        template, // { name, language, headerMediaUrl, variables }
       } = options;
       const hasMedia = media?.url || attachments.length > 0;
-      if (!selectedChat?.leadId?._id || (!text?.trim() && !hasMedia)) return false;
+      const hasTemplate = !!template?.name;
+      if (!selectedChat?.leadId?._id || (!text?.trim() && !hasMedia && !hasTemplate)) return false;
       const leadId = selectedChat.leadId._id;
       const mediaItem = media || attachments[0];
       const temp = {
@@ -379,7 +381,7 @@ export function useChatInbox() {
         direction: 'outgoing',
         type: mediaItem?.mimeType ? (mediaItem.mimeType.startsWith('image/') ? 'image' : 'document') : 'text',
         content: {
-          body: text,
+          body: text || (hasTemplate ? `[Template: ${template.name}]` : ''),
           mediaUrl: mediaItem?.url,
           fileName: mediaItem?.fileName,
           mimeType: mediaItem?.mimeType,
@@ -407,6 +409,10 @@ export function useChatInbox() {
             mimeType: mediaItem?.mimeType,
             fileName: mediaItem?.fileName,
             attachments,
+            templateName: template?.name,
+            templateLanguage: template?.language,
+            templateHeaderMediaUrl: template?.headerMediaUrl,
+            templateVariables: template?.variables,
           }),
         });
         const data = await res.json();

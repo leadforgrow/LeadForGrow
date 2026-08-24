@@ -34,11 +34,17 @@ async function handler(req) {
       draftId,
       bodyHtml,
       attachments = [],
+      // Template-based send fields — used when the 24h WhatsApp window is closed
+      templateName,
+      templateLanguage,
+      templateHeaderMediaUrl,
+      templateVariables,
     } = body;
 
     const hasMedia = !!mediaUrl;
-    if (!message?.trim() && !hasMedia && !isInternal) {
-      return NextResponse.json({ success: false, error: 'Message or media required' }, { status: 400 });
+    const hasTemplate = !!templateName;
+    if (!message?.trim() && !hasMedia && !hasTemplate && !isInternal) {
+      return NextResponse.json({ success: false, error: 'Message, media, or template required' }, { status: 400 });
     }
 
     await dbConnect();
@@ -113,7 +119,17 @@ async function handler(req) {
         }
         externalMessageId = result.messageId;
       } else {
-        const result = await sendAutoWhatsApp(lead, business, message.trim());
+        // Template send is required outside the 24h window; free text works within it.
+        const result = await sendAutoWhatsApp(
+          lead,
+          business,
+          message.trim(),
+          templateName || null,
+          templateHeaderMediaUrl || null,
+          templateLanguage || 'en',
+          null,
+          Array.isArray(templateVariables) ? templateVariables : null,
+        );
         if (!result.success) {
           return NextResponse.json({ success: false, error: result.error || 'Send failed' }, { status: 500 });
         }

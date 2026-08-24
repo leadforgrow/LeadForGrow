@@ -4,10 +4,10 @@ import Link from 'next/link';
 import {
   ArrowRight,
   Building2,
-  Sparkles,
+  Clock,
+  Handshake,
   Target,
   Users,
-  Zap,
   Globe,
   BarChart3,
 } from 'lucide-react';
@@ -19,7 +19,7 @@ import { FOUNDERS } from '@/lib/founders/data';
 const STATS = [
   { icon: Users, value: '1100+', label: 'Businesses trust LeadForGrow' },
   { icon: BarChart3, value: '1M+', label: 'Leads captured & managed' },
-  { icon: Zap, value: '<60s', label: 'Average speed-to-lead with automation' },
+  { icon: Clock, value: '<60s', label: 'Average speed-to-lead with automation' },
   { icon: Globe, value: 'India & beyond', label: 'Serving growth teams globally' },
 ];
 
@@ -30,9 +30,9 @@ const VALUES = [
     text: 'Every enquiry deserves an instant, professional response — across WhatsApp, Meta, email, and web.',
   },
   {
-    icon: Sparkles,
-    title: 'AI that assists, not replaces',
-    text: 'Smart automation and reply assistants help your team close more deals without losing the human touch.',
+    icon: Handshake,
+    title: 'Automation that assists, not replaces',
+    text: 'Smart workflows and reply assistants help your team close more deals without losing the human touch.',
   },
   {
     icon: Building2,

@@ -5,6 +5,7 @@ import { Plus, RefreshCw, Loader2, Search, MessageCircle, Trash2 } from 'lucide-
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 import TemplateBuilder from './TemplateBuilder';
+import PageLoader from '../components/PageLoader';
 
 const STATUS_STYLES = {
   DRAFT: 'bg-slate-100 text-slate-700',
@@ -135,9 +136,7 @@ export default function WhatsAppTemplatesPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
-        </div>
+        <PageLoader label="Loading templates…" height="40vh" />
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />

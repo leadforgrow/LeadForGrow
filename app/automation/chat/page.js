@@ -10,6 +10,7 @@ import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
 import AiReplyBar from '../components/ai/AiReplyBar';
 import CRMProfilePanel from '../components/chat/CRMProfilePanel';
+import OutOfWindowTemplateBar, { useIsWithin24hWindow } from '../components/chat/OutOfWindowTemplateBar';
 
 function ChatInboxContent() {
   const inbox = useChatInbox();
@@ -23,6 +24,10 @@ function ChatInboxContent() {
     inbox.selectedChat?.channel === 'whatsapp'
       ? inbox.selectedChat?.inboxStatus === 'intervened' || inbox.selectedChat?.status === 'intervened'
       : !!inbox.selectedChat;
+
+  const isWithinWindow = useIsWithin24hWindow(inbox.selectedChat, inbox.messages);
+  const isWhatsApp = inbox.selectedChat?.channel === 'whatsapp';
+  const showTemplateBar = canReply && isWhatsApp && !isWithinWindow;
 
   const aiSuggestion = inbox.intelligence?.nextAction?.action
     ? `Hi ${inbox.selectedChat?.leadId?.name?.split(' ')[0] || 'there'}, ${inbox.intelligence.nextAction.action.toLowerCase()}.`
@@ -104,7 +109,7 @@ function ChatInboxContent() {
               onLoadMore={inbox.loadOlderMessages}
               loadingMore={inbox.loadingMore}
             />
-            {canReply && (
+            {canReply && !showTemplateBar && (
               <AiReplyBar
                 channel={inbox.selectedChat?.channel || 'whatsapp'}
                 customerName={inbox.selectedChat?.leadId?.name}
@@ -115,20 +120,29 @@ function ChatInboxContent() {
                 onSend={async (text) => inbox.sendMessage(text)}
               />
             )}
-            <ChatInput
-              canSend={canReply}
-              hasSelection={!!inbox.selectedChat}
-              channel={inbox.selectedChat?.channel || 'whatsapp'}
-              templates={inbox.templates}
-              aiSuggestion={aiReplyText || aiSuggestion}
-              onSend={inbox.sendMessage}
-              onIntervene={inbox.intervene}
-              onSaveDraft={inbox.selectedChat?.channel === 'email' ? inbox.saveEmailDraft : undefined}
-              emailSubject={inbox.emailSubject}
-              onEmailSubjectChange={inbox.setEmailSubject}
-              emailCc={inbox.emailCc}
-              onEmailCcChange={inbox.setEmailCc}
-            />
+            {showTemplateBar ? (
+              <OutOfWindowTemplateBar
+                leadName={inbox.selectedChat?.leadId?.name}
+                onSend={(template) =>
+                  inbox.sendMessage('', { template })
+                }
+              />
+            ) : (
+              <ChatInput
+                canSend={canReply}
+                hasSelection={!!inbox.selectedChat}
+                channel={inbox.selectedChat?.channel || 'whatsapp'}
+                templates={inbox.templates}
+                aiSuggestion={aiReplyText || aiSuggestion}
+                onSend={inbox.sendMessage}
+                onIntervene={inbox.intervene}
+                onSaveDraft={inbox.selectedChat?.channel === 'email' ? inbox.saveEmailDraft : undefined}
+                emailSubject={inbox.emailSubject}
+                onEmailSubjectChange={inbox.setEmailSubject}
+                emailCc={inbox.emailCc}
+                onEmailCcChange={inbox.setEmailCc}
+              />
+            )}
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">

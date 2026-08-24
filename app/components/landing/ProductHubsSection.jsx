@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import {
   MessageCircle,
   Users,
-  Zap,
+  Workflow,
   BarChart3,
   Layout,
   Globe,
-  Sparkles,
+  Lightbulb,
   Check,
   ArrowRight,
 } from 'lucide-react';
@@ -32,7 +32,7 @@ const HUBS = [
     featured: false,
   },
   {
-    icon: Zap,
+    icon: Workflow,
     title: 'Automation Hub',
     features: ['Meta Lead Ads routing', 'Timed follow-ups', 'Webhook triggers'],
     href: '/product/automation',
@@ -60,8 +60,8 @@ const HUBS = [
     featured: false,
   },
   {
-    icon: Sparkles,
-    title: 'AI Hub',
+    icon: Lightbulb,
+    title: 'Insights Hub',
     features: ['Smart lead routing', 'Auto-qualification', 'Reply suggestions'],
     href: '/product/automation',
     featured: false,
@@ -96,8 +96,8 @@ export default function ProductHubsSection({ onGetStarted, onWatchDemo }) {
             className="xl:col-span-5"
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#CBD6E2] px-3 py-1 text-xs font-medium text-[#33475B] mb-6">
-              <Sparkles className="h-3.5 w-3.5 text-[#FF5C35]" />
-              Powered by AI
+              <Check className="h-3.5 w-3.5 text-[#FF5C35]" />
+              Trusted by 1,100+ businesses
             </span>
             <h2 className={LANDING.heading}>
               Growing a business is hard. LeadForGrow makes it easier.

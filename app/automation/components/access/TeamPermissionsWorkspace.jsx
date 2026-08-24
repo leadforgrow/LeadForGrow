@@ -15,6 +15,7 @@ import { useAccessControl } from '../../hooks/useAccessControl';
 import { useTeamWorkspace } from '../../hooks/useTeamWorkspace';
 import EnterprisePermissionMatrix from './EnterprisePermissionMatrix';
 import AddMemberModal from '../team/AddMemberModal';
+import PageLoader from '../PageLoader';
 
 const SECTIONS = [
   { id: 'members', label: 'Team Members', icon: Users },
@@ -48,9 +49,7 @@ export default function TeamPermissionsWorkspace() {
 
   if (ac.loading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading team & permissions…" height="50vh" />
     );
   }
 

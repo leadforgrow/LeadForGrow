@@ -4,15 +4,14 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, User } from 'lucide-react';
 import { useMeetingsTeam } from '../../hooks/useMeetingsWorkspace';
 import DashboardCard from '../dashboard/primitives/DashboardCard';
+import PageLoader from '../PageLoader';
 
 export default function MeetingsTeamView() {
   const { loading, team } = useMeetingsTeam();
 
   if (loading) {
     return (
-      <div className="flex justify-center min-h-[50vh] items-center">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading team members…" height="50vh" />
     );
   }
 

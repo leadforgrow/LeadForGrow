@@ -7,6 +7,7 @@ import {
   Layers, BarChart3, Rocket, Monitor, Tablet, Smartphone, MoreHorizontal, Trash2, Copy
 } from 'lucide-react';
 import { useFormsWorkspace } from '../../hooks/useFormsWorkspace';
+import PageLoader from '../PageLoader';
 import FormsHomeView from './FormsHomeView';
 import FormCreationWizard from './FormCreationWizard';
 import FormBuilder from './FormBuilder';
@@ -45,11 +46,7 @@ export default function FormsWorkspace() {
   };
 
   if (ws.loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading forms…" />;
   }
 
   /* ── HOME ── */

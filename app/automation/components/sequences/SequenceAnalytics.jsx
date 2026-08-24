@@ -2,13 +2,12 @@
 
 import { motion } from 'framer-motion';
 import { Users, CheckCircle2, Activity, TrendingUp, AlertTriangle, IndianRupee, Trophy } from 'lucide-react';
+import PageLoader from '../PageLoader';
 
 export default function SequenceAnalytics({ analytics, loading }) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PageLoader label="Loading sequence analytics…" height="40vh" />
     );
   }
 

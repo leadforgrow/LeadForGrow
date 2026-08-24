@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Loader2, BarChart3, GitBranch, Send, Activity } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
+import PageLoader from '../components/PageLoader';
 
 export default function AutomationAnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -22,11 +23,7 @@ export default function AutomationAnalyticsPage() {
   useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading analytics…" />;
   }
 
   const o = data?.overview || {};

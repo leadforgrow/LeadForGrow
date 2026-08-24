@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, RefreshCw, Mail, Trash2 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
+import PageLoader from '../../components/PageLoader';
 
 export default function EmailSettingsPage() {
   const [accounts, setAccounts] = useState([]);
@@ -80,7 +81,7 @@ export default function EmailSettingsPage() {
       )}
 
       {loading ? (
-        <div className="h-32 flex items-center justify-center"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+        <PageLoader label="Loading email accounts…" height="8rem" />
       ) : accounts.length === 0 ? (
         <p className="text-sm text-slate-500 text-center py-8">No email accounts connected.</p>
       ) : (

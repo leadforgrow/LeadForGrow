@@ -57,8 +57,9 @@ export default function MessageList({ messages, loading, hasMore, onLoadMore, lo
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#efeae2] dark:bg-[#0b141a]">
+        <div className="w-9 h-9 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Loading messages…</p>
       </div>
     );
   }

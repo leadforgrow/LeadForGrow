@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2, Loader2, Send, RefreshCw, ChevronLeft, AlertCircle, CheckCircle2, Info, Upload, X } from 'lucide-react';
+import PageLoader from '../components/PageLoader';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 import WhatsAppPreview from './WhatsAppPreview';
@@ -315,11 +316,7 @@ export default function TemplateBuilder({ templateId, onBack, onSaved }) {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading template…" />;
   }
 
   return (

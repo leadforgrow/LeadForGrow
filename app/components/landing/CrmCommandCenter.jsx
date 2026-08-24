@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useSpring } from 'framer-motion';
-import { MessageCircle, Users, Zap, Inbox, Bell, TrendingUp } from 'lucide-react';
+import { MessageCircle, Users, UserCheck, Inbox, Bell, TrendingUp } from 'lucide-react';
 import { useMouseParallax } from './useMouseParallax';
 import LiveDemoLoop from './LiveDemoLoop';
 
@@ -111,7 +111,7 @@ export default function CrmCommandCenter() {
           <p className="text-xs font-semibold text-slate-900 dark:text-white">Priya Sharma</p>
           <p className="text-[10px] text-slate-500">Meta Ads · Mumbai</p>
           <div className="mt-2 flex items-center gap-1 text-[9px] text-sky-600">
-            <Zap className="w-3 h-3" /> Auto-assigned to Rahul
+            <UserCheck className="w-3 h-3" /> Auto-assigned to Rahul
           </div>
         </div>
       </FloatingCard>

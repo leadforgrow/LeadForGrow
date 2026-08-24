@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, Filter, MessageSquarePlus } from 'lucide-react';
+import { Search, Filter, MessageSquarePlus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { INBOX_FILTERS, CHANNEL_FILTERS } from './constants';
 import ConversationItem from './ConversationItem';
@@ -106,8 +106,16 @@ export default function ChatSidebar({
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="p-6 space-y-3">
+            <div className="flex items-center justify-center gap-2 py-3 text-xs font-medium text-slate-500">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+              <span>Loading conversations…</span>
+            </div>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+              <div
+                key={i}
+                className="h-16 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-800/60 dark:to-slate-800 rounded-lg animate-pulse"
+                style={{ animationDelay: `${i * 80}ms` }}
+              />
             ))}
           </div>
         ) : conversations.length === 0 ? (
