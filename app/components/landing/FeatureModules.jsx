@@ -7,7 +7,7 @@ import { motion, useInView } from 'framer-motion';
 import {
   MessagesSquare,
   Kanban,
-  Zap,
+  Workflow,
   Users,
   BarChart3,
   Clock,
@@ -32,7 +32,7 @@ const MODULES = [
   },
   {
     id: 'automation',
-    icon: Zap,
+    icon: Workflow,
     title: 'Follow-up automation',
     description: 'Rules, sequences, and timed follow-ups on autopilot.',
     color: 'sky',

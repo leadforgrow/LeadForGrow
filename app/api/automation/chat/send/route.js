@@ -14,15 +14,18 @@ async function handler(req) {
   try {
     const { user } = req;
     const body = await req.json();
-    const { leadId, message } = body;
+    const { leadId, message, templateName, templateLanguage, headerMediaUrl, variables } = body;
 
-    if (!leadId || !message) {
-      return NextResponse.json({ success: false, error: 'Lead ID and message are required' }, { status: 400 });
+    // Either a free-text message OR a template name is required
+    if (!leadId || (!message && !templateName)) {
+      return NextResponse.json(
+        { success: false, error: 'Lead ID and either message text or templateName are required' },
+        { status: 400 },
+      );
     }
 
     await dbConnect();
 
-    // 1. Fetch Lead and Business
     const lead = await Lead.findOne({ _id: leadId, businessId: user.businessId });
     if (!lead) {
       return NextResponse.json({ success: false, error: 'Lead not found or unauthorized' }, { status: 404 });
@@ -33,8 +36,18 @@ async function handler(req) {
       return NextResponse.json({ success: false, error: 'Business not found' }, { status: 404 });
     }
 
-    // 2. Send Message
-    const result = await sendAutoWhatsApp(lead, business, message);
+    // Send template if templateName provided (allowed outside 24h window),
+    // otherwise send free text (only allowed inside 24h window).
+    const result = await sendAutoWhatsApp(
+      lead,
+      business,
+      message || '',
+      templateName || null,
+      headerMediaUrl || null,
+      templateLanguage || 'en',
+      null,
+      Array.isArray(variables) ? variables : null,
+    );
 
     if (!result.success) {
       return NextResponse.json({ success: false, error: result.error || 'Failed to send message' }, { status: 500 });

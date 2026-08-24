@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
+import PageLoader from '../../components/PageLoader';
 
 function StatusRow({ label, value, ok }) {
   return (
@@ -74,7 +75,7 @@ export default function WhatsAppSettingsPage() {
       </div>
 
       {loading ? (
-        <div className="h-48 flex items-center justify-center"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+        <PageLoader label="Loading WhatsApp status…" height="12rem" />
       ) : (
         <>
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">

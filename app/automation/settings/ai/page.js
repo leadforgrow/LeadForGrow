@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
+import PageLoader from '../../components/PageLoader';
 
 const TONES = ['professional', 'friendly', 'formal', 'casual', 'persuasive'];
 const PERSONALITIES = ['helpful sales advisor', 'consultative expert', 'energetic closer', 'empathetic support'];
@@ -54,9 +55,7 @@ export default function AiSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
-      </div>
+      <PageLoader label="Loading settings…" height="40vh" />
     );
   }
 

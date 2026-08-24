@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2, ArrowLeft, Save, Play, Layers, BarChart3, Activity, FlaskConical, Copy, ClipboardPaste, Settings, ShieldCheck } from 'lucide-react';
+import PageLoader from '../PageLoader';
 import { useSequencesWorkspace } from '../../hooks/useSequencesWorkspace';
 import SequencesHomeView from './SequencesHomeView';
 import SequenceCreationWizard from './SequenceCreationWizard';
@@ -24,11 +25,7 @@ export default function SequencesWorkspace() {
   const ws = useSequencesWorkspace();
 
   if (ws.loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading sequences…" />;
   }
 
   if (ws.workspaceMode === 'home') {

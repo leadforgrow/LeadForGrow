@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import PageLoader from '../PageLoader';
 import { useMeetingsWorkspace } from '../../hooks/useMeetingsWorkspace';
 import MeetingsDashboard from './MeetingsDashboard';
 import CreateMeetingWizard from './CreateMeetingWizard';
@@ -9,11 +9,7 @@ export default function MeetingsWorkspace() {
   const ws = useMeetingsWorkspace();
 
   if (ws.loading && ws.mode === 'dashboard') {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-[#f8f9fc] dark:bg-slate-950">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading meetings…" />;
   }
 
   if (ws.mode === 'create') {

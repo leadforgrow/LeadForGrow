@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import PageLoader from '../../../components/PageLoader';
 
 /**
  * Retired page — WhatsApp credentials now live in the main Integrations panel
@@ -15,12 +15,5 @@ export default function ConnectWhatsAppRedirect() {
     router.replace('/automation/settings/integrations');
   }, [router]);
 
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="flex items-center gap-2 text-slate-500 text-sm">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Redirecting to Integrations…
-      </div>
-    </div>
-  );
+  return <PageLoader label="Redirecting to Integrations…" />;
 }

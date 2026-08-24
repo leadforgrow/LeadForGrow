@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import PageLoader from '../PageLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTemplates } from '../../hooks/useTemplates';
 import { TABS } from './constants';
@@ -15,11 +15,7 @@ export default function TemplatesWorkspace() {
   const t = useTemplates();
 
   if (t.loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-[#f4f6fa] dark:bg-slate-950">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading templates…" />;
   }
 
   return (

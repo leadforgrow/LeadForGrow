@@ -7,6 +7,7 @@ import { authFetch } from '@/lib/apiClient';
 import AudiencePicker from './AudiencePicker';
 import VariableMapping from './VariableMapping';
 import BroadcastDetail from './BroadcastDetail';
+import PageLoader from '../components/PageLoader';
 
 const STATUS_STYLES = {
   draft: 'bg-amber-100 text-amber-700',
@@ -235,11 +236,7 @@ export default function BroadcastsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading broadcasts…" />;
   }
 
   return (

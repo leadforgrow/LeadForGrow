@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Map, CheckCircle2, Clock, XCircle, ChevronRight } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
+import PageLoader from '../components/PageLoader';
 
 const STATUS_ICON = {
   running: Clock,
@@ -36,9 +37,7 @@ export default function JourneysPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading customer journeys…" />
     );
   }
 

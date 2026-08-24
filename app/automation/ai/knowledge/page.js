@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { authFetch } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
+import PageLoader from '../../components/PageLoader';
 
 const TYPE_META = {
   website: { label: 'Website', icon: Globe },
@@ -195,7 +196,7 @@ export default function KnowledgeBasePage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-violet-500" /></div>
+        <PageLoader label="Loading knowledge sources…" height="12rem" />
       ) : sources.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
           <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-40" />

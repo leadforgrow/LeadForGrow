@@ -6,15 +6,14 @@ import { useMeetingsAnalytics } from '../../hooks/useMeetingsWorkspace';
 import StatCard from '../dashboard/primitives/StatCard';
 import DashboardCard from '../dashboard/primitives/DashboardCard';
 import SimpleBarChart from '../dashboard/charts/SimpleBarChart';
+import PageLoader from '../PageLoader';
 
 export default function MeetingsAnalyticsView() {
   const { loading, data } = useMeetingsAnalytics(30);
 
   if (loading) {
     return (
-      <div className="flex justify-center min-h-[50vh] items-center">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading meeting analytics…" height="50vh" />
     );
   }
 

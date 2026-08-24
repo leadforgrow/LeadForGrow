@@ -1,12 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, MessageCircle, Users, Clock, ChevronRight } from 'lucide-react';
+import { Timer, MessageCircle, Users, Clock, ChevronRight } from 'lucide-react';
 import { LANDING } from './landingStyles';
 import LandingSectionBg from './LandingSectionBg';
 
 const FEATURES = [
-  { icon: Zap, title: 'Instant lead reply', desc: 'Meta lead ads → WhatsApp message in under 60 seconds.' },
+  { icon: Timer, title: 'Instant lead reply', desc: 'Meta lead ads → WhatsApp message in under 60 seconds.' },
   { icon: MessageCircle, title: 'Team inbox', desc: 'Shared inbox with assign, read status, and CRM context.' },
   { icon: Clock, title: 'Sequences & reminders', desc: 'Automated follow-ups so no lead goes cold.' },
   { icon: Users, title: 'Round-robin assign', desc: 'Distribute leads fairly across your sales team.' },

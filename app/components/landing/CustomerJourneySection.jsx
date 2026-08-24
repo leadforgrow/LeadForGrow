@@ -4,14 +4,14 @@ import { useLayoutEffect, useRef } from 'react';
 import {
   ArrowRight,
   BarChart3,
-  Bot,
   Calendar,
   Check,
+  CheckCircle2,
+  Clock,
   Mail,
   MessageCircle,
   TrendingUp,
   Users,
-  Zap,
 } from 'lucide-react';
 
 const JOURNEY_STEPS = [
@@ -524,8 +524,8 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
                   <p className="text-sm text-[#111827]">Hi, I&apos;m interested in your CRM. Can you tell me more?</p>
                 </div>
                 <div data-s2-typing data-animate className="mb-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 opacity-0">
-                  <Bot className="h-4 w-4 text-emerald-600" />
-                  <span className="text-xs text-emerald-700">LeadForGrow AI</span>
+                  <MessageCircle className="h-4 w-4 text-emerald-600" />
+                  <span className="text-xs text-emerald-700">Auto-reply</span>
                   <TypingDots />
                 </div>
                 <div data-s2-reply data-animate className="rounded-xl bg-[#D9FDD3] px-3 py-2.5">
@@ -605,7 +605,7 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
                   </div>
                 ))}
                 <div data-s4-badge data-animate className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0">
-                  <Bot className="h-3.5 w-3.5" />
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                   Qualified Automatically
                 </div>
               </CrmShell>
@@ -656,7 +656,6 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
                       {i + 1}
                     </span>
                     <span className="text-sm font-medium text-[#111827]">{step}</span>
-                    <Zap className="ml-auto h-3.5 w-3.5 text-amber-500" />
                   </div>
                 ))}
               </CrmShell>
@@ -723,7 +722,7 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
                   {[
                     { label: 'Revenue', value: '₹8.2L', icon: TrendingUp },
                     { label: 'Conversion', value: '+42%', icon: BarChart3 },
-                    { label: 'Response', value: '2 sec', icon: Zap },
+                    { label: 'Response', value: '2 sec', icon: Clock },
                     { label: 'Meetings', value: '38', icon: Calendar },
                     { label: 'Won Deals', value: '12', icon: Check },
                     { label: 'Leads', value: '842', icon: Users },

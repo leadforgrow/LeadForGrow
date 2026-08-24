@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/apiClient';
+import PageLoader from '../components/PageLoader';
 import {
     Calendar,
     Plus,
@@ -109,9 +110,7 @@ export default function EventsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-[80vh]">
-                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-            </div>
+            <PageLoader label="Loading events…" height="80vh" />
         );
     }
 

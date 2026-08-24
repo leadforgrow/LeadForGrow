@@ -5,6 +5,7 @@ import { Key, Plus, Loader2, Copy } from 'lucide-react';
 import { authJson } from '@/lib/apiClient';
 import { useAccess } from '../../context/AccessContext';
 import toast from 'react-hot-toast';
+import PageLoader from '../../components/PageLoader';
 
 export default function ApiKeysSettingsPage() {
   const { access, showUpgrade } = useAccess();
@@ -40,9 +41,7 @@ export default function ApiKeysSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading API keys…" height="40vh" />
     );
   }
 

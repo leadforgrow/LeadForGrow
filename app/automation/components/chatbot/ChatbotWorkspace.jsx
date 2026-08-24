@@ -7,6 +7,7 @@ import {
   ArrowUpRight, CheckCircle2, PauseCircle
 } from 'lucide-react';
 import { useChatbotWorkspace } from '../../hooks/useChatbotWorkspace';
+import PageLoader from '../PageLoader';
 import ChatbotCustomizePanel from './ChatbotCustomizePanel';
 import ChatbotInstallPanel from './ChatbotInstallPanel';
 import ChatbotPreviewFrame from './ChatbotPreviewFrame';
@@ -17,11 +18,7 @@ export default function ChatbotWorkspace() {
   const [tab, setTab] = useState('customize');
 
   if (ws.loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
-      </div>
-    );
+    return <PageLoader label="Loading chatbot…" />;
   }
 
   const isLive = ws.config.published && ws.config.enabled;

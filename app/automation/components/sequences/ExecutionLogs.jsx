@@ -1,6 +1,7 @@
 'use client';
 
 import { MessageCircle, Mail, Sparkles, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import PageLoader from '../PageLoader';
 
 const STATUS_ICON = {
   success: CheckCircle2,
@@ -25,9 +26,7 @@ function LogIcon({ type }) {
 export default function ExecutionLogs({ executions, timeline, loading }) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PageLoader label="Loading execution logs…" height="40vh" />
     );
   }
 

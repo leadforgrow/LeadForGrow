@@ -5,6 +5,7 @@ import { X, RefreshCw, Download, Loader2, CheckCircle2, Eye, AlertCircle, UserX,
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
 import { decodeMetaError, extractErrorCode } from '@/lib/whatsapp/metaErrors';
+import PageLoader from '../components/PageLoader';
 
 const STATUS_META = {
   sent: { label: 'Sent', color: 'text-slate-700', bg: 'bg-slate-100', Icon: Send },
@@ -109,9 +110,7 @@ export default function BroadcastDetail({ broadcastId, onClose }) {
         </div>
 
         {loading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-          </div>
+          <div className="flex-1"><PageLoader label="Loading broadcast…" height="100%" /></div>
         ) : broadcast ? (
           <div className="flex-1 flex flex-col min-h-0">
             {/* Stat tiles */}

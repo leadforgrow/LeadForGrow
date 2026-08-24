@@ -6,14 +6,31 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { authFetch, getUserId } from '@/lib/apiClient';
 
+// Session-scoped "snooze all" — persists across route changes but resets on page reload.
+// Uses sessionStorage so poll intervals in a fresh mount still respect the choice.
+const SNOOZE_KEY = 'lfg-reminders-snoozed';
+
+function isSnoozedThisSession() {
+    if (typeof window === 'undefined') return false;
+    try { return sessionStorage.getItem(SNOOZE_KEY) === '1'; } catch { return false; }
+}
+
+function setSnoozedThisSession(v) {
+    if (typeof window === 'undefined') return;
+    try { v ? sessionStorage.setItem(SNOOZE_KEY, '1') : sessionStorage.removeItem(SNOOZE_KEY); } catch {}
+}
+
 export default function ReminderMonitor() {
     const [reminders, setReminders] = useState([]);
     const [activeCall, setActiveCall] = useState(null);
+    const [snoozed, setSnoozed] = useState(false);
     const router = useRouter();
     const pollInterval = useRef(null);
     const notifiedTaskIds = useRef(new Set());
+    const snoozedRef = useRef(false);
 
     const fetchDueTasks = async () => {
+        if (snoozedRef.current) return; // user chose to silence for this session
         try {
             const res = await authFetch('/api/automation/tasks?status=pending');
             const data = await res.json();
@@ -22,20 +39,16 @@ export default function ReminderMonitor() {
                 const now = new Date();
                 const upcomingTasks = data.data.filter(task => {
                     const dueDate = new Date(task.dueDate);
-                    // Alert if due within the next 5 mins, or any time in the past —
-                    // overdue follow-ups must never silently stop being surfaced.
                     const diffInMins = (dueDate - now) / (1000 * 60);
                     return diffInMins <= 5;
                 });
 
-                // Filter out those already notified in this session to avoid spamming
                 const newTasks = upcomingTasks.filter(task => !notifiedTaskIds.current.has(task._id));
 
                 if (newTasks.length > 0) {
                     setReminders(prev => [...prev, ...newTasks]);
                     newTasks.forEach(t => notifiedTaskIds.current.add(t._id));
-                    // Play subtle sound if possible
-                    const audio = new Audio('/notification.mp3'); // Fallback to silent if file missing
+                    const audio = new Audio('/notification.mp3');
                     audio.play().catch(() => { });
                 }
             }
@@ -45,10 +58,23 @@ export default function ReminderMonitor() {
     };
 
     useEffect(() => {
-        fetchDueTasks();
-        pollInterval.current = setInterval(fetchDueTasks, 30000); // Poll every 30s
+        const initialSnooze = isSnoozedThisSession();
+        setSnoozed(initialSnooze);
+        snoozedRef.current = initialSnooze;
+        if (!initialSnooze) {
+            fetchDueTasks();
+            pollInterval.current = setInterval(fetchDueTasks, 30000);
+        }
         return () => clearInterval(pollInterval.current);
     }, []);
+
+    const dismissAll = () => {
+        setReminders([]);
+        setSnoozed(true);
+        snoozedRef.current = true;
+        setSnoozedThisSession(true);
+        clearInterval(pollInterval.current);
+    };
 
     const handleAction = async (task) => {
         const userId = getUserId();
@@ -99,6 +125,15 @@ export default function ReminderMonitor() {
 
     return (
         <div className="fixed top-20 right-6 z-[100] flex flex-col gap-4 max-w-sm w-full pointer-events-none">
+            <div className="pointer-events-auto flex justify-end">
+                <button
+                    onClick={dismissAll}
+                    title="Silence all follow-up popups until you refresh the page"
+                    className="inline-flex items-center gap-1 bg-slate-900/90 hover:bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur shadow-lg"
+                >
+                    <X className="w-3 h-3" /> Dismiss all
+                </button>
+            </div>
             {overflowCount > 0 && (
                 <div className="pointer-events-auto bg-indigo-600 text-white rounded-xl shadow-2xl p-4 flex items-center justify-between gap-3">
                     <span className="text-xs font-bold">+{overflowCount} more follow-up{overflowCount === 1 ? '' : 's'} need attention</span>

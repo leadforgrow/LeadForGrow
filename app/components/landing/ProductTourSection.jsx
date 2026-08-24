@@ -7,7 +7,7 @@ import {
   MessageSquare,
   GitBranch,
   Kanban,
-  Zap,
+  Workflow,
   BarChart3,
   PhoneCall,
   ArrowRight,
@@ -49,7 +49,7 @@ const FEATURES = [
   },
   {
     id: 'automation',
-    icon: Zap,
+    icon: Workflow,
     label: 'Follow-up automation',
     badge: 'Automation',
     headline: 'Follow-ups that run while you sell',

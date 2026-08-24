@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Check, X, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { authFetch } from '@/lib/apiClient';
+import PageLoader from '../PageLoader';
 
 export default function ApprovalQueue() {
   const [items, setItems] = useState([]);
@@ -47,9 +48,7 @@ export default function ApprovalQueue() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
+      <PageLoader label="Loading approval queue…" height="40vh" />
     );
   }
 

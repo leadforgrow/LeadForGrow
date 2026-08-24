@@ -3,17 +3,17 @@
 import {
   ArrowRight,
   BarChart3,
-  Bot,
+  Repeat,
   LayoutGrid,
   MessagesSquare,
   Users,
-  Zap,
+  Workflow,
 } from 'lucide-react';
 
 const FEATURES = [
   {
-    icon: Bot,
-    title: 'AI-Powered Automation',
+    icon: Repeat,
+    title: 'Automated Follow-ups',
     description: 'Automate replies, follow-ups, and repetitive tasks.',
   },
   {
@@ -27,7 +27,7 @@ const FEATURES = [
     description: 'Track leads, pipelines, and customer relationships effortlessly.',
   },
   {
-    icon: Zap,
+    icon: Workflow,
     title: 'Workflow Automation',
     description: 'Create powerful automations without writing code.',
   },
