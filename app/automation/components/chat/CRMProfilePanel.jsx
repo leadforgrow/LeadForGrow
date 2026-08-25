@@ -39,6 +39,114 @@ function Section({ title, children, defaultOpen = true, icon: Icon }) {
   );
 }
 
+/**
+ * FollowUpActionRow — the chip + inline quick actions.
+ *
+ * The overdue chip on its own is a red flag with no verb; agents saw it and
+ * had to go to Leads to reschedule. Now they can pick "tomorrow / +3 days /
+ * next week / done" in one click without leaving the chat.
+ */
+function FollowUpActionRow({ date, onUpdate }) {
+  const [busy, setBusy] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [customDate, setCustomDate] = useState('');
+
+  const run = async (isoOrNull) => {
+    if (!onUpdate || busy) return;
+    setBusy(true);
+    try { await onUpdate(isoOrNull); }
+    finally {
+      setBusy(false);
+      setShowPicker(false);
+      setCustomDate('');
+    }
+  };
+
+  const shiftDays = (n) => {
+    const d = new Date();
+    d.setHours(9, 0, 0, 0);
+    d.setDate(d.getDate() + n);
+    return d.toISOString();
+  };
+
+  return (
+    <div className="space-y-2">
+      <FollowupChip date={date} />
+      {onUpdate && (
+        <>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={() => run(shiftDays(1))}
+              disabled={busy}
+              className="text-[10px] font-medium px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+            >
+              Tomorrow
+            </button>
+            <button
+              type="button"
+              onClick={() => run(shiftDays(3))}
+              disabled={busy}
+              className="text-[10px] font-medium px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+            >
+              +3 days
+            </button>
+            <button
+              type="button"
+              onClick={() => run(shiftDays(7))}
+              disabled={busy}
+              className="text-[10px] font-medium px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+            >
+              Next week
+            </button>
+            <button
+              type="button"
+              onClick={() => run(null)}
+              disabled={busy || !date}
+              className="text-[10px] font-medium px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              ✓ Done
+            </button>
+          </div>
+          {showPicker ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="flex-1 text-[10px] px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+              />
+              <button
+                type="button"
+                onClick={() => customDate && run(new Date(`${customDate}T09:00`).toISOString())}
+                disabled={!customDate || busy}
+                className="text-[10px] font-medium px-2 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Set
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowPicker(false); setCustomDate(''); }}
+                className="text-[10px] text-slate-500 px-1"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPicker(true)}
+              className="w-full text-[10px] font-medium text-slate-500 hover:text-blue-600 py-0.5"
+            >
+              Pick a specific date…
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function RecordLink({ href, label, sub }) {
   return (
     <Link
@@ -65,6 +173,7 @@ export default function CRMProfilePanel({
   onAssign,
   onAddNote,
   onToggleLabel,
+  onUpdateFollowUp,
   onClose,
   mobile = false,
 }) {
@@ -206,7 +315,10 @@ export default function CRMProfilePanel({
           </select>
           <div className="mt-3">
             <p className="text-[11px] text-slate-500 mb-1">Next follow-up</p>
-            <FollowupChip date={lead.nextFollowUpAt} />
+            <FollowUpActionRow
+              date={lead.nextFollowUpAt}
+              onUpdate={onUpdateFollowUp}
+            />
           </div>
         </Section>
 

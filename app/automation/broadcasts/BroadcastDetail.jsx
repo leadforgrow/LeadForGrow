@@ -128,6 +128,16 @@ export default function BroadcastDetail({ broadcastId, onClose }) {
               </div>
             )}
 
+            {broadcast?.abortReason && (
+              <div className="mx-5 mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Broadcast auto-paused by quality guardrail</p>
+                  <p className="mt-1">{broadcast.abortReason}</p>
+                </div>
+              </div>
+            )}
+
             {/* Toolbar */}
             <div className="px-5 pb-3 flex flex-wrap gap-2 items-center">
               <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-lg">

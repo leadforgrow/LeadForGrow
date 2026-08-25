@@ -32,6 +32,12 @@ export const POST = withPlanAccess('automation', async (req) => {
       return NextResponse.json({ success: true, count: 0 });
     }
 
+    // Engagement filter — applied to both matchedTotal and reachable counts
+    if (audience.engagementDays > 0) {
+      const cutoff = new Date(Date.now() - audience.engagementDays * 24 * 60 * 60 * 1000);
+      baseQuery.lastContactedAt = { $gte: cutoff };
+    }
+
     // Universe = everyone the audience *targets*, before channel filters
     const matchedTotal = await Lead.countDocuments(baseQuery);
 

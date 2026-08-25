@@ -31,7 +31,9 @@ const SequenceExecutionSchema = new mongoose.Schema({
   automationRuleId: { type: mongoose.Schema.Types.ObjectId, ref: 'AutomationRule' },
   status: {
     type: String,
-    enum: ['pending', 'running', 'waiting', 'pending_approval', 'completed', 'failed', 'cancelled'],
+    // 'paused' = human intervention required (a smart-branch pauseOnReply hit).
+    // Distinct from 'waiting' (waiting for a scheduled delay to elapse).
+    enum: ['pending', 'running', 'waiting', 'pending_approval', 'paused', 'completed', 'failed', 'cancelled'],
     default: 'pending',
     index: true,
   },

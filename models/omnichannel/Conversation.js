@@ -41,6 +41,12 @@ const ConversationSchema = new mongoose.Schema(
     lastMessageAt: { type: Date, default: Date.now, index: true },
     lastMessagePreview: { type: String, trim: true },
     lastMessageDirection: { type: String, enum: ['incoming', 'outgoing'] },
+    // Separate track of the latest INBOUND message so the sidebar can surface
+    // a customer's reply even after we've sent a broadcast on top. Without
+    // this, hundreds of conversations show the same outbound template preview
+    // and agents can't tell who actually replied.
+    lastInboundAt: { type: Date },
+    lastInboundPreview: { type: String, trim: true },
     labels: [LabelRefSchema],
     isPinned: { type: Boolean, default: false },
     isFavorite: { type: Boolean, default: false },

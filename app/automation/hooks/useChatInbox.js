@@ -27,25 +27,36 @@ export function useChatInbox() {
   const [searchResults, setSearchResults] = useState(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Conversation-list pagination (separate from message pagination above)
+  const [convPage, setConvPage] = useState(1);
+  const [convHasMore, setConvHasMore] = useState(false);
+  const [loadingMoreConversations, setLoadingMoreConversations] = useState(false);
+  const CONV_PAGE_SIZE = 50;
   const [emailSubject, setEmailSubject] = useState('');
   const [emailCc, setEmailCc] = useState('');
   const initialLeadId = useRef(searchParams.get('leadId'));
   const selectedLeadIdRef = useRef(null);
   selectedLeadIdRef.current = selectedChat?.leadId?._id;
 
+  const buildConvParams = useCallback((page) => {
+    const params = new URLSearchParams();
+    if (channelFilter !== 'all') params.set('channel', channelFilter);
+    if (filter === 'unread') params.set('inboxStatus', 'unread');
+    else if (filter === 'intervened') params.set('inboxStatus', 'intervened');
+    else if (filter === 'assigned') params.set('status', 'assigned');
+    else if (filter === 'unassigned') params.set('status', 'unassigned');
+    else if (filter === 'pinned') params.set('pinned', 'true');
+    else if (filter === 'archived') params.set('archived', 'true');
+    if (search) params.set('search', search);
+    params.set('page', String(page));
+    params.set('limit', String(CONV_PAGE_SIZE));
+    return params;
+  }, [filter, channelFilter, search]);
+
   const fetchConversations = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const params = new URLSearchParams();
-      if (channelFilter !== 'all') params.set('channel', channelFilter);
-      if (filter === 'unread') params.set('inboxStatus', 'unread');
-      else if (filter === 'intervened') params.set('inboxStatus', 'intervened');
-      else if (filter === 'assigned') params.set('status', 'assigned');
-      else if (filter === 'unassigned') params.set('status', 'unassigned');
-      else if (filter === 'pinned') params.set('pinned', 'true');
-      else if (filter === 'archived') params.set('archived', 'true');
-      if (search) params.set('search', search);
-      const res = await authFetch(`/api/automation/inbox/conversations?${params}`);
+      const res = await authFetch(`/api/automation/inbox/conversations?${buildConvParams(1)}`);
       const data = await res.json();
       if (data.success) {
         const normalized = (data.data || []).map((c) => ({
@@ -53,13 +64,52 @@ export function useChatInbox() {
           status: c.inboxStatus || c.status,
         }));
         setConversations(normalized);
+        setConvPage(1);
+        // Prefer the API's authoritative hasMore (page-size heuristic) so we
+        // don't rely on countDocuments — which the endpoint now skips beyond
+        // page 1 for perf. Fall back to totalPages on older responses.
+        const hasMore = typeof data.pagination?.hasMore === 'boolean'
+          ? data.pagination.hasMore
+          : 1 < (data.pagination?.pages || 1);
+        setConvHasMore(hasMore);
       }
     } catch {
       if (!silent) toast.error('Failed to load conversations');
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filter, channelFilter, search]);
+  }, [buildConvParams]);
+
+  const loadMoreConversations = useCallback(async () => {
+    if (loadingMoreConversations || !convHasMore) return;
+    setLoadingMoreConversations(true);
+    try {
+      const nextPage = convPage + 1;
+      const res = await authFetch(`/api/automation/inbox/conversations?${buildConvParams(nextPage)}`);
+      const data = await res.json();
+      if (data.success) {
+        const normalized = (data.data || []).map((c) => ({
+          ...c,
+          status: c.inboxStatus || c.status,
+        }));
+        // Dedupe just in case an item shifts between pages during a refresh
+        setConversations((prev) => {
+          const seen = new Set(prev.map((c) => String(c._id)));
+          const additions = normalized.filter((c) => !seen.has(String(c._id)));
+          return [...prev, ...additions];
+        });
+        setConvPage(nextPage);
+        const hasMore = typeof data.pagination?.hasMore === 'boolean'
+          ? data.pagination.hasMore
+          : nextPage < (data.pagination?.pages || nextPage);
+        setConvHasMore(hasMore);
+      }
+    } catch {
+      /* silent — sidebar sentinel will retry when the user scrolls again */
+    } finally {
+      setLoadingMoreConversations(false);
+    }
+  }, [buildConvParams, convHasMore, convPage, loadingMoreConversations]);
 
   const fetchMessages = useCallback(async (chat, showLoading = false) => {
     if (!chat) return;
@@ -593,6 +643,37 @@ export function useChatInbox() {
     [selectedChat]
   );
 
+  // Follow-up quick actions: reschedule to a specific date (or clear it),
+  // used by the CRM panel's inline Reschedule / Snooze / Complete buttons so
+  // agents can act on the "13 days overdue" pill without leaving the chat.
+  const updateLeadFollowUp = useCallback(
+    async (nextFollowUpAt) => {
+      const leadId = selectedChat?.leadId?._id;
+      if (!leadId) return;
+      const userId = getUserId();
+      const payload = nextFollowUpAt === null
+        ? { nextFollowUpAt: null, performedBy: userId }
+        : { nextFollowUpAt: new Date(nextFollowUpAt).toISOString(), performedBy: userId };
+      const res = await authFetch(`/api/automation/leads/${leadId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLeadDetail(data.data);
+        setSelectedChat((prev) => ({
+          ...prev,
+          leadId: { ...prev.leadId, nextFollowUpAt: data.data?.nextFollowUpAt ?? null },
+        }));
+        toast.success(nextFollowUpAt === null ? 'Follow-up cleared' : 'Follow-up rescheduled');
+      } else {
+        toast.error(data.error || 'Failed to update follow-up');
+      }
+    },
+    [selectedChat],
+  );
+
   const addNote = useCallback(
     async (note) => {
       if (!note.trim() || !selectedChat?.leadId?._id) return;
@@ -637,6 +718,9 @@ export function useChatInbox() {
   return {
     conversations: filteredConversations,
     allCount: conversations.length,
+    hasMoreConversations: convHasMore,
+    loadingMoreConversations,
+    loadMoreConversations,
     selectedChat,
     leadDetail,
     conversationDetail,
@@ -664,6 +748,7 @@ export function useChatInbox() {
     updateConversation,
     toggleLabel,
     updateLeadStatus,
+    updateLeadFollowUp,
     addNote,
     initiateCall,
     loadOlderMessages,

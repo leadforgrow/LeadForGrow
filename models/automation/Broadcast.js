@@ -49,6 +49,10 @@ const BroadcastSchema = new mongoose.Schema({
     filters: mongoose.Schema.Types.Mixed,
     tags: [String],
     leadIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lead' }],
+    // Engagement constraint applied on top of any audience mode.
+    // When set, only leads with lastContactedAt within the last N days are included.
+    // Meta rewards sending to recently-engaged users — sharply reduces #131049 quality drops.
+    engagementDays: Number,
   },
   content: {
     subject: String,
@@ -83,7 +87,12 @@ const BroadcastSchema = new mongoose.Schema({
     optedOut: { type: Number, default: 0 },
     opened: { type: Number, default: 0 },
     clicked: { type: Number, default: 0 },
+    // Meta quality-based drops (#131049 / #131050 / #131026) — tracked separately
+    // so the guardrail can auto-pause a broadcast that's tanking your quality rating.
+    qualityDrops: { type: Number, default: 0 },
   },
+  // Populated by the engine when a broadcast is auto-paused mid-send.
+  abortReason: String,
   testMode: { type: Boolean, default: false },
   testRecipients: [{ email: String, phone: String, name: String }],
 }, { timestamps: true });

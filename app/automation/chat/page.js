@@ -71,6 +71,9 @@ function ChatInboxContent() {
             setMobileView('chat');
           }}
           loading={inbox.loading}
+          hasMoreConversations={inbox.hasMoreConversations}
+          loadingMoreConversations={inbox.loadingMoreConversations}
+          onLoadMoreConversations={inbox.loadMoreConversations}
         />
       </div>
 
@@ -167,6 +170,7 @@ function ChatInboxContent() {
         onAssign={inbox.assignChat}
         onAddNote={inbox.addNote}
         onToggleLabel={inbox.toggleLabel}
+        onUpdateFollowUp={inbox.updateLeadFollowUp}
       />
 
       {profileOpen && inbox.selectedChat && (
@@ -182,6 +186,7 @@ function ChatInboxContent() {
           onAssign={inbox.assignChat}
           onAddNote={inbox.addNote}
           onToggleLabel={inbox.toggleLabel}
+          onUpdateFollowUp={inbox.updateLeadFollowUp}
           onClose={() => setProfileOpen(false)}
         />
       )}

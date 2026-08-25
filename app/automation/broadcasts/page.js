@@ -7,6 +7,7 @@ import { authFetch } from '@/lib/apiClient';
 import AudiencePicker from './AudiencePicker';
 import VariableMapping from './VariableMapping';
 import BroadcastDetail from './BroadcastDetail';
+import QualityRatingBanner from './QualityRatingBanner';
 import PageLoader from '../components/PageLoader';
 
 const STATUS_STYLES = {
@@ -26,7 +27,7 @@ const emptyDraft = {
   headerMediaUrl: '',
   subject: '',
   body: '',
-  audience: { type: 'manual', leadIds: [] },
+  audience: { type: 'manual', leadIds: [], engagementDays: 0 },
   variableMapping: [],
 };
 
@@ -282,6 +283,11 @@ export default function BroadcastsPage() {
             </select>
           </div>
 
+          {/* Meta quality rating pre-check — only relevant for WhatsApp sends */}
+          {isWhatsApp && (
+            <QualityRatingBanner audienceCount={audienceCount?.count} />
+          )}
+
           {/* Step 2: audience */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -290,9 +296,44 @@ export default function BroadcastsPage() {
             </div>
             <AudiencePicker
               audience={draft.audience}
-              onChange={(audience) => setDraft({ ...draft, audience })}
+              onChange={(audience) => setDraft({ ...draft, audience: { ...audience, engagementDays: draft.audience.engagementDays || 0 } })}
               campaignName={draft.name || 'broadcast'}
             />
+
+            {isWhatsApp && (
+              <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={draft.audience.engagementDays > 0}
+                    onChange={(e) => setDraft({
+                      ...draft,
+                      audience: { ...draft.audience, engagementDays: e.target.checked ? 30 : 0 },
+                    })}
+                    className="rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>Only include leads who messaged us recently</span>
+                </label>
+                {draft.audience.engagementDays > 0 && (
+                  <select
+                    value={draft.audience.engagementDays}
+                    onChange={(e) => setDraft({
+                      ...draft,
+                      audience: { ...draft.audience, engagementDays: Number(e.target.value) },
+                    })}
+                    className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  >
+                    <option value={7}>last 7 days</option>
+                    <option value={30}>last 30 days</option>
+                    <option value={60}>last 60 days</option>
+                    <option value={90}>last 90 days</option>
+                  </select>
+                )}
+                <span className="text-[10px] text-emerald-700 dark:text-emerald-400">
+                  ✓ Recommended — Meta rewards engaged recipients, cuts quality drops
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Step 3: WhatsApp template */}
