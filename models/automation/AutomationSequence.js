@@ -22,6 +22,32 @@ const SequenceStepSchema = new mongoose.Schema({
   templateId: { type: mongoose.Schema.Types.ObjectId, ref: 'AutomationRule' },
   emailSubject: { type: String, trim: true },
   messageTemplate: { type: String, trim: true },
+
+  // ── Smart branching ────────────────────────────────────────────────────
+  // These are what turn a dumb drip into an intelligent journey. The engine
+  // consults them when a lead replies while enrolled: it can exit the
+  // sequence, mark the goal as reached, or pause and hand off to a human.
+  // Kept on each step so different steps can react differently (e.g. Day 1
+  // "Pause on reply", Day 7 "Exit on button click").
+
+  // Exit the sequence if the lead sends ANY reply. Useful for "we're
+  // waiting to hear from you" steps — once they respond, stop chasing.
+  exitOnAnyReply: { type: Boolean, default: false },
+
+  // Exit if the reply body matches any of these keywords (case-insensitive,
+  // whole-message match after trim). Populated with things like ["STOP",
+  // "UNSUBSCRIBE"] to honour opt-outs, or ["YES", "BOOKED"] for goal words.
+  exitKeywords: [{ type: String, trim: true, lowercase: true }],
+
+  // Pause (do not exit) — flags the execution so an agent needs to resume.
+  // Use for questions: "Any questions we can help with?" → if they reply,
+  // don't blast the next drip on top; pause and route to human.
+  pauseOnReply: { type: Boolean, default: false },
+
+  // Mark this step's completion as the sequence's business goal (e.g. the
+  // "Book now" step in a nurture flow). When a lead exits via keyword or
+  // button after this step fires, engine credits the sequence with a goal.
+  isGoal: { type: Boolean, default: false },
 }, { _id: true });
 
 const AutomationSequenceSchema = new mongoose.Schema({
@@ -94,6 +120,11 @@ const AutomationSequenceSchema = new mongoose.Schema({
     failed: { type: Number, default: 0 },
     responded: { type: Number, default: 0 },
     activeRuns: { type: Number, default: 0 },
+    // Smart-branching outcomes — how many leads hit the goal step, opted
+    // out, or paused to an agent. Powers the "412x ROI" story per sequence.
+    goalReached: { type: Number, default: 0 },
+    optedOut: { type: Number, default: 0 },
+    pausedForAgent: { type: Number, default: 0 },
   },
 }, { timestamps: true });
 

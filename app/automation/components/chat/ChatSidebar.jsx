@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Search, Filter, MessageSquarePlus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { INBOX_FILTERS, CHANNEL_FILTERS } from './constants';
@@ -17,8 +18,30 @@ export default function ChatSidebar({
   searchResults,
   onSelectSearchResult,
   onSelect,
-  loading
+  loading,
+  hasMoreConversations,
+  loadingMoreConversations,
+  onLoadMoreConversations,
 }) {
+  // IntersectionObserver on a sentinel at the bottom of the list.
+  // When it scrolls into view, trigger loadMore. That's how the sidebar
+  // pages in older conversations without a "Load more" button.
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMoreConversations || loadingMoreConversations) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          onLoadMoreConversations?.();
+        }
+      },
+      { root: null, rootMargin: '200px 0px', threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMoreConversations, loadingMoreConversations, onLoadMoreConversations, conversations.length]);
+
   return (
     <aside className="flex flex-col h-full w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
       <div className="flex-shrink-0 p-3 border-b border-slate-100 dark:border-slate-800 space-y-3">
@@ -125,14 +148,34 @@ export default function ChatSidebar({
             <p className="text-xs text-slate-400 mt-1">Try a different filter or search term.</p>
           </div>
         ) : (
-          conversations.map((chat) => (
-            <ConversationItem
-              key={chat._id}
-              chat={chat}
-              active={selectedId === chat._id}
-              onClick={() => onSelect(chat)}
-            />
-          ))
+          <>
+            {conversations.map((chat) => (
+              <ConversationItem
+                key={chat._id}
+                chat={chat}
+                active={selectedId === chat._id}
+                onClick={() => onSelect(chat)}
+              />
+            ))}
+            {/* Sentinel — IntersectionObserver above triggers loadMore when this scrolls into view */}
+            {hasMoreConversations && (
+              <div ref={sentinelRef} className="flex items-center justify-center gap-2 py-4 text-xs text-slate-500">
+                {loadingMoreConversations ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                    <span>Loading older conversations…</span>
+                  </>
+                ) : (
+                  <span className="text-slate-400">Scroll for more</span>
+                )}
+              </div>
+            )}
+            {!hasMoreConversations && conversations.length > 20 && (
+              <div className="text-center py-4 text-[10px] text-slate-400 uppercase tracking-wider">
+                End of list · {conversations.length} conversations
+              </div>
+            )}
+          </>
         )}
       </div>
     </aside>

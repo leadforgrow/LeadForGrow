@@ -71,6 +71,9 @@ function ChatInboxContent() {
             setMobileView('chat');
           }}
           loading={inbox.loading}
+          hasMoreConversations={inbox.hasMoreConversations}
+          loadingMoreConversations={inbox.loadingMoreConversations}
+          onLoadMoreConversations={inbox.loadMoreConversations}
         />
       </div>
 
@@ -123,6 +126,7 @@ function ChatInboxContent() {
             {showTemplateBar ? (
               <OutOfWindowTemplateBar
                 leadName={inbox.selectedChat?.leadId?.name}
+                lead={inbox.selectedChat?.leadId}
                 onSend={(template) =>
                   inbox.sendMessage('', { template })
                 }
@@ -166,6 +170,7 @@ function ChatInboxContent() {
         onAssign={inbox.assignChat}
         onAddNote={inbox.addNote}
         onToggleLabel={inbox.toggleLabel}
+        onUpdateFollowUp={inbox.updateLeadFollowUp}
       />
 
       {profileOpen && inbox.selectedChat && (
@@ -181,6 +186,7 @@ function ChatInboxContent() {
           onAssign={inbox.assignChat}
           onAddNote={inbox.addNote}
           onToggleLabel={inbox.toggleLabel}
+          onUpdateFollowUp={inbox.updateLeadFollowUp}
           onClose={() => setProfileOpen(false)}
         />
       )}

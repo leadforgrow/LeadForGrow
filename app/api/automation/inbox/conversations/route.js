@@ -22,7 +22,9 @@ async function handler(req) {
     const favorite = searchParams.get('favorite') === 'true';
     const assignedTo = searchParams.get('assignedTo');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(50, parseInt(searchParams.get('limit') || '30', 10));
+    // 50 per page — matches infinite-scroll sentinel in ChatSidebar.
+    // Cap at 200 to guard against pathological clients requesting everything.
+    const limit = Math.min(200, parseInt(searchParams.get('limit') || '50', 10));
     const skip = (page - 1) * limit;
 
     await dbConnect();
@@ -76,24 +78,37 @@ async function handler(req) {
 
     if (andClauses.length) query.$and = andClauses;
 
+    // countDocuments on a big Conversation collection is the second-biggest
+    // cost after the sync — only compute it on page 1 (infinite scroll uses
+    // hasMore = returned.length === limit, not the exact total). Later pages
+    // reuse the client-cached count.
+    const listQuery = Conversation.find(query)
+      .populate('leadId', 'name phone email status priority assignedTo whatsappId')
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('contactId', 'firstName lastName email phones')
+      .populate('companyId', 'name')
+      .populate('dealId', 'title amount stage')
+      .sort({ isPinned: -1, lastMessageAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
     const [conversations, total] = await Promise.all([
-      Conversation.find(query)
-        .populate('leadId', 'name phone email status priority assignedTo whatsappId')
-        .populate('assignedTo', 'firstName lastName email')
-        .populate('contactId', 'firstName lastName email phones')
-        .populate('companyId', 'name')
-        .populate('dealId', 'title amount stage')
-        .sort({ isPinned: -1, lastMessageAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Conversation.countDocuments(query),
+      listQuery,
+      page === 1 ? Conversation.countDocuments(query) : Promise.resolve(null),
     ]);
 
+    const hasMore = conversations.length === limit;
     return NextResponse.json({
       success: true,
       data: conversations,
-      pagination: { total, page, limit, pages: Math.ceil(total / limit) },
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: total != null ? Math.ceil(total / limit) : null,
+        hasMore,
+      },
     });
   } catch (error) {
     console.error('[Inbox API] conversations:', error);
