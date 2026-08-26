@@ -15,6 +15,24 @@ const UserSchema = new mongoose.Schema({
     },
   },
 
+  // Set when the login endpoint detects that the user's current password
+  // (verified via bcrypt.compare) no longer satisfies the current password
+  // policy. When true, the frontend must send the user to /rotate-password
+  // and refuse to hand them a normal session until they update. Cleared by
+  // the /api/auth/rotate-password endpoint on successful rotation.
+  //
+  // Distinct from a forced expiry — we don't nag users on every login; we
+  // set it once when they FIRST come back after we tightened the policy,
+  // then leave them alone.
+  mustRotatePassword: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  passwordUpdatedAt: {
+    type: Date,
+  },
+
   // Google OAuth
   authProvider: {
     type: String,

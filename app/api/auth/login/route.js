@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/rateLimit";
 import { logAuthEvent } from "@/lib/auditLog";
+import { evaluatePassword } from "@/lib/security/passwordPolicy";
 
 async function loginHandler(req) {
   try {
@@ -23,6 +24,24 @@ async function loginHandler(req) {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
+    }
+
+    // Force-rotate flow: this is the ONE spot where we have the user's
+    // plaintext password (it just verified). Check it against the current
+    // policy — if it's weak (grandfathered from before we tightened rules),
+    // set the flag so the frontend can gate them into a rotation screen.
+    // Skipped for Google OAuth users (no password to rotate).
+    let mustRotatePassword = user.mustRotatePassword === true;
+    if (user.authProvider !== 'google') {
+      const pwCheck = evaluatePassword(password, { email: user.email });
+      if (!pwCheck.ok && !mustRotatePassword) {
+        try {
+          await User.updateOne({ _id: user._id }, { $set: { mustRotatePassword: true } });
+        } catch (err) {
+          console.warn('[Login] failed to persist mustRotatePassword flag:', err.message);
+        }
+        mustRotatePassword = true;
+      }
     }
 
     // Fetch PRIMARY Business information first
@@ -82,6 +101,9 @@ async function loginHandler(req) {
         token: accessToken,
         refreshToken,
         expiresIn,
+        // Flag consumed by the client — when true, the user is redirected to
+        // /rotate-password before they can access the app.
+        mustRotatePassword,
       }
     });
   } catch (error) {

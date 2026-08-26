@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import User from '@/models/User';
 import { withRateLimit } from '@/lib/rateLimit';
+import { evaluatePassword } from '@/lib/security/passwordPolicy';
 
 async function resetPasswordHandler(req) {
   try {
@@ -12,12 +13,6 @@ async function resetPasswordHandler(req) {
     if (!token || typeof token !== 'string') {
       return NextResponse.json({ success: false, error: 'Reset token required' }, { status: 400 });
     }
-    if (!password || password.length < 8) {
-      return NextResponse.json(
-        { success: false, error: 'Password must be at least 8 characters' },
-        { status: 400 }
-      );
-    }
 
     await dbConnect();
 
@@ -25,13 +20,24 @@ async function resetPasswordHandler(req) {
     const user = await User.findOne({
       resetPasswordTokenHash: tokenHash,
       resetPasswordExpiresAt: { $gt: new Date() },
-    }).select('+resetPasswordTokenHash +resetPasswordExpiresAt');
+    }).select('+resetPasswordTokenHash +resetPasswordExpiresAt +email');
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Reset link is invalid or has expired. Please request a new one.' },
         { status: 400 }
       );
+    }
+
+    // Same policy as signup — reset must not be a weaker gate. Pass email
+    // as context so "prefix in password" checks work.
+    const pwCheck = evaluatePassword(password, { email: user.email });
+    if (!pwCheck.ok) {
+      return NextResponse.json({
+        success: false,
+        error: pwCheck.failures[0]?.message || 'Password does not meet security requirements.',
+        passwordFailures: pwCheck.failures,
+      }, { status: 400 });
     }
 
     user.password = await bcrypt.hash(password, 10);

@@ -146,7 +146,7 @@ export function useSequencesWorkspace() {
     setSelectedNodeId(null);
     historyRef.current = { past: [], future: [] };
     setWorkspaceMode('editor');
-    setBuilderTab('builder');
+    setBuilderTab('simple');
     loadExecutions(seq._id);
   };
 
@@ -189,7 +189,7 @@ export function useSequencesWorkspace() {
     setSelectedId(null);
     setWizardStep(1);
     setWorkspaceMode('editor');
-    setBuilderTab('builder');
+    setBuilderTab('simple');
   };
 
   const saveSequence = async (activate = false) => {

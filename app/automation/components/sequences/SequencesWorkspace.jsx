@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, ArrowLeft, Save, Play, Layers, BarChart3, Activity, FlaskConical, Copy, ClipboardPaste, Settings, ShieldCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, Save, Play, Layers, BarChart3, Activity, FlaskConical, Copy, ClipboardPaste, Settings, ShieldCheck, ListChecks } from 'lucide-react';
 import PageLoader from '../PageLoader';
 import { useSequencesWorkspace } from '../../hooks/useSequencesWorkspace';
 import SequencesHomeView from './SequencesHomeView';
@@ -12,13 +12,17 @@ import SequenceAnalytics from './SequenceAnalytics';
 import ExecutionLogs from './ExecutionLogs';
 import SequenceWorkflowSettings from './SequenceWorkflowSettings';
 import ApprovalQueue from './ApprovalQueue';
+import SimpleEditView from './SimpleEditView';
 
+// Simple edit is FIRST — most non-technical SMB customers want to edit 3
+// messages, not build a graph. Advanced users can still switch to Builder.
 const TABS = [
-  { id: 'builder', label: 'Builder', icon: Layers },
-  { id: 'settings', label: 'Trigger & A/B', icon: Settings },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'logs', label: 'Execution logs', icon: Activity },
-  { id: 'approvals', label: 'Approvals', icon: ShieldCheck },
+  { id: 'simple',    label: 'Simple edit',   icon: ListChecks },
+  { id: 'builder',   label: 'Builder',       icon: Layers },
+  { id: 'settings',  label: 'Trigger & A/B', icon: Settings },
+  { id: 'analytics', label: 'Analytics',     icon: BarChart3 },
+  { id: 'logs',      label: 'Execution logs',icon: Activity },
+  { id: 'approvals', label: 'Approvals',     icon: ShieldCheck },
 ];
 
 export default function SequencesWorkspace() {
@@ -148,6 +152,16 @@ export default function SequencesWorkspace() {
 
       {/* Content */}
       <div className="flex-1 p-4 min-h-0">
+        {ws.builderTab === 'simple' && (
+          <SimpleEditView
+            nodes={ws.draftNodes}
+            edges={ws.draftEdges}
+            onUpdateNode={ws.updateNode}
+            onReplaceGraph={(nodes, edges) => { ws.setDraftNodes(nodes); ws.setDraftEdges(edges); }}
+            onSwitchToBuilder={() => ws.setBuilderTab('builder')}
+            onSaveDraft={() => ws.saveSequence(false)}
+          />
+        )}
         {ws.builderTab === 'builder' && (
           <div className="flex gap-3 h-[calc(100vh-180px)] min-h-[480px]">
             <NodeSidebar onAddNode={ws.addNode} />
