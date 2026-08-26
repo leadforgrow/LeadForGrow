@@ -26,6 +26,14 @@ export default function AccessControl({ children }) {
           if (data.success) {
             plan = data.data.plan || plan;
             localStorage.setItem('userPlan', plan);
+            // Force-rotate gate — if the user closed the browser mid-rotation
+            // and came back with a still-valid access token, /me tells us the
+            // server flag is still set. Bounce them back to /rotate-password
+            // before rendering any authenticated content.
+            if (data.data.mustRotatePassword) {
+              router.replace('/rotate-password');
+              return;
+            }
           }
         } catch { /* use cached plan */ }
       }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Building2, ArrowRight, Eye, Briefcase, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, Building2, ArrowRight, Eye, Briefcase, ChevronLeft, Check, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AuthIllustrationPanel, AuthFormShell, AUTH } from './AuthLayout';
+import { evaluatePassword, PASSWORD_POLICY } from '@/lib/security/passwordPolicy';
 
 const GOOGLE_ERRORS = {
   google_cancelled: 'Google sign-in was cancelled.',
@@ -54,6 +55,14 @@ function AuthDivider() {
 }
 
 function redirectAfterAuth(router, data) {
+  // Weak-password rotation gate — set by the login endpoint when the just-
+  // verified password fails the current policy. Users are grandfathered in
+  // from before the policy change; we send them to a rotation screen ONCE
+  // before dropping them into the app.
+  if (data.mustRotatePassword) {
+    router.push('/rotate-password');
+    return;
+  }
   const role = (data.role || 'member').toLowerCase();
   const plan = data.business.plan.toLowerCase();
   if (role.includes('owner') || role.includes('admin')) {
@@ -126,9 +135,6 @@ export function LoginPage() {
         <p className="mt-8 text-center text-sm text-[#64748B]">
           New here? <Link href="/register" className="text-emerald-700 font-semibold hover:text-emerald-800">Create account</Link>
         </p>
-        <p className="mt-6 text-center text-xs text-[#94A3B8]">
-          <Link href="/magic-link" className="hover:text-emerald-700">Sign in with magic link</Link>
-        </p>
       </AuthFormShell>
     </div>
   );
@@ -146,8 +152,19 @@ export function RegisterPage() {
     return <LoginPage />;
   }
 
+  // Live password evaluation feeds the strength meter, the requirements
+  // checklist, and the submit-disabled state. Server re-validates too — this
+  // is UX, not security.
+  const pwCheck = useMemo(
+    () => evaluatePassword(form.password, { email: form.email, name: form.companyName }),
+    [form.password, form.email, form.companyName],
+  );
+  const passwordsMatch = form.password && form.password === form.confirmPassword;
+  const canSubmit = form.companyName && form.email && pwCheck.ok && passwordsMatch && !loading;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!pwCheck.ok) return toast.error(pwCheck.failures[0]?.message || 'Password does not meet requirements');
     if (form.password !== form.confirmPassword) return toast.error('Passwords do not match');
     setLoading(true);
     try {
@@ -192,8 +209,14 @@ export function RegisterPage() {
           <Field icon={Building2} label={accountType === 'agency' ? 'Agency name' : 'Business name'} value={form.companyName} onChange={(v) => setForm({ ...form, companyName: v })} />
           <Field icon={Mail} label="Work email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
           <Field icon={Lock} label="Password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={(v) => setForm({ ...form, password: v })} togglePassword={() => setShowPassword(!showPassword)} showToggle />
+          {form.password && <PasswordStrengthPanel result={pwCheck} />}
           <Field icon={Lock} label="Confirm password" type={showPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={(v) => setForm({ ...form, confirmPassword: v })} />
-          <SubmitButton loading={loading} label="Create account" />
+          {form.confirmPassword && !passwordsMatch && (
+            <p className="text-xs text-red-600 -mt-3 flex items-center gap-1">
+              <X className="w-3 h-3" /> Passwords don&apos;t match
+            </p>
+          )}
+          <SubmitButton loading={loading} label="Create account" disabled={!canSubmit} />
         </form>
         <p className="mt-8 text-center text-sm text-[#64748B]">
           Already have an account? <Link href="/login" className="text-emerald-700 font-semibold">Sign in</Link>
@@ -271,10 +294,14 @@ export function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
+  const pwCheck = useMemo(() => evaluatePassword(form.password), [form.password]);
+  const passwordsMatch = form.password && form.password === form.confirm;
+  const canSubmit = pwCheck.ok && passwordsMatch && !loading && token;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!pwCheck.ok) return toast.error(pwCheck.failures[0]?.message || 'Password does not meet requirements');
     if (form.password !== form.confirm) return toast.error('Passwords do not match');
-    if (form.password.length < 8) return toast.error('Password must be at least 8 characters');
     if (!token) return toast.error('Reset link is invalid. Please request a new one.');
     setLoading(true);
     try {
@@ -303,8 +330,14 @@ export function ResetPasswordPage() {
       <AuthFormShell title="Set new password" subtitle="Choose a strong password you haven't used before.">
         <form onSubmit={handleSubmit} className="space-y-5">
           <Field icon={Lock} label="New password" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} />
+          {form.password && <PasswordStrengthPanel result={pwCheck} />}
           <Field icon={Lock} label="Confirm password" type="password" value={form.confirm} onChange={(v) => setForm({ ...form, confirm: v })} />
-          <SubmitButton loading={loading} label="Update password" />
+          {form.confirm && !passwordsMatch && (
+            <p className="text-xs text-red-600 -mt-3 flex items-center gap-1">
+              <X className="w-3 h-3" /> Passwords don&apos;t match
+            </p>
+          )}
+          <SubmitButton loading={loading} label="Update password" disabled={!canSubmit} />
         </form>
       </AuthFormShell>
     </div>
@@ -445,10 +478,69 @@ function Field({ icon: Icon, label, type = 'text', value, onChange, togglePasswo
   );
 }
 
-function SubmitButton({ loading, label }) {
+function SubmitButton({ loading, label, disabled }) {
   return (
-    <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-60">
+    <button type="submit" disabled={loading || disabled} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-60 disabled:cursor-not-allowed">
       {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>{label} <ArrowRight className="w-5 h-5" /></>}
     </button>
+  );
+}
+
+/**
+ * PasswordStrengthPanel — live meter + requirements checklist.
+ *
+ * Renders under the password field once the user starts typing. The meter
+ * shows overall strength (weak/fair/strong/excellent) and each requirement
+ * gets a green check or red cross so the user can see exactly what's still
+ * missing without hunting through error messages.
+ */
+function PasswordStrengthPanel({ result }) {
+  const strengthColor = {
+    weak: 'bg-red-500',
+    fair: 'bg-amber-500',
+    strong: 'bg-emerald-500',
+    excellent: 'bg-emerald-600',
+  }[result.strength];
+  const strengthLabel = {
+    weak: 'Weak',
+    fair: 'Fair',
+    strong: 'Strong',
+    excellent: 'Excellent',
+  }[result.strength];
+
+  const items = [
+    { ok: result.checks.minLength, label: `At least ${PASSWORD_POLICY.minLength} characters` },
+    { ok: result.checks.classesMet, label: `Mix of ${PASSWORD_POLICY.requiredClasses}+: uppercase, lowercase, number, symbol` },
+    { ok: result.checks.notCommon, label: 'Not a known breach-list password' },
+    { ok: result.checks.notContainingIdentity, label: "Doesn't contain your email or name" },
+    { ok: result.checks.notTrivialRepeat, label: 'No trivial patterns (aaaa, 1234…)' },
+  ];
+
+  return (
+    <div className="-mt-3 mb-1 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex gap-1">
+          {[1, 2, 3, 4].map((tick) => (
+            <div
+              key={tick}
+              className={`h-1.5 flex-1 rounded ${tick <= result.score ? strengthColor : 'bg-slate-200 dark:bg-slate-700'}`}
+            />
+          ))}
+        </div>
+        <span className={`text-xs font-semibold min-w-[64px] text-right ${
+          result.strength === 'weak' ? 'text-red-600'
+            : result.strength === 'fair' ? 'text-amber-600'
+              : 'text-emerald-700'
+        }`}>{strengthLabel}</span>
+      </div>
+      <ul className="text-[11px] space-y-0.5">
+        {items.map((item) => (
+          <li key={item.label} className={`flex items-center gap-1.5 ${item.ok ? 'text-emerald-700' : 'text-slate-500'}`}>
+            {item.ok ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 text-slate-400" />}
+            <span>{item.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

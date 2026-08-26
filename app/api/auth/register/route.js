@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { getDefaultLimitsForTier } from "@/lib/agency/planResolver";
 import { withRateLimit } from "@/lib/rateLimit";
+import { evaluatePassword } from "@/lib/security/passwordPolicy";
 
 async function registerHandler(req) {
   try {
@@ -17,12 +18,20 @@ async function registerHandler(req) {
       return NextResponse.json({ success: false, error: "Email and password are required" }, { status: 400 });
     }
 
-    if (password.length < 8) {
-      return NextResponse.json({ success: false, error: "Password must be at least 8 characters" }, { status: 400 });
-    }
-    
     if (!companyName) {
       return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
+    }
+
+    // Enforce strong-password policy — see lib/security/passwordPolicy.js.
+    // Never trust the client's check: even with the meter and inline
+    // requirements, someone can hit this endpoint directly with "123456".
+    const pwCheck = evaluatePassword(password, { email, name: companyName });
+    if (!pwCheck.ok) {
+      return NextResponse.json({
+        success: false,
+        error: pwCheck.failures[0]?.message || 'Password does not meet security requirements.',
+        passwordFailures: pwCheck.failures,
+      }, { status: 400 });
     }
 
     const existingUser = await User.findOne({ email });
