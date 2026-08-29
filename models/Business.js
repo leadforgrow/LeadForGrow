@@ -261,6 +261,20 @@ const IntegrationCredentialsSchema = new mongoose.Schema({
     lastSyncAt: { type: Date },
     lastVerified: { type: Date },
     webhookStatus: { type: String, enum: ['active', 'pending', 'error'], default: 'pending' },
+  },
+
+  // Bring-Your-Own-Razorpay — each business connects their own Razorpay
+  // account. Money moves directly from customer's card/UPI to the
+  // business's bank via Razorpay, never through LFG. That keeps LFG out of
+  // Payment Aggregator (PA) licence territory: we generate links using
+  // their keys, we never hold funds. keySecret is stored encrypted at rest
+  // (see lib/encryption.js — same pattern as Meta apiKey).
+  razorpay: {
+    enabled: { type: Boolean, default: false },
+    keyId: { type: String, trim: true },       // rzp_live_… or rzp_test_… — public-ish, ok in cleartext
+    keySecret: { type: String },               // ENCRYPTED at rest by lib/encryption before save
+    webhookSecret: { type: String },           // for the optional /api/webhooks/razorpay auto-reconciliation
+    lastVerified: { type: Date }
   }
 }, { _id: false });
 
@@ -282,6 +296,22 @@ const BusinessSchema = new mongoose.Schema({
   logo: {
     type: String
   },
+
+  // Bill-header / customer-facing info. Set once in Settings → Bill Header,
+  // auto-rendered on every bill PDF. Address is a single string (multi-line
+  // via \n) rather than structured (street/city/state/pin) — small businesses
+  // want to type it the way they say it, and the PDF just prints it verbatim.
+  phone: { type: String, trim: true },
+  email: { type: String, trim: true, lowercase: true },
+  address: { type: String, trim: true },
+  gstin: { type: String, trim: true, uppercase: true },
+
+  // Per-year sequence counter for Bill numbers (e.g. billCounter.2026 = 3).
+  // Must be declared here — an undeclared path is silently dropped by
+  // Mongoose's strict mode, which would make every $inc a no-op and every
+  // generated bill number collide on the unique index.
+  billCounter: { type: mongoose.Schema.Types.Mixed, default: {} },
+
 
   // Ownership
   ownerId: {

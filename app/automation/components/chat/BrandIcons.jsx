@@ -6,12 +6,15 @@
  * inbox and chat surfaces show the actual product logo everyone recognises.
  */
 
-export function WhatsAppIcon({ className = '', size = 12, ...rest }) {
+export function WhatsAppIcon({ className = '', size, ...rest }) {
+  // Only set explicit width/height attrs when `size` is passed. When it isn't,
+  // sizing falls to whatever className the caller provides (e.g. `w-5 h-5`
+  // from the sidebar) — same escape hatch Lucide icons rely on.
+  const sizeAttrs = size != null ? { width: size, height: size } : {};
   return (
     <svg
       viewBox="0 0 24 24"
-      width={size}
-      height={size}
+      {...sizeAttrs}
       fill="currentColor"
       className={className}
       aria-hidden="true"
@@ -22,12 +25,77 @@ export function WhatsAppIcon({ className = '', size = 12, ...rest }) {
   );
 }
 
-export function InstagramIcon({ className = '', size = 12, ...rest }) {
+/**
+ * Monochrome envelope-with-M variant — used in nav / cluster contexts where
+ * the multi-colour Gmail logo would fight the surrounding icons. Uses
+ * currentColor so it inherits the nav's slate (or active-state tone).
+ */
+export function GmailMonoIcon({ className = '', size, ...rest }) {
+  const sizeAttrs = size != null ? { width: size, height: size } : {};
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      {...sizeAttrs}
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+      {...rest}
+    >
+      {/* Simple Icons Gmail mono path — envelope with the trapezoid M inside */}
+      <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
+    </svg>
+  );
+}
+
+/**
+ * InboxChannelsIcon — three mini brand marks (WhatsApp / Instagram / Gmail)
+ * clustered as one nav icon. Renders monochrome via currentColor so it
+ * matches every other sidebar icon at rest and picks up the active tone
+ * when the user is on the Inbox page. Purely visual; no interaction.
+ *
+ * Sized like a Lucide icon — accepts `className` for width/height and
+ * inherits colour from the parent's text-color, same escape hatch the rest
+ * of the brand icons use.
+ */
+export function InboxChannelsIcon({ className = '' }) {
+  return (
+    <span className={`inline-flex items-center ${className}`} aria-hidden="true">
+      <span className="relative flex items-center -space-x-[3px]">
+        <WhatsAppIcon size={11} />
+        <InstagramIcon size={11} />
+        <GmailMonoIcon size={11} />
+      </span>
+    </span>
+  );
+}
+
+export function GmailIcon({ className = '', size = 12, ...rest }) {
+  // Multi-colour Gmail M — the trapezoid + coloured "M" mark, drawn without
+  // currentColor so it renders in Google's actual palette even on dark hero.
   return (
     <svg
       viewBox="0 0 24 24"
       width={size}
       height={size}
+      className={className}
+      aria-hidden="true"
+      {...rest}
+    >
+      <path fill="#4285F4" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
+      <path fill="#34A853" d="M5.455 21.003V11.73L0 7.638v11.729c0 .904.732 1.636 1.636 1.636z" />
+      <path fill="#FBBC04" d="M18.545 21.003V11.73l5.455-4.093v11.729c0 .904-.732 1.636-1.636 1.636z" />
+      <path fill="#EA4335" d="M18.545 4.638v7.093L24 7.637V5.457c0-2.024-2.31-3.178-3.927-1.965z" />
+      <path fill="#C5221F" d="M0 7.637l5.455 4.093V4.639L3.928 3.493C2.309 2.28 0 3.434 0 5.457z" />
+    </svg>
+  );
+}
+
+export function InstagramIcon({ className = '', size, ...rest }) {
+  const sizeAttrs = size != null ? { width: size, height: size } : {};
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      {...sizeAttrs}
       fill="currentColor"
       className={className}
       aria-hidden="true"

@@ -26,11 +26,33 @@ import {
   Map,
   Activity,
   Workflow,
+  Receipt,
+  Columns3,   // Deal Pipeline — visually different from Sequences' branch icon
+  Route,      // Sequences — journey/path implies multi-step drip
+  Brain,      // AI Knowledge — knowledge base ≠ Help Center's guidance
+  Compass,    // Guide — navigation/find-your-way, replaces old BookOpen dup
+  Inbox,      // Inbox — literal tray shape, cleaner than a cramped brand cluster
 } from 'lucide-react';
+// Real brand mark — WhatsApp Templates uses the actual WhatsApp mark in
+// monochrome (via currentColor) so users recognise the shape without the
+// green fighting the rest of the nav.
+import { WhatsAppIcon } from '../chat/BrandIcons';
 
 export const SIDEBAR_WIDTH = {
   expanded: 260,
   collapsed: 72
+};
+
+// Per-group tone. Every nav icon stays monochrome slate at REST — the tone
+// only activates when the item is the current page, tinting the icon +
+// left stripe + soft background. Adds category-level colour without turning
+// the sidebar into a rainbow (see Sidebar design notes in the help center).
+export const NAV_GROUP_TONES = {
+  crm:      'blue',     // Dashboard, Leads, Deals, Bills — core CRM surface
+  main:     'emerald',  // Communication — WhatsApp / Inbox / Broadcasts
+  insights: 'violet',   // Reports & analytics — insight = deeper thinking
+  settings: 'slate',    // Settings — deliberately monochrome, keeps admin quiet
+  help:     'blue',     // Support — links back to main product tone
 };
 
 export const NAV_GROUPS = [
@@ -42,7 +64,8 @@ export const NAV_GROUPS = [
       { id: 'leads', name: 'Leads', href: '/automation/leads', icon: Users, badgeKey: 'unreadLeads', urgent: true },
       { id: 'pipeline', name: 'Lead Pipeline', href: '/automation/leads?view=kanban', icon: Kanban, matchPrefix: '/automation/leads' },
       { id: 'deals', name: 'Deals', href: '/automation/deals', icon: Handshake, matchPrefix: '/automation/deals' },
-      { id: 'deal-pipeline', name: 'Deal Pipeline', href: '/automation/pipelines', icon: GitBranch, matchPrefix: '/automation/pipelines' },
+      { id: 'deal-pipeline', name: 'Deal Pipeline', href: '/automation/pipelines', icon: Columns3, matchPrefix: '/automation/pipelines' },
+      { id: 'bills', name: 'Bills', href: '/automation/bills', icon: Receipt, matchPrefix: '/automation/bills' },
       { id: 'tasks', name: 'Tasks', href: '/automation/tasks', icon: CheckSquare, badgeKey: 'overdueTasks', urgent: true },
       { id: 'companies', name: 'Companies', href: '/automation/companies', icon: Building2, matchPrefix: '/automation/companies' },
       { id: 'contacts', name: 'Contacts', href: '/automation/contacts', icon: UserCircle, matchPrefix: '/automation/contacts' },
@@ -56,12 +79,12 @@ export const NAV_GROUPS = [
         id: 'inbox',
         name: 'Inbox',
         href: '/automation/chat',
-        icon: MessagesSquare,
+        icon: Inbox,
         badgeKey: 'unreadChats',
         permission: ['dashboard_access', 'reports_access']
       },
       { id: 'rules', name: 'Automation Rules', href: '/automation/automation-rules', icon: SlidersHorizontal, badgeKey: 'activeAutomations', dot: 'live' },
-      { id: 'sequences', name: 'Sequences', href: '/automation/sequences', icon: GitBranch },
+      { id: 'sequences', name: 'Sequences', href: '/automation/sequences', icon: Route },
       { id: 'whatsapp-flows', name: 'WhatsApp Flows', href: '/automation/whatsapp-flows', icon: Workflow, matchPrefix: '/automation/whatsapp-flows' },
       { id: 'broadcasts', name: 'Broadcasts', href: '/automation/broadcasts', icon: Send },
       { id: 'journeys', name: 'Customer Journeys', href: '/automation/journeys', icon: Map },
@@ -73,7 +96,7 @@ export const NAV_GROUPS = [
         matchPrefix: '/automation/meetings'
       },
       { id: 'templates', name: 'Templates', href: '/automation/templates', icon: FileText },
-      { id: 'whatsapp-templates', name: 'WhatsApp Templates', href: '/automation/whatsapp-templates', icon: MessagesSquare, matchPrefix: '/automation/whatsapp-templates' },
+      { id: 'whatsapp-templates', name: 'WhatsApp Templates', href: '/automation/whatsapp-templates', icon: WhatsAppIcon, matchPrefix: '/automation/whatsapp-templates' },
       { id: 'chatbot', name: 'Chatbot', href: '/automation/chatbot', icon: Bot },
       { id: 'forms', name: 'Forms', href: '/automation/forms', icon: FileInput, role: 'owner' },
       { id: 'call-recovery', name: 'Call Recovery', href: '/automation/call-integration', icon: PhoneCall }
@@ -87,7 +110,7 @@ export const NAV_GROUPS = [
       { id: 'reports', name: 'Reports', href: '/automation/reports', icon: BarChart3 },
       { id: 'automation-analytics', name: 'Automation Analytics', href: '/automation/automation-analytics', icon: Activity },
       { id: 'events', name: 'Events & Sessions', href: '/automation/events', icon: CalendarDays, badgeKey: 'activeEvents', dot: 'live' },
-      { id: 'ai-knowledge', name: 'AI Knowledge', href: '/automation/ai/knowledge', icon: BookOpen, role: 'owner' },
+      { id: 'ai-knowledge', name: 'AI Knowledge', href: '/automation/ai/knowledge', icon: Brain, role: 'owner' },
       { id: 'ai-settings', name: 'AI Settings', href: '/automation/settings/ai', icon: Sparkles, role: 'owner' },
     ]
   },
@@ -99,6 +122,13 @@ export const NAV_GROUPS = [
       { id: 'team', name: 'Team & Permissions', href: '/automation/settings/team-permissions', icon: UserCog, role: 'owner' },
       { id: 'integrations', name: 'Integrations', href: '/automation/settings/integrations', icon: Plug, role: 'owner' },
       { id: 'crm-settings', name: 'Settings', href: '/automation/settings', icon: Settings, role: 'owner', exact: true }
+    ]
+  },
+  {
+    id: 'help',
+    label: 'Support',
+    items: [
+      { id: 'help-center', name: 'Guide', href: '/help', icon: Compass, matchPrefix: '/help' },
     ]
   }
 ];

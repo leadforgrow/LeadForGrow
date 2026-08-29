@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  MessageCircle, Mail, Instagram, Clock, Plus, Trash2, GitBranch, Info, Layers,
-  ChevronUp, ChevronDown,
+  Clock, Plus, Trash2, GitBranch, Info, Layers,
+  ChevronUp, ChevronDown, Check,
 } from 'lucide-react';
 import { createNode } from '@/lib/sequences/constants';
+import { WhatsAppIcon, InstagramIcon, GmailMonoIcon } from '@/app/automation/components/chat/BrandIcons';
 
 /**
  * SimpleEditView — the non-graph editor for linear sequences.
@@ -163,7 +164,6 @@ function StepCard({
   onChangeChannel, onDelete, onMoveUp, onMoveDown, onInsertAfter,
 }) {
   const channel = nodeTypeToChannel(step.sendNode.type);
-  const { Icon, label, chipClass } = CHANNEL_META[channel] || CHANNEL_META.whatsapp;
   const message = step.sendNode.data?.message || step.sendNode.data?.body || '';
   const subject = step.sendNode.data?.subject || '';
   const delayHours = step.delayNode?.data?.delayHours ?? 0;
@@ -180,17 +180,11 @@ function StepCard({
           <Clock className="w-3 h-3" /> {delayLabel}
         </div>
 
-        {/* Channel selector — swaps the node type in one click */}
-        <select
-          value={channel}
-          onChange={(e) => onChangeChannel(e.target.value)}
-          className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded border-0 cursor-pointer ${chipClass}`}
-          title="Change channel"
-        >
-          <option value="whatsapp">📱 WhatsApp</option>
-          <option value="email">📧 Email</option>
-          <option value="instagram_dm">📸 Instagram DM</option>
-        </select>
+        {/* Channel selector — custom dropdown because native <select> can't
+            render SVG icons inside <option>. Also removes the ALL-CAPS
+            "WHATSAPP" that the previous chip's `uppercase` class produced. */}
+        <ChannelPicker channel={channel} onChange={onChangeChannel} />
+
 
         <div className="ml-auto flex items-center gap-0.5">
           <button
@@ -321,11 +315,79 @@ function BranchingBadges({ data }) {
   );
 }
 
+// Real brand marks (WhatsApp / Instagram from BrandIcons.jsx, Gmail from the
+// mono envelope variant) — chip label uses proper case, not shouty ALL CAPS.
 const CHANNEL_META = {
-  whatsapp:     { Icon: MessageCircle, label: 'WhatsApp',     chipClass: 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300' },
-  email:        { Icon: Mail,          label: 'Email',        chipClass: 'text-violet-700 bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300' },
-  instagram_dm: { Icon: Instagram,     label: 'Instagram DM', chipClass: 'text-pink-700 bg-pink-100 dark:bg-pink-950/40 dark:text-pink-300' },
+  whatsapp:     { Icon: WhatsAppIcon,   label: 'WhatsApp',     chipClass: 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300' },
+  email:        { Icon: GmailMonoIcon,  label: 'Email',        chipClass: 'text-violet-700 bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300' },
+  instagram_dm: { Icon: InstagramIcon,  label: 'Instagram DM', chipClass: 'text-pink-700 bg-pink-100 dark:bg-pink-950/40 dark:text-pink-300' },
 };
+
+/**
+ * ChannelPicker — custom dropdown that replaces the native <select> so we
+ * can render real WhatsApp / Instagram / Gmail marks inside each option
+ * (native <option> only renders plain text). Closes on outside-click or
+ * Escape, keyboard-accessible via the trigger button.
+ */
+function ChannelPicker({ channel, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleDoc = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const handleKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', handleDoc);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleDoc);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [open]);
+
+  const meta = CHANNEL_META[channel] || CHANNEL_META.whatsapp;
+  const Icon = meta.Icon;
+
+  const options = ['whatsapp', 'email', 'instagram_dm'];
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold ${meta.chipClass} hover:opacity-90 cursor-pointer`}
+        title="Change channel"
+      >
+        <Icon className="w-3 h-3" />
+        {meta.label}
+        <ChevronDown className="w-3 h-3 opacity-70" />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-20 min-w-[160px] rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg py-1">
+          {options.map((opt) => {
+            const optMeta = CHANNEL_META[opt];
+            const OptIcon = optMeta.Icon;
+            const selected = opt === channel;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => { onChange(opt); setOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 ${selected ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}
+              >
+                <OptIcon className={`w-3.5 h-3.5 ${selected ? '' : 'opacity-70'}`} />
+                <span className="flex-1">{optMeta.label}</span>
+                {selected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function channelToNodeType(channel) {
   if (channel === 'email') return 'send_email';

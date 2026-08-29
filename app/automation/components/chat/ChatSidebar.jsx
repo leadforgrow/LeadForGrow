@@ -1,10 +1,22 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Search, Filter, MessageSquarePlus, Loader2 } from 'lucide-react';
+import { Search, Filter, MessageSquarePlus, Loader2, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { INBOX_FILTERS, CHANNEL_FILTERS } from './constants';
 import ConversationItem from './ConversationItem';
+import { WhatsAppIcon, InstagramIcon, GmailMonoIcon } from './BrandIcons';
+
+// Real brand marks for the channel filter pills. Rendered at inline size
+// (12px) with the pill's text colour via currentColor — active pill turns
+// them white against emerald, inactive pill keeps them slate. LayoutGrid
+// is the neutral "all channels" mark.
+const CHANNEL_ICONS = {
+  all: LayoutGrid,
+  whatsapp: WhatsAppIcon,
+  instagram: InstagramIcon,
+  email: GmailMonoIcon,
+};
 
 export default function ChatSidebar({
   conversations,
@@ -93,20 +105,28 @@ export default function ChatSidebar({
           )}
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
-          {CHANNEL_FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => onChannelFilterChange(f.id)}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md whitespace-nowrap transition-colors ${
-                channelFilter === f.id
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {CHANNEL_FILTERS.map((f) => {
+            const Icon = CHANNEL_ICONS[f.id] || LayoutGrid;
+            const active = channelFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => onChannelFilterChange(f.id)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md whitespace-nowrap transition-colors ${
+                  active
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Icon
+                  className={active ? 'text-white' : 'text-slate-500 dark:text-slate-400'}
+                  size={12}
+                />
+                {f.label}
+              </button>
+            );
+          })}
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
           {INBOX_FILTERS.map((f) => (

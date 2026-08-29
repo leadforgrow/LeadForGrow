@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   GitBranch, Plus, Play, Users, CheckCircle2, Zap, Trash2, ChevronRight, Search, Pause,
-  Folder, FolderOpen, Star, MoreHorizontal, Copy, Archive
+  Folder, FolderOpen, Star, Pencil, Copy, Archive
 } from 'lucide-react';
+import ConfirmDialog from '../shared/ConfirmDialog';
 
 const STATUS_STYLES = {
   active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
@@ -18,10 +20,10 @@ export default function SequencesHomeView({
   folders = [], activeFolderId, onFolderSelect, onCreateFolder, onRenameFolder, onDeleteFolder, onMoveToFolder,
   onDuplicate, onArchive, onToggleFolderFavorite,
 }) {
-  const handleNewFolder = () => {
-    const name = window.prompt('Folder name');
-    if (name) onCreateFolder?.(name);
-  };
+  const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [renameFolderTarget, setRenameFolderTarget] = useState(null); // folder object or null
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState(null); // folder object or null
+  const [deleteSeqTarget, setDeleteSeqTarget] = useState(null); // sequence object or null
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -51,7 +53,7 @@ export default function SequencesHomeView({
         <aside className="hidden lg:block w-52 shrink-0">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Folders</p>
-            <button type="button" onClick={handleNewFolder} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
+            <button type="button" onClick={() => setNewFolderOpen(true)} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
               <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -71,32 +73,37 @@ export default function SequencesHomeView({
                 <button
                   type="button"
                   onClick={() => onFolderSelect?.(folder._id)}
-                  className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                  className={`flex-1 min-w-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
                     activeFolderId === folder._id ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40' : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900'
                   }`}
                 >
                   <Folder className="w-4 h-4 shrink-0" />
                   <span className="truncate">{folder.name}</span>
-                  {folder.isFavorite && <Star className="w-3 h-3 text-amber-500 ml-auto" />}
+                  {folder.isFavorite && <Star className="w-3 h-3 text-amber-500 ml-auto shrink-0" />}
                 </button>
                 <button
                   type="button"
                   onClick={() => onToggleFolderFavorite?.(folder._id, !folder.isFavorite)}
-                  className={`p-1 opacity-0 group-hover:opacity-100 ${folder.isFavorite ? 'text-amber-500 opacity-100' : 'text-slate-400'}`}
+                  className={`shrink-0 p-1 opacity-0 group-hover:opacity-100 ${folder.isFavorite ? 'text-amber-500 opacity-100' : 'text-slate-400'}`}
                   title="Favorite"
                 >
                   <Star className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const action = window.prompt('Rename folder or type DELETE', folder.name);
-                    if (action === 'DELETE') onDeleteFolder?.(folder._id);
-                    else if (action) onRenameFolder?.(folder._id, action);
-                  }}
-                  className="p-1 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600"
+                  onClick={() => setRenameFolderTarget(folder)}
+                  className="shrink-0 p-1 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-600"
+                  title="Rename folder"
                 >
-                  <MoreHorizontal className="w-3.5 h-3.5" />
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteFolderTarget(folder)}
+                  className="shrink-0 p-1 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500"
+                  title="Delete folder"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
@@ -216,7 +223,7 @@ export default function SequencesHomeView({
                       </button>
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${seq.name}"?`)) onDelete(seq._id); }}
+                        onClick={(e) => { e.stopPropagation(); setDeleteSeqTarget(seq); }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-500"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -229,6 +236,47 @@ export default function SequencesHomeView({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={newFolderOpen}
+        mode="prompt"
+        title="New folder"
+        placeholder="Folder name"
+        required
+        confirmLabel="Create"
+        onConfirm={(name) => { onCreateFolder?.(name); setNewFolderOpen(false); }}
+        onCancel={() => setNewFolderOpen(false)}
+      />
+      <ConfirmDialog
+        open={!!renameFolderTarget}
+        mode="prompt"
+        title="Rename folder"
+        defaultValue={renameFolderTarget?.name || ''}
+        required
+        confirmLabel="Rename"
+        onConfirm={(name) => { onRenameFolder?.(renameFolderTarget._id, name); setRenameFolderTarget(null); }}
+        onCancel={() => setRenameFolderTarget(null)}
+      />
+      <ConfirmDialog
+        open={!!deleteFolderTarget}
+        mode="confirm"
+        title="Delete folder?"
+        message={`"${deleteFolderTarget?.name}" will be removed. Sequences inside it are not deleted, just unfiled.`}
+        confirmLabel="Delete folder"
+        danger
+        onConfirm={() => { onDeleteFolder?.(deleteFolderTarget._id); setDeleteFolderTarget(null); }}
+        onCancel={() => setDeleteFolderTarget(null)}
+      />
+      <ConfirmDialog
+        open={!!deleteSeqTarget}
+        mode="confirm"
+        title="Delete sequence?"
+        message={`"${deleteSeqTarget?.name}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        onConfirm={() => { onDelete(deleteSeqTarget._id); setDeleteSeqTarget(null); }}
+        onCancel={() => setDeleteSeqTarget(null)}
+      />
     </div>
   );
 }

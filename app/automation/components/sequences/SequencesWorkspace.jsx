@@ -13,6 +13,7 @@ import ExecutionLogs from './ExecutionLogs';
 import SequenceWorkflowSettings from './SequenceWorkflowSettings';
 import ApprovalQueue from './ApprovalQueue';
 import SimpleEditView from './SimpleEditView';
+import ConfirmDialog from '../shared/ConfirmDialog';
 
 // Simple edit is FIRST — most non-technical SMB customers want to edit 3
 // messages, not build a graph. Advanced users can still switch to Builder.
@@ -110,7 +111,7 @@ export default function SequencesWorkspace() {
             {ws.selectedId && (
               <button
                 type="button"
-                onClick={ws.runTestMode}
+                onClick={ws.openTestMode}
                 disabled={ws.saving}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-50 disabled:opacity-50"
               >
@@ -196,6 +197,19 @@ export default function SequencesWorkspace() {
         )}
         {ws.builderTab === 'approvals' && <ApprovalQueue />}
       </div>
+
+      <ConfirmDialog
+        open={ws.testModeOpen}
+        mode="prompt"
+        title="Test this sequence"
+        message="Enter a lead ID to run the sequence against (debug mode — no messages are actually sent to the customer)."
+        placeholder="Lead ID"
+        required
+        confirmLabel="Run test"
+        saving={ws.saving}
+        onConfirm={ws.runTestMode}
+        onCancel={() => ws.setTestModeOpen(false)}
+      />
     </div>
   );
 }
