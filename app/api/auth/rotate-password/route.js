@@ -34,11 +34,14 @@ async function rotateHandler(req) {
       return NextResponse.json({ success: false, error: 'Current and new password are required' }, { status: 400 });
     }
 
-    const user = await User.findById(userId).select('+password email authProvider mustRotatePassword');
+    // Fetch full doc — mixing `+password` with a comma-less field list in
+    // Mongoose used to work but is finicky; safer to fetch everything and
+    // let the code below just use what it needs.
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
-    if (user.authProvider === 'google') {
+    if (user.authProvider === 'google' || !user.password) {
       return NextResponse.json({ success: false, error: 'Google-authenticated accounts have no password to rotate' }, { status: 400 });
     }
 
@@ -78,8 +81,16 @@ async function rotateHandler(req) {
 
     return NextResponse.json({ success: true, message: 'Password updated. Please sign in again with your new password.' });
   } catch (error) {
+    // Endpoint is authenticated so leaking the specific error message to the
+    // caller is safe (only the user themselves can trigger this path). Makes
+    // 500s debuggable from DevTools without needing Vercel log access.
     console.error('[Rotate Password]', error);
-    return NextResponse.json({ success: false, error: 'Something went wrong' }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: 'Password update failed',
+      detail: error?.message || String(error),
+      where: error?.stack?.split('\n')[1]?.trim() || null,
+    }, { status: 500 });
   }
 }
 

@@ -30,7 +30,9 @@ export default function AccessControl({ children }) {
             // and came back with a still-valid access token, /me tells us the
             // server flag is still set. Bounce them back to /rotate-password
             // before rendering any authenticated content.
-            if (data.data.mustRotatePassword) {
+            // Skip Google-auth users: they have no password to rotate, and
+            // /rotate-password would crash bcrypt on undefined password.
+            if (data.data.mustRotatePassword && data.data.authProvider !== 'google') {
               router.replace('/rotate-password');
               return;
             }
