@@ -81,16 +81,8 @@ async function rotateHandler(req) {
 
     return NextResponse.json({ success: true, message: 'Password updated. Please sign in again with your new password.' });
   } catch (error) {
-    // Endpoint is authenticated so leaking the specific error message to the
-    // caller is safe (only the user themselves can trigger this path). Makes
-    // 500s debuggable from DevTools without needing Vercel log access.
     console.error('[Rotate Password]', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Password update failed',
-      detail: error?.message || String(error),
-      where: error?.stack?.split('\n')[1]?.trim() || null,
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Something went wrong' }, { status: 500 });
   }
 }
 
