@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import GlobalDialer from './components/GlobalDialer';
 import ReminderMonitor from './components/ReminderMonitor';
 import BusinessAssistantRoot from './components/assistant/BusinessAssistantRoot';
+import NotificationsHost from './components/NotificationsHost';
 
 export const metadata = {
   title: 'Automation - LeadForGrow',
@@ -29,6 +30,10 @@ export default function AutomationLayout({ children }) {
 
           <GlobalDialer />
           <ReminderMonitor />
+          {/* Invisible — subscribes to real-time and plays sounds + shows
+              browser notifications on new lead / message events. Global so
+              it works from any page, not just Inbox. */}
+          <NotificationsHost />
         </div>
       </BusinessAssistantRoot>
       <UpgradeGateModal />

@@ -7,6 +7,7 @@ import { authFetch, getUserId } from '@/lib/apiClient';
 import { computeLeadIntelligence, aggregateSourceStats } from '@/lib/leadIntelligence';
 import { buildLeadsQuery, getStatusRowColor, validateStageTransition } from '../components/leads/utils';
 import { SAVED_VIEWS_KEY } from '../components/leads/constants';
+import { useRealtime, REALTIME_EVENTS } from './useRealtime';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -129,6 +130,24 @@ export function useLeadsWorkspace() {
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
+
+  // Real-time refresh — when a new lead lands (webhook, form, ad) or an
+  // existing lead updates (status change, message received, tag added), the
+  // Leads workspace was refreshing only on manual page reload. Now we
+  // subscribe to Redis-backed events and silently refetch the list so the
+  // grid stays fresh without a full loading spinner.
+  useRealtime({
+    onEvent: useCallback((event) => {
+      if (
+        event.type === REALTIME_EVENTS.LEAD_UPDATED ||
+        event.type === REALTIME_EVENTS.LEAD_ASSIGNED ||
+        event.type === REALTIME_EVENTS.CHAT_MESSAGE
+      ) {
+        // silent = true → no loading spinner flash, just swap the data in
+        fetchLeads(true);
+      }
+    }, [fetchLeads]),
+  });
 
   const sourceStats = useMemo(() => aggregateSourceStats(leads), [leads]);
 

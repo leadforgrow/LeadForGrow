@@ -85,6 +85,21 @@ export async function POST(req) {
         bill.paymentLink.paidAt = new Date();
       }
       await bill.save();
+
+      // Real-time cash-register moment — pop a notification on the owner's
+      // laptop the second the payment lands. Best-effort; a failed emit
+      // must never break the webhook (Razorpay will retry on non-200).
+      try {
+        const { emitBillPaid } = await import('@/lib/realtime/publish');
+        emitBillPaid(business._id, {
+          billId: String(bill._id),
+          billNumber: bill.billNumber,
+          amount: bill.total,
+          customerName: bill.customerName,
+        }).catch(() => {});
+      } catch (err) {
+        console.warn('[Razorpay webhook] emitBillPaid failed:', err.message);
+      }
     } else if (event === 'payment_link.cancelled') {
       if (bill.paymentLink) bill.paymentLink.status = 'cancelled';
       await bill.save();
