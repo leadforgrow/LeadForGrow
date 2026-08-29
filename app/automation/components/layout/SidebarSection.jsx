@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SidebarItem from './SidebarItem';
-import { isNavItemActive } from './constants';
+import { isNavItemActive, NAV_GROUP_TONES } from './constants';
 
 export default function SidebarSection({
   group,
@@ -21,6 +21,10 @@ export default function SidebarSection({
     return stats[item.badgeKey] || 0;
   };
 
+  // Category tone — used only when an item is the active page, so the icon
+  // tints to signal WHERE you are without colouring the whole nav.
+  const groupTone = NAV_GROUP_TONES[group.id] || 'slate';
+
   if (collapsed) {
     return (
       <div className="space-y-0.5">
@@ -33,6 +37,7 @@ export default function SidebarSection({
             badgeCount={getBadge(item)}
             onNavigate={onNavigate}
             onLockedClick={onLockedClick}
+            tone={groupTone}
           />
         ))}
       </div>
@@ -64,6 +69,7 @@ export default function SidebarSection({
               badgeCount={getBadge(item)}
               onNavigate={onNavigate}
               onLockedClick={onLockedClick}
+              tone={groupTone}
             />
           ))}
         </div>

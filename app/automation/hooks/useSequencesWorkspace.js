@@ -34,6 +34,7 @@ export function useSequencesWorkspace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [folders, setFolders] = useState([]);
   const [activeFolderId, setActiveFolderId] = useState(null);
+  const [testModeOpen, setTestModeOpen] = useState(false);
   const historyRef = useRef({ past: [], future: [] });
   const clipboardRef = useRef(null);
 
@@ -316,9 +317,12 @@ export function useSequencesWorkspace() {
     toast.success('Node pasted');
   };
 
-  const runTestMode = async () => {
+  const openTestMode = () => {
     if (!selectedId) return toast.error('Save sequence first');
-    const leadId = window.prompt('Enter lead ID to test with:');
+    setTestModeOpen(true);
+  };
+
+  const runTestMode = async (leadId) => {
     if (!leadId) return;
     try {
       setSaving(true);
@@ -332,6 +336,7 @@ export function useSequencesWorkspace() {
       toast.success(`Test run complete — ${data.data.logs?.length || 0} steps`);
       setExecutions([data.data]);
       setBuilderTab('logs');
+      setTestModeOpen(false);
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -355,6 +360,11 @@ export function useSequencesWorkspace() {
     }
   };
 
+  // Folder mutations update local state directly from the server response
+  // rather than relying only on a background fetchFolders() re-fetch — a
+  // slow/in-flight re-fetch racing a Turbopack recompile could otherwise
+  // resolve with stale data and leave a deleted/renamed folder showing
+  // until the next full page load.
   const createFolder = async (name) => {
     if (!name?.trim()) return;
     const res = await authFetch('/api/automation/folders', {
@@ -365,6 +375,7 @@ export function useSequencesWorkspace() {
     const data = await res.json();
     if (data.success) {
       toast.success('Folder created');
+      setFolders((prev) => [...prev, data.data]);
       fetchFolders();
     } else toast.error(data.error);
   };
@@ -378,6 +389,7 @@ export function useSequencesWorkspace() {
     const data = await res.json();
     if (data.success) {
       toast.success('Folder renamed');
+      setFolders((prev) => prev.map((f) => (f._id === id ? data.data : f)));
       fetchFolders();
     } else toast.error(data.error);
   };
@@ -388,6 +400,7 @@ export function useSequencesWorkspace() {
     if (data.success) {
       if (activeFolderId === id) setActiveFolderId(null);
       toast.success('Folder deleted');
+      setFolders((prev) => prev.filter((f) => f._id !== id));
       fetchFolders();
       fetchSequences();
     } else toast.error(data.error);
@@ -455,7 +468,10 @@ export function useSequencesWorkspace() {
       body: JSON.stringify({ isFavorite }),
     });
     const data = await res.json();
-    if (data.success) fetchFolders();
+    if (data.success) {
+      setFolders((prev) => prev.map((f) => (f._id === id ? data.data : f)));
+      fetchFolders();
+    }
   };
 
   const selectedNode = draftNodes.find((n) => n.id === selectedNodeId) || null;
@@ -471,7 +487,7 @@ export function useSequencesWorkspace() {
     startWizard, openEditor, finishWizard, saveSequence, deleteSequence,
     fetchSequences, loadExecutions, updateNode, addNode, removeNode, duplicateNode,
     connectNodes, moveNode, undo, redo, setDraftNodes, setDraftEdges,
-    copySelection, pasteSelection, runTestMode, toggleEnabled,
+    copySelection, pasteSelection, openTestMode, runTestMode, testModeOpen, setTestModeOpen, toggleEnabled,
     templates: SEQUENCE_TEMPLATES,
   };
 }

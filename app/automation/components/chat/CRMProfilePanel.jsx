@@ -11,6 +11,7 @@ import {
   CheckSquare,
   MessageSquare,
   History,
+  Receipt,
 } from 'lucide-react';
 import StatusBadge from '../leads/StatusBadge';
 import LeadScoreBadge from '../leads/LeadScoreBadge';
@@ -243,6 +244,24 @@ export default function CRMProfilePanel({
               </span>
             ))}
           </div>
+
+          {/* Create bill quick action — pre-fills the bill editor with the
+              lead's name + phone so it's a one-click flow from chat to bill. */}
+          <Link
+            href={{
+              pathname: '/automation/bills',
+              query: {
+                new: '1',
+                name: lead.name || conv?.participantName || '',
+                phone: lead.phone || '',
+                email: lead.email || '',
+                leadId: lead._id || '',
+              },
+            }}
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-900/60 hover:bg-emerald-100 dark:hover:bg-emerald-950/60"
+          >
+            <Receipt className="w-3.5 h-3.5" /> Create bill for this customer
+          </Link>
         </div>
 
         {labels.length > 0 && onToggleLabel && (
