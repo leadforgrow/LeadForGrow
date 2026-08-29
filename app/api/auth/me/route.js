@@ -50,7 +50,10 @@ export const GET = withAuth()(async (req) => {
         // Weak-password rotation flag — surfaced here so a session that was
         // established BEFORE we tightened the policy can still be redirected
         // to /rotate-password when the client next queries /me (i.e. app boot).
+        // authProvider lets the AccessControl gate skip Google users (they
+        // have no password to rotate — rotate-password would crash bcrypt).
         mustRotatePassword: user.mustRotatePassword === true,
+        authProvider: user.authProvider || 'local',
         // API key is sensitive — only workspace owners/admins may see it
         ...(['owner', 'admin', 'super', 'agency_owner', 'CLIENT_ADMIN'].includes(user.role)
           ? { apiKey: business.apiKey }
