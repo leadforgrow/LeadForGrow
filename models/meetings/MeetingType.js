@@ -63,10 +63,40 @@ const MeetingTypeSchema = new mongoose.Schema(
     automationRules: {
       whatsappConfirmation: { type: Boolean, default: true },
       whatsappConfirmationTemplate: { type: String, trim: true },
+      // Meta-approved template used outside the 24h customer-care window
+      whatsappConfirmationTemplateName: { type: String, trim: true },
+      whatsappConfirmationTemplateLanguage: { type: String, default: 'en' },
+
       whatsappReminder: { type: Boolean, default: true },
       whatsappReminderMinutes: { type: Number, default: 30 },
       whatsappReminderTemplate: { type: String, trim: true },
+      whatsappReminderTemplateName: { type: String, trim: true },
+      whatsappReminderTemplateLanguage: { type: String, default: 'en' },
+
       emailReminder: { type: Boolean, default: true },
+      emailConfirmationTemplate: { type: String, trim: true },
+      emailReminderTemplate: { type: String, trim: true },
+
+      // Multi-step sequence of "join the meeting" reminders before startTime.
+      // Empty/undefined => a sensible default (24h, 1h, 15m) is used.
+      reminderSchedule: {
+        type: [
+          {
+            label: { type: String, trim: true },
+            minutesBefore: { type: Number, required: true },
+            whatsapp: { type: Boolean, default: true },
+            email: { type: Boolean, default: true },
+            whatsappTemplateName: { type: String, trim: true },
+            whatsappTemplateLanguage: { type: String, default: 'en' },
+            whatsappMessageTemplate: { type: String, trim: true },
+            emailSubject: { type: String, trim: true },
+            emailBodyTemplate: { type: String, trim: true },
+            _id: false,
+          },
+        ],
+        default: undefined,
+      },
+
       followUpSequenceId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AutomationSequence',

@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import mongoose from 'mongoose';
 
-function loadEnvLocal() {
-  const raw = fs.readFileSync(path.resolve(process.cwd(), '.env.local'), 'utf8');
+function loadEnvFile(fileName) {
+  const p = path.resolve(process.cwd(), fileName);
+  if (!fs.existsSync(p)) return;
+  const raw = fs.readFileSync(p, 'utf8');
   for (const line of raw.split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
     if (m && !process.env[m[1]]) {
@@ -13,7 +15,8 @@ function loadEnvLocal() {
     }
   }
 }
-loadEnvLocal();
+loadEnvFile('.env.local');
+loadEnvFile('.env');
 
 const { default: User } = await import('@/models/User');
 const { default: Business } = await import('@/models/Business');
@@ -22,8 +25,12 @@ const { default: WhatsAppFlow } = await import('@/models/automation/WhatsAppFlow
 await mongoose.connect(process.env.MONGODB_URI, { bufferCommands: false });
 
 console.log('=== ALL BUSINESSES ===');
-const all = await Business.find({}).select('name _id ownerId plan').lean();
-all.forEach((b) => console.log(`  ${b.name}  | _id=${b._id} | owner=${b.ownerId} | plan=${b.plan}`));
+const all = await Business.find({}).select('businessName _id ownerId plan status').lean();
+all.forEach((b) =>
+  console.log(
+    `  ${b.businessName || '(no name)'}  | _id=${b._id} | owner=${b.ownerId} | plan=${b.plan} | status=${b.status}`
+  )
+);
 
 console.log('\n=== USERS with email leadforgrow ===');
 const users = await User.find({ email: /leadforgrow/i }).select('email _id businessId agencyId role').lean();
