@@ -3,6 +3,10 @@ import { dbConnect } from '@/lib/mongodb';
 import Form from '@/models/Form';
 import { ingestLead } from '@/lib/leadProcessor';
 import { linkConsentToLead } from '@/lib/consent/server';
+import {
+  ensureMasterContactFormBinding,
+  isMasterContactFormToken,
+} from '@/lib/publicForms.server';
 
 // Utility for CORS headers
 const corsHeaders = {
@@ -40,6 +44,20 @@ export const POST = withRateLimit(5, 60, async function (request) {
     }
 
     await dbConnect();
+
+    // For the reserved LeadForGrow "master" token, self-heal the Form <-> Business
+    // binding so leadforgrow.com submissions always land in the LeadForGrow inbox,
+    // even if the DB was seeded/imported from another environment.
+    if (isMasterContactFormToken(token)) {
+      const healed = await ensureMasterContactFormBinding(token);
+      if (healed.status === 'repointed' || healed.status === 'created') {
+        console.log(`[Form Submit] Master token binding ${healed.status} to LeadForGrow business.`);
+      } else if (healed.status === 'missing_business') {
+        console.error(
+          '[Form Submit] Cannot self-heal master contact form: LeadForGrow business not found.'
+        );
+      }
+    }
 
     // 1. Resolve Form and Business via token
     console.log('[Form Submit Debug] Received token:', token);
@@ -109,14 +127,32 @@ export const POST = withRateLimit(5, 60, async function (request) {
   } catch (error) {
     console.error('[Form Submission API] Error:', error);
 
-    // Generic error message for public security
-    return NextResponse.json({
-      success: false,
-      error: 'Submission failed. Please try again later.'
-    }, {
-      status: 500,
-      headers: corsHeaders
-    });
+    // Known ingestLead failures map to clear 4xx responses instead of a generic 500.
+    const msg = error?.message || '';
+    const knownClientErrors = [
+      'Workspace not found',
+      'Business is inactive',
+      'Agency is inactive or not found',
+      'Monthly lead limit reached',
+      'Agency monthly lead limit reached',
+      'Lead must have either email or phone number',
+    ];
+    if (knownClientErrors.includes(msg)) {
+      return NextResponse.json(
+        { success: false, error: msg },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // In non-production, surface the real error to speed up debugging.
+    const isProd = process.env.NODE_ENV === 'production';
+    return NextResponse.json(
+      {
+        success: false,
+        error: isProd ? 'Submission failed. Please try again later.' : msg || 'Submission failed.',
+      },
+      { status: 500, headers: corsHeaders }
+    );
   }
 });
 
