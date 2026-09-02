@@ -39,6 +39,9 @@ async function handler(req) {
       templateLanguage,
       templateHeaderMediaUrl,
       templateVariables,
+      // Multi-user email: composer's From-picker sends this so the sender
+      // resolver in sendChannelEmail can pick the right mailbox.
+      emailAccountId,
     } = body;
 
     const hasMedia = !!mediaUrl;
@@ -147,6 +150,8 @@ async function handler(req) {
         bcc,
         attachments,
         isHtml: !!bodyHtml,
+        emailAccountId,      // explicit picker choice, if any
+        userId: user.userId, // enables the "user's default" fallback
       });
       if (!emailResult.success) {
         return NextResponse.json({ success: false, error: emailResult.error }, { status: 500 });

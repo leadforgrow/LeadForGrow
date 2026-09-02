@@ -30,8 +30,28 @@ const MessageSchema = new mongoose.Schema({
   isInternal: { type: Boolean, default: false },
   starred: { type: Boolean, default: false },
   replyToMessageId: String,
+
+  // Which mailbox sent or received this message. Populated for channel='email'.
+  // Nullable so pre-multi-user rows keep loading; new writes populate it.
+  emailAccountId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'EmailAccount',
+    index: true,
+  },
   emailThreadId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailThread' },
   subject: String,
+
+  // RFC 2822 threading headers. `inReplyTo` is the parent's Message-ID; used
+  // by the IMAP sync worker to fold an inbound reply into the correct thread.
+  // Sparse index — most rows (WhatsApp, Instagram) leave it null.
+  inReplyTo: { type: String, trim: true, index: { sparse: true } },
+  references: [{ type: String, trim: true }],
+
+  // Extra headers we may want later (List-Unsubscribe, X-Provider-*, etc.).
+  // Stored as a Map so we don't have to touch the schema every time we add
+  // one; kept optional to keep row size sane on non-email channels.
+  headers: { type: Map, of: String },
+
   messageId: {
     type: String,
     required: true,
@@ -67,6 +87,19 @@ const MessageSchema = new mongoose.Schema({
     default: 'received'
   },
   folder: { type: String, enum: ['inbox', 'sent', 'drafts', 'trash', 'starred'], index: true },
+
+  // Provenance — who/what caused this message to be sent. Used by the inbox
+  // filter chip so agents can toggle between "human conversation" view and
+  // "everything including automated sends." Nullable-ish (default 'user') so
+  // pre-existing rows don't need a backfill to load; a one-line updateMany
+  // covers old data if we ever want strict enum enforcement.
+  origin: {
+    type: String,
+    enum: ['user', 'automation', 'sequence', 'broadcast', 'meeting', 'system'],
+    default: 'user',
+    index: true,
+  },
+
   scheduledAt: Date,
   isDeleted: { type: Boolean, default: false },
   rawMetadata: mongoose.Schema.Types.Mixed

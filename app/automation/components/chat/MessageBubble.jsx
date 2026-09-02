@@ -3,9 +3,11 @@
 import { memo, useState } from 'react';
 import {
   Check, CheckCheck, Clock, StickyNote, Download, FileText, AlertCircle,
+  Star, Trash2, RotateCcw,
 } from 'lucide-react';
 import { formatFileSize } from '@/lib/omnichannel/mediaTypes';
 import { decodeMetaError, extractErrorCode } from '@/lib/whatsapp/metaErrors';
+import { ORIGIN_META } from './constants';
 
 function MediaContent({ message }) {
   const { type, content } = message;
@@ -59,7 +61,7 @@ function MediaContent({ message }) {
   return null;
 }
 
-function MessageBubble({ message }) {
+function MessageBubble({ message, onAction }) {
   if (message.isInternal) {
     return (
       <div className="flex justify-center my-2">
@@ -108,7 +110,33 @@ function MessageBubble({ message }) {
   }
 
   return (
-    <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'} mb-[3px] px-1`}>
+    <div className={`group flex ${outgoing ? 'justify-end' : 'justify-start'} mb-[3px] px-1`}>
+      {/* Hover actions — floating icons that appear next to the bubble.
+          Placed OUTSIDE the bubble so they don't shift the message layout.
+          Star turns amber when active. Trash flips to Restore for isDeleted
+          messages so the Trash folder view stays interactive. */}
+      {onAction && (
+        <div
+          className={`opacity-0 group-hover:opacity-100 transition-opacity self-center flex flex-col gap-0.5 mx-1 ${outgoing ? 'order-first' : 'order-last'}`}
+        >
+          <button
+            type="button"
+            onClick={() => onAction(message._id, message.starred ? 'unstar' : 'star')}
+            className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 ${message.starred ? 'text-amber-500' : 'text-slate-400'}`}
+            title={message.starred ? 'Remove star' : 'Star message'}
+          >
+            <Star className="w-3.5 h-3.5" fill={message.starred ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onAction(message._id, message.isDeleted ? 'restore' : 'trash')}
+            className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 ${message.isDeleted ? 'text-blue-500' : 'text-slate-400 hover:text-rose-600'}`}
+            title={message.isDeleted ? 'Restore from trash' : 'Move to trash'}
+          >
+            {message.isDeleted ? <RotateCcw className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      )}
       <div className={`relative max-w-[75%] pl-2.5 pr-2 py-1.5 text-sm shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] ${bubbleClass}`}>
         {/* WhatsApp bubble tail */}
         <span
@@ -126,6 +154,19 @@ function MessageBubble({ message }) {
             </span>
           </div>
         )}
+        {/* Provenance pill — small, unobtrusive, only for non-human messages.
+            Tells agents at a glance whether a send was manual or automated. */}
+        {(() => {
+          const meta = ORIGIN_META[message.origin];
+          if (!meta) return null;
+          return (
+            <span
+              className={`inline-block text-[9px] font-semibold uppercase tracking-wider border rounded px-1.5 py-[1px] mb-1 mr-1 ${meta.bg}`}
+            >
+              {meta.label}
+            </span>
+          );
+        })()}
         {message.subject && message.type === 'email' && (
           <p className="text-xs font-semibold mb-1 text-[#111b21]/80 dark:text-[#e9edef]/80">{message.subject}</p>
         )}

@@ -22,6 +22,7 @@ import {
   LayoutGrid,
   Globe,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 
 export const SETTINGS_GROUPS = [
@@ -38,6 +39,7 @@ export const SETTINGS_GROUPS = [
     id: 'integrations',
     label: 'Integrations',
     items: [
+      { id: 'email-accounts', label: 'Email Accounts', href: '/automation/settings/email', icon: Mail },
       { id: 'integrations-hub', label: 'App Marketplace', href: '/automation/settings/integrations', icon: Plug }
     ]
   },
@@ -110,6 +112,7 @@ export const SECTION_COLORS = {
 
 export const SETTINGS_HUB_CARDS = [
   { id: 'general', href: '/automation/settings/general', icon: Building2, color: 'blue', title: 'General', description: 'Business profile, workspace preferences, and branding', count: 3 },
+  { id: 'email-accounts', href: '/automation/settings/email', icon: Mail, color: 'cyan', title: 'Email Accounts', description: 'Connect your Gmail or Hostinger mailbox to send & receive from the Unified Inbox', count: 1 },
   { id: 'integrations', href: '/automation/settings/integrations', icon: Plug, color: 'cyan', title: 'Integrations', description: 'Connect WhatsApp, Meta Ads, Stripe, Zapier, and 20+ apps', count: 25 },
   { id: 'admin', href: '/automation/settings/team-permissions', icon: ShieldCheck, color: 'indigo', title: 'Team & Permissions', description: 'Enterprise access control, roles, usage limits, and audit logs', count: 7 },
   { id: 'team', href: '/automation/settings/team', icon: Users, color: 'indigo', title: 'Team Management', description: 'Invite users and manage members', count: 2 },

@@ -121,6 +121,39 @@ const BusinessSettingsSchema = new mongoose.Schema({
     }
   },
 
+  // Email Auto-Reply (SLA safety net).
+  // When a customer emails us and no human replies within `thresholdMinutes`,
+  // the system sends a polite holding message so the lead knows we saw it.
+  // Deliberately narrow — commits to nothing, just acknowledges + sets an
+  // expectation. Real AI-generated answers are a follow-up (behind an
+  // explicit flag) because hallucinations on outbound customer email are
+  // brand-damaging in a way inbound triage isn't.
+  emailAutoReply: {
+    enabled: { type: Boolean, default: false },
+    thresholdMinutes: { type: Number, default: 5, min: 1, max: 240 },
+    template: {
+      type: String,
+      default:
+        'Hi {{name}},\n\nThanks for your email — we\'ve got your message and someone from {{businessName}} will get back with a detailed answer shortly.\n\nIf it\'s urgent, feel free to reply here or reach us on WhatsApp.\n\nBest,\n{{businessName}} Team',
+    },
+    // Guardrails — every one prevents a certain type of embarrassment.
+    guardrails: {
+      // Skip auto-reply outside business hours — customer expects delay
+      // then anyway, so a "we'll get back to you" mid-night looks weird.
+      businessHoursOnly: { type: Boolean, default: true },
+      // Skip if the incoming message contains any of these strings (case-insensitive).
+      // Angry/sensitive words → don't auto-reply, escalate to human.
+      skipKeywords: {
+        type: [String],
+        default: ['angry', 'refund', 'cancel', 'complaint', 'lawyer', 'sue', 'terrible', 'awful'],
+      },
+      // Only auto-reply once per conversation. Prevents infinite AI-vs-customer ping-pong.
+      onePerConversation: { type: Boolean, default: true },
+    },
+    lastRunAt: { type: Date },
+    totalSent: { type: Number, default: 0 },
+  },
+
   // Website Chatbot Widget
   chatbot: {
     enabled: { type: Boolean, default: true },

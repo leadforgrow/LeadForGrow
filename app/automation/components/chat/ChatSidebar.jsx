@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Search, Filter, MessageSquarePlus, Loader2, LayoutGrid } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Search, Filter, MessageSquarePlus, Loader2, LayoutGrid, Volume2, VolumeX } from 'lucide-react';
 import Link from 'next/link';
 import { INBOX_FILTERS, CHANNEL_FILTERS } from './constants';
 import ConversationItem from './ConversationItem';
@@ -34,7 +34,21 @@ export default function ChatSidebar({
   hasMoreConversations,
   loadingMoreConversations,
   onLoadMoreConversations,
+  realtimeConnected = false,
 }) {
+  // Sound preference lives in localStorage — persists per browser without
+  // needing a backend column. Default off so we don't ambush users with
+  // audio on first load; they opt-in via the speaker icon in the header.
+  const [soundOn, setSoundOn] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try { return localStorage.getItem('lfg_inbox_sound') === '1'; }
+    catch { return false; }
+  });
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    try { localStorage.setItem('lfg_inbox_sound', next ? '1' : '0'); } catch { /* private mode */ }
+  };
   // IntersectionObserver on a sentinel at the bottom of the list.
   // When it scrolls into view, trigger loadMore. That's how the sidebar
   // pages in older conversations without a "Load more" button.
@@ -58,14 +72,39 @@ export default function ChatSidebar({
     <aside className="flex flex-col h-full w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
       <div className="flex-shrink-0 p-3 border-b border-slate-100 dark:border-slate-800 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-50">Unified Inbox</h1>
-          <Link
-            href="/automation/leads/new"
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600"
-            title="New lead"
-          >
-            <MessageSquarePlus className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-50">Unified Inbox</h1>
+            {/* Live indicator: pulsing green dot when SSE is connected,
+                grey static dot when disconnected. Silent — users don't need
+                to know the mechanism, just whether it's live. */}
+            <span
+              title={realtimeConnected ? 'Live — receiving new messages in real time' : 'Reconnecting…'}
+              className="inline-flex items-center"
+            >
+              <span className={`relative inline-flex w-2 h-2 rounded-full ${realtimeConnected ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                {realtimeConnected && (
+                  <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-500 opacity-60 animate-ping" />
+                )}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              title={soundOn ? 'Mute new-message sound' : 'Play sound on new messages'}
+            >
+              {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+            <Link
+              href="/automation/leads/new"
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600"
+              title="New lead"
+            >
+              <MessageSquarePlus className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

@@ -21,6 +21,10 @@ async function handler(req) {
     const pinned = searchParams.get('pinned') === 'true';
     const favorite = searchParams.get('favorite') === 'true';
     const assignedTo = searchParams.get('assignedTo');
+    // `origin` filter — the inbox "Automated" chip sends this. Value is one
+    // of user|automation|sequence|broadcast|meeting|system, OR the special
+    // 'automated' shortcut which matches everything except 'user'.
+    const origin = searchParams.get('origin');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     // 50 per page — matches infinite-scroll sentinel in ChatSidebar.
     // Cap at 200 to guard against pathological clients requesting everything.
@@ -54,6 +58,21 @@ async function handler(req) {
     else if (status === 'unassigned') query.assignedTo = null;
 
     if (label) query['labels.name'] = label;
+
+    if (origin === 'automated') {
+      // Anything not user-composed — the "everything the system sent" view.
+      query.lastMessageOrigin = { $in: ['automation', 'sequence', 'broadcast', 'meeting'] };
+    } else if (origin === 'user') {
+      // Explicit "human conversations only" — treats missing origin (old
+      // rows) as user by convention.
+      query.$or = [
+        { lastMessageOrigin: 'user' },
+        { lastMessageOrigin: { $exists: false } },
+      ];
+    } else if (origin) {
+      // Specific origin (automation | sequence | broadcast | meeting | system).
+      query.lastMessageOrigin = origin;
+    }
 
     if (search) {
       const leads = await Lead.find({

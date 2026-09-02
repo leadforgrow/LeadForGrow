@@ -78,7 +78,12 @@ export function useSidebar() {
       if (convRes?.ok) {
         const convJson = await convRes.json();
         if (convJson.success) {
-          const unread = (convJson.data || []).filter((c) => c.unreadCount > 0 || c.status === 'unread').length;
+          // `c.status` values are open/closed/spam/archived — NOT 'unread'.
+          // The correct field is `inboxStatus` (unread/read/intervened).
+          // The old filter never matched, so the badge stayed at 0 forever.
+          const unread = (convJson.data || []).filter(
+            (c) => c.unreadCount > 0 || c.inboxStatus === 'unread'
+          ).length;
           setStats((prev) => ({ ...prev, unreadChats: unread }));
         }
       }
