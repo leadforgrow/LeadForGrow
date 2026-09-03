@@ -41,6 +41,14 @@ const ConversationSchema = new mongoose.Schema(
     lastMessageAt: { type: Date, default: Date.now, index: true },
     lastMessagePreview: { type: String, trim: true },
     lastMessageDirection: { type: String, enum: ['incoming', 'outgoing'] },
+    // Provenance of the latest message. Cached here so the inbox filter can
+    // segment conversations without a per-row Messages join. Written by
+    // recordChannelMessage on every message.
+    lastMessageOrigin: {
+      type: String,
+      enum: ['user', 'automation', 'sequence', 'broadcast', 'meeting', 'system'],
+      index: true,
+    },
     // Separate track of the latest INBOUND message so the sidebar can surface
     // a customer's reply even after we've sent a broadcast on top. Without
     // this, hundreds of conversations show the same outbound template preview
@@ -56,6 +64,27 @@ const ConversationSchema = new mongoose.Schema(
     snoozedUntil: { type: Date, index: true },
     closedAt: Date,
     emailThreadId: { type: mongoose.Schema.Types.ObjectId, ref: 'EmailThread' },
+
+    // The mailbox this conversation "belongs to" for email.
+    // Immutable-sender rule: once set, replies always send from this account.
+    // Reassigning the conversation to a different user does NOT change this.
+    // Nullable for non-email channels and for legacy email rows created before
+    // multi-user email; upsertConversation populates it on new writes.
+    emailAccountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'EmailAccount',
+      index: true,
+    },
+
+    // Per-conversation override for the email auto-reply SLA safety net.
+    // Set to true when an agent wants to handle this manually (e.g. VIP lead)
+    // even though the business-level setting is on. Also set to true
+    // automatically after the auto-reply fires once (see onePerConversation).
+    autoReplyPaused: { type: Boolean, default: false },
+    // Timestamp of the last auto-reply on this conversation. Used for the
+    // onePerConversation guardrail and for UI "sent 12 min ago" indicators.
+    lastAutoReplyAt: { type: Date },
+
     assignmentHistory: [AssignmentHistorySchema],
     metadata: { type: Map, of: mongoose.Schema.Types.Mixed },
   },

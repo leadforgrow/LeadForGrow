@@ -6,8 +6,28 @@ import {
   MoreVertical, UserCheck, XCircle, CheckCircle, Clock, Mail, Download, Trash2, Eye,
 } from 'lucide-react';
 
+// Snooze presets — mirrors what Gmail/Front offer.
+const SNOOZE_PRESETS = [
+  { id: '1h', label: 'For 1 hour', ms: 60 * 60 * 1000 },
+  { id: '3h', label: 'For 3 hours', ms: 3 * 60 * 60 * 1000 },
+  { id: 'tomorrow', label: 'Until tomorrow 9 AM', ms: 0, computeAt: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      d.setHours(9, 0, 0, 0);
+      return d.getTime() - Date.now();
+    } },
+  { id: 'nextweek', label: 'Until next Monday 9 AM', ms: 0, computeAt: () => {
+      const d = new Date();
+      const daysUntilMon = ((1 - d.getDay() + 7) % 7) || 7;
+      d.setDate(d.getDate() + daysUntilMon);
+      d.setHours(9, 0, 0, 0);
+      return d.getTime() - Date.now();
+    } },
+];
+
 export default function InboxActionsMenu({ chat, onUpdate, onClaim, onAction, currentUserId }) {
   const [open, setOpen] = useState(false);
+  const [snoozeOpen, setSnoozeOpen] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -31,7 +51,10 @@ export default function InboxActionsMenu({ chat, onUpdate, onClaim, onAction, cu
     { id: 'spam', label: chat.isSpam ? 'Not spam' : 'Mark spam', icon: chat.isSpam ? ShieldCheck : ShieldAlert, onClick: () => onUpdate({ isSpam: !chat.isSpam }), danger: !chat.isSpam },
     { id: 'unread', label: 'Mark unread', icon: Eye, onClick: () => onAction?.('mark_unread') },
     { id: 'close', label: isClosed ? 'Reopen' : 'Close conversation', icon: isClosed ? CheckCircle : XCircle, onClick: () => onAction?.(isClosed ? 'reopen' : 'close') },
-    { id: 'snooze', label: 'Snooze 1 hour', icon: Clock, onClick: () => onAction?.('snooze', { until: new Date(Date.now() + 3600000).toISOString() }) },
+    { id: 'snooze', label: 'Snooze…', icon: Clock, onClick: () => setSnoozeOpen((v) => !v), keepOpen: true },
+    ...(chat.snoozedUntil && new Date(chat.snoozedUntil) > new Date() ? [
+      { id: 'unsnooze', label: 'Unsnooze now', icon: Clock, onClick: () => onAction?.('unsnooze') }
+    ] : []),
     { id: 'export', label: 'Export conversation', icon: Download, onClick: () => onAction?.('export') },
     { id: 'delete', label: 'Delete', icon: Trash2, onClick: () => onAction?.('delete'), danger: true },
     ...(!isAssignedToMe ? [{ id: 'claim', label: 'Claim conversation', icon: UserCheck, onClick: onClaim }] : []),
@@ -47,17 +70,38 @@ export default function InboxActionsMenu({ chat, onUpdate, onClaim, onAction, cu
           {actions.map((action) => {
             const Icon = action.icon;
             return (
-              <button
-                key={action.id}
-                type="button"
-                onClick={() => { action.onClick(); setOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                  action.danger ? 'text-red-600' : action.active ? 'text-amber-600' : 'text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {action.label}
-              </button>
+              <div key={action.id}>
+                <button
+                  type="button"
+                  onClick={() => { action.onClick(); if (!action.keepOpen) setOpen(false); }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                    action.danger ? 'text-red-600' : action.active ? 'text-amber-600' : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {action.label}
+                </button>
+                {action.id === 'snooze' && snoozeOpen && (
+                  <div className="pl-6 py-1 bg-slate-50 dark:bg-slate-800/50">
+                    {SNOOZE_PRESETS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          const ms = p.computeAt ? p.computeAt() : p.ms;
+                          const until = new Date(Date.now() + ms).toISOString();
+                          onAction?.('snooze', { until });
+                          setOpen(false);
+                          setSnoozeOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-[11px] text-slate-600 hover:bg-white dark:hover:bg-slate-900 rounded"
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

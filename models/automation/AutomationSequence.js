@@ -77,7 +77,7 @@ const AutomationSequenceSchema = new mongoose.Schema({
       'stage_changed', 'missed_call', 'tag_added', 'no_reply', 'payment_received',
       'event_joined', 'lead_updated', 'lead_converted', 'deal_won', 'deal_lost',
       'email_received', 'email_opened', 'chat_started', 'lead_qualified', 'manual', 'recurring',
-      'webhook', 'instagram_dm', 'deal_created',
+      'webhook', 'instagram_dm', 'instagram_comment', 'deal_created',
     ],
     default: 'new_lead',
   },

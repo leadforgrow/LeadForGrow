@@ -39,6 +39,9 @@ async function handler(req) {
       templateLanguage,
       templateHeaderMediaUrl,
       templateVariables,
+      // Multi-user email: composer's From-picker sends this so the sender
+      // resolver in sendChannelEmail can pick the right mailbox.
+      emailAccountId,
     } = body;
 
     const hasMedia = !!mediaUrl;
@@ -147,16 +150,38 @@ async function handler(req) {
         bcc,
         attachments,
         isHtml: !!bodyHtml,
+        emailAccountId,      // explicit picker choice, if any
+        userId: user.userId, // enables the "user's default" fallback
       });
       if (!emailResult.success) {
         return NextResponse.json({ success: false, error: emailResult.error }, { status: 500 });
       }
       externalMessageId = emailResult.messageId;
     } else if (activeChannel === 'instagram') {
-      const { sendInstagramMessage, sendInstagramMedia } = await import('@/lib/instagram/send');
-      const igResult = hasMedia
-        ? await sendInstagramMedia(business, conversation?.participantId, { mediaUrl, messageType: resolvedType })
-        : await sendInstagramMessage(business, conversation?.participantId, message.trim());
+      const { sendInstagramMessage, sendInstagramMedia, sendInstagramCommentReply } = await import('@/lib/instagram/send');
+      const { IG_COMMENT_PARTICIPANT_PREFIX } = await import('@/lib/instagram/handler');
+      const participantId = conversation?.participantId || '';
+      const isCommentThread = participantId.startsWith(IG_COMMENT_PARTICIPANT_PREFIX);
+
+      let igResult;
+      if (isCommentThread) {
+        // Reply to the most recent comment on this thread — stored on the
+        // conversation by the webhook handler so we don't have to walk Messages.
+        const targetCommentId = conversation?.metadata?.get?.('lastCommentId')
+          || conversation?.metadata?.lastCommentId;
+        if (!targetCommentId) {
+          return NextResponse.json({ success: false, error: 'No comment to reply to on this thread' }, { status: 400 });
+        }
+        if (hasMedia) {
+          return NextResponse.json({ success: false, error: 'Media replies to comments are not supported by Instagram' }, { status: 400 });
+        }
+        igResult = await sendInstagramCommentReply(business, targetCommentId, message.trim());
+      } else {
+        igResult = hasMedia
+          ? await sendInstagramMedia(business, participantId, { mediaUrl, messageType: resolvedType })
+          : await sendInstagramMessage(business, participantId, message.trim());
+      }
+
       if (!igResult.success) {
         return NextResponse.json({ success: false, error: igResult.error }, { status: 500 });
       }

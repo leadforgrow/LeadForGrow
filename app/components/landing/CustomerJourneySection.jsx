@@ -89,11 +89,52 @@ const FINAL_LABELS = [
 ];
 
 function InstagramIcon({ className }) {
+  // Full-color Instagram brand gradient mark.
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="17.5" cy="6.5" r="1.25" fill="currentColor" />
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <defs>
+        <radialGradient id="lfg-ig-grad" cx="30%" cy="107%" r="150%">
+          <stop offset="0%" stopColor="#FFD776" />
+          <stop offset="10%" stopColor="#F9AA47" />
+          <stop offset="25%" stopColor="#EF5E5A" />
+          <stop offset="50%" stopColor="#D93175" />
+          <stop offset="75%" stopColor="#B6339A" />
+          <stop offset="100%" stopColor="#7A3FC8" />
+        </radialGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5.5" fill="url(#lfg-ig-grad)" />
+      <rect x="5.75" y="5.75" width="12.5" height="12.5" rx="4" fill="none" stroke="#fff" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3.35" fill="none" stroke="#fff" strokeWidth="1.6" />
+      <circle cx="17.35" cy="6.65" r="1.05" fill="#fff" />
+    </svg>
+  );
+}
+
+function GmailIcon({ className }) {
+  // Official Gmail envelope mark.
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path fill="#4285F4" d="M2 6.5A2.5 2.5 0 0 1 4.5 4H5l7 5 7-5h.5A2.5 2.5 0 0 1 22 6.5V18a2 2 0 0 1-2 2h-2V9.7l-6 4.3-6-4.3V20H4a2 2 0 0 1-2-2V6.5Z" />
+      <path fill="#34A853" d="M4 20h2V9.7l-4-2.85V18a2 2 0 0 0 2 2Z" />
+      <path fill="#FBBC04" d="M18 20h2a2 2 0 0 0 2-2V6.85l-4 2.85V20Z" />
+      <path fill="#EA4335" d="m6 9.7 6 4.3 6-4.3V4h-.5L12 9 5 4h-.5A2.5 2.5 0 0 0 2 6.5v.35L6 9.7Z" />
+      <path fill="#C5221F" d="M22 6.5v.35L18 9.7V4h.5A2.5 2.5 0 0 1 22 6.5Z" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }) {
+  // Official WhatsApp mark.
+  return (
+    <svg className={className} viewBox="0 0 32 32" aria-hidden>
+      <path
+        fill="#25D366"
+        d="M16.02 3C8.83 3 3 8.82 3 16c0 2.3.62 4.55 1.8 6.53L3 29l6.66-1.74A12.98 12.98 0 0 0 16.02 29C23.2 29 29 23.18 29 16S23.2 3 16.02 3Z"
+      />
+      <path
+        fill="#FFFFFF"
+        d="M22.55 19.5c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.63.14-.19.28-.72.9-.88 1.09-.16.19-.32.2-.6.07-.28-.14-1.19-.44-2.27-1.4-.84-.75-1.4-1.67-1.57-1.96-.16-.28-.02-.44.12-.58.13-.13.28-.32.42-.49.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.63-1.52-.86-2.08-.23-.55-.46-.47-.63-.48h-.54c-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34s1 2.72 1.14 2.91c.14.19 1.99 3.04 4.83 4.26.67.29 1.2.46 1.61.58.68.22 1.29.19 1.78.12.54-.08 1.66-.68 1.9-1.34.23-.66.23-1.22.16-1.34-.07-.12-.26-.19-.54-.33Z"
+      />
     </svg>
   );
 }
@@ -485,9 +526,9 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
               <div className="relative w-full max-w-lg">
                 <div className="flex justify-center gap-3">
                   {[
-                    { icon: Mail, label: 'Email', color: 'border-blue-200 bg-blue-50 text-blue-600' },
-                    { icon: MessageCircle, label: 'WhatsApp', color: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-                    { icon: InstagramIcon, label: 'Instagram', color: 'border-pink-200 bg-pink-50 text-pink-600' },
+                    { icon: GmailIcon, label: 'Gmail', color: 'border-blue-200 bg-blue-50 text-slate-700' },
+                    { icon: WhatsAppIcon, label: 'WhatsApp', color: 'border-emerald-200 bg-emerald-50 text-slate-700' },
+                    { icon: InstagramIcon, label: 'Instagram', color: 'border-pink-200 bg-pink-50 text-slate-700' },
                   ].map(({ icon: Icon, label, color }) => (
                     <div
                       key={label}
@@ -495,7 +536,7 @@ export default function CustomerJourneySection({ onGetStarted, onBookDemo }) {
                       data-animate
                       className={`flex flex-col items-center gap-2 rounded-xl border p-4 shadow-sm ${color}`}
                     >
-                      <Icon className="h-5 w-5" strokeWidth={1.75} />
+                      <Icon className="h-6 w-6" />
                       <span className="text-xs font-semibold">{label}</span>
                     </div>
                   ))}

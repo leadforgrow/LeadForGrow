@@ -47,6 +47,10 @@ export function useChatInbox() {
     else if (filter === 'unassigned') params.set('status', 'unassigned');
     else if (filter === 'pinned') params.set('pinned', 'true');
     else if (filter === 'archived') params.set('archived', 'true');
+    // New: origin filters. 'automated' is the shortcut for everything the
+    // system sent; 'user' shows human-composed only.
+    else if (filter === 'automated') params.set('origin', 'automated');
+    else if (filter === 'human') params.set('origin', 'user');
     if (search) params.set('search', search);
     params.set('page', String(page));
     params.set('limit', String(CONV_PAGE_SIZE));
@@ -216,7 +220,7 @@ export function useChatInbox() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  useRealtime({
+  const realtime = useRealtime({
     onEvent: useCallback((event) => {
       if (
         event.type === REALTIME_EVENTS.CHAT_MESSAGE ||
@@ -230,10 +234,11 @@ export function useChatInbox() {
         fetchConversations(true);
         const eventLeadId = event.data?.leadId;
         const eventConvId = event.data?.conversationId;
-        if (
+        const isCurrentConversation =
           (eventLeadId && eventLeadId === selectedLeadIdRef.current) ||
-          (eventConvId && eventConvId === selectedChat?._id)
-        ) {
+          (eventConvId && eventConvId === selectedChat?._id);
+
+        if (isCurrentConversation) {
           if (event.type === REALTIME_EVENTS.CHAT_MESSAGE_STATUS) {
             setMessages((prev) =>
               prev.map((m) =>
@@ -248,9 +253,34 @@ export function useChatInbox() {
               fetchLeadDetail(eventLeadId);
             }
           }
+        } else if (
+          event.type === REALTIME_EVENTS.CHAT_MESSAGE &&
+          event.data?.direction === 'incoming'
+        ) {
+          // New INBOUND message on a conversation the user isn't currently
+          // viewing → surface a toast so they don't miss it. Silent for
+          // outbound (they know they just sent it) and silent for the
+          // active conversation (message pops into the pane, no toast).
+          const senderName =
+            conversations.find((c) => c._id === eventConvId)?.leadId?.name ||
+            conversations.find((c) => c._id === eventConvId)?.participantName ||
+            'a customer';
+          const channelLabel = event.data.channel === 'email' ? '📧 email'
+            : event.data.channel === 'instagram' ? '📸 Instagram'
+            : '💬 WhatsApp';
+          toast.success(`New ${channelLabel} from ${senderName}`, { duration: 4000 });
+
+          // Optional sound — muted by default via user pref check.
+          try {
+            if (typeof window !== 'undefined' && localStorage.getItem('lfg_inbox_sound') === '1') {
+              const a = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+              a.volume = 0.3;
+              a.play().catch(() => {});
+            }
+          } catch { /* localStorage may throw in private mode */ }
         }
       }
-    }, [fetchConversations, fetchMessages, fetchLeadDetail, selectedChat]),
+    }, [fetchConversations, fetchMessages, fetchLeadDetail, selectedChat, conversations]),
   });
 
   useEffect(() => {
@@ -420,6 +450,7 @@ export function useChatInbox() {
         cc,
         scheduledAt,
         template, // { name, language, headerMediaUrl, variables }
+        emailAccountId, // From-picker choice for email sends
       } = options;
       const hasMedia = media?.url || attachments.length > 0;
       const hasTemplate = !!template?.name;
@@ -463,6 +494,7 @@ export function useChatInbox() {
             templateLanguage: template?.language,
             templateHeaderMediaUrl: template?.headerMediaUrl,
             templateVariables: template?.variables,
+            emailAccountId,
           }),
         });
         const data = await res.json();
@@ -542,10 +574,50 @@ export function useChatInbox() {
         }),
       });
       const data = await res.json();
-      if (data.success) toast.success('Draft saved');
+      // silent=true is used by the auto-save timer so we don't spam a
+      // toast every 2 seconds while the user types.
+      if (data.success && !draft.silent) toast.success('Draft saved');
     },
     [selectedChat]
   );
+
+  /**
+   * Star / unstar / trash / restore a single message. Optimistically updates
+   * local state so the UI reacts instantly; if the API rejects, we roll back.
+   * Reused by MessageBubble's hover actions and the folder empty states.
+   */
+  const messageAction = useCallback(async (messageId, action) => {
+    if (!messageId || !action) return;
+    // Optimistic update.
+    const patch =
+      action === 'star' ? { starred: true }
+      : action === 'unstar' ? { starred: false }
+      : action === 'trash' ? { isDeleted: true }
+      : action === 'restore' ? { isDeleted: false }
+      : {};
+    setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, ...patch } : m)));
+
+    try {
+      const res = await authFetch(`/api/automation/inbox/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Action failed');
+    } catch (err) {
+      // Roll back local state on failure. The user will re-try or see the
+      // toast; we don't want the UI lying about persisted state.
+      const rollback =
+        action === 'star' ? { starred: false }
+        : action === 'unstar' ? { starred: true }
+        : action === 'trash' ? { isDeleted: false }
+        : action === 'restore' ? { isDeleted: true }
+        : {};
+      setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, ...rollback } : m)));
+      toast.error(err.message || 'Message action failed');
+    }
+  }, []);
 
   const assignChat = useCallback(
     async (assigneeId) => {
@@ -744,8 +816,10 @@ export function useChatInbox() {
     intervene,
     releaseIntervene,
     assignChat,
+    messageAction,
     claimConversation,
     updateConversation,
+    realtimeConnected: realtime.connected,
     toggleLabel,
     updateLeadStatus,
     updateLeadFollowUp,

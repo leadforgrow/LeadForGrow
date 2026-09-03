@@ -181,6 +181,16 @@ export default function CookieConsentManager() {
       visitorId,
     };
 
+    // Persist locally FIRST so the banner never reappears, even if the
+    // server call is slow, blocked, or the tab is closed mid-flight.
+    saveConsentState(localState);
+    setConsent(getConsentState());
+    setShowBanner(false);
+    setShowSettings(false);
+    setLoadAds(granted);
+    setLoading(false);
+
+    // Best-effort audit log to the server; failures don't affect UX.
     try {
       await logConsentToServer({
         status,
@@ -196,22 +206,15 @@ export default function CookieConsentManager() {
           ? 'Visitor allowed analytics and marketing cookies via banner'
           : 'Visitor declined tracking cookies — essential only',
       });
-
-      saveConsentState(localState);
-      setConsent(getConsentState());
-      setShowBanner(false);
-      setShowSettings(false);
-      setLoadAds(granted);
     } catch (error) {
-      console.error('[CookieConsent]', error);
-      saveConsentState(localState);
-      setConsent(getConsentState());
-      setShowBanner(false);
-      setShowSettings(false);
-      setLoadAds(granted);
-    } finally {
-      setLoading(false);
+      console.error('[CookieConsent] server log failed (choice already saved locally)', error);
     }
+  };
+
+  const dismissBannerAsDenied = () => {
+    // Treat close/dismiss the same as "Decline" so the banner never nags
+    // again on this browser without a real decision.
+    if (!loading) persistChoice('denied');
   };
 
   if (!mounted) return null;
@@ -231,7 +234,16 @@ export default function CookieConsentManager() {
 
       {showBanner && (
         <div className="fixed inset-x-0 bottom-0 z-[100] p-4 sm:p-5">
-          <div className="mx-auto flex max-w-4xl flex-col gap-4 rounded-2xl border border-emerald-100 bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.12)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative mx-auto flex max-w-4xl flex-col gap-4 rounded-2xl border border-emerald-100 bg-white p-5 pr-10 shadow-[0_12px_40px_rgba(15,23,42,0.12)] sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={dismissBannerAsDenied}
+              disabled={loading}
+              aria-label="Dismiss (treat as decline)"
+              className="absolute right-2 top-2 rounded-lg p-1.5 text-[#64748B] hover:bg-[#F1F5F9] disabled:opacity-60"
+            >
+              <X className="h-4 w-4" />
+            </button>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">Cookie consent</p>
               <p className="mt-1 text-[15px] font-semibold text-[#111827]">We use cookies to improve your experience</p>

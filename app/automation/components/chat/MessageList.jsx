@@ -13,7 +13,7 @@ import MessageBubble from './MessageBubble';
  * <500 messages per convo. If we ever hit ~thousands, swap in react-virtuoso
  * which handles variable-height rows properly.
  */
-export default function MessageList({ messages, loading, hasMore, onLoadMore, loadingMore }) {
+export default function MessageList({ messages, loading, hasMore, onLoadMore, loadingMore, onMessageAction, emptyLabel }) {
   const containerRef = useRef(null);
   const bottomRef = useRef(null);
   const prevLengthRef = useRef(0);
@@ -51,7 +51,9 @@ export default function MessageList({ messages, loading, hasMore, onLoadMore, lo
   if (!messages.length) {
     return (
       <div className="flex-1 flex items-center justify-center p-8 bg-[#efeae2] dark:bg-[#0b141a]">
-        <p className="text-sm text-slate-500">No messages yet. Start the conversation.</p>
+        <p className="text-sm text-slate-500 text-center max-w-xs">
+          {emptyLabel || 'No messages yet. Start the conversation.'}
+        </p>
       </div>
     );
   }
@@ -86,7 +88,7 @@ export default function MessageList({ messages, loading, hasMore, onLoadMore, lo
                 </span>
               </div>
             )}
-            <MessageBubble message={msg} />
+            <MessageBubble message={msg} onAction={onMessageAction} />
           </div>
         );
       })}

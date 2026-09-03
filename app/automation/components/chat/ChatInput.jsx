@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Smile, Paperclip, Sparkles, Hand, StickyNote, MessageSquare,
-  Bold, Italic, Link2, Clock, Save,
+  Bold, Italic, Link2, Clock, Save, Mail, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { QUICK_EMOJIS } from './constants';
 import MediaAttachmentStrip from './MediaAttachmentStrip';
 import { useMediaUpload } from '@/app/automation/hooks/useMediaUpload';
+import { authFetch } from '@/lib/apiClient';
 
 export default function ChatInput({
   canSend,
@@ -22,6 +23,9 @@ export default function ChatInput({
   onEmailSubjectChange,
   emailCc = '',
   onEmailCcChange,
+  // Set by the parent for email replies — pins the send to the conversation's
+  // original mailbox. Read-only in that case; picker is hidden.
+  pinnedEmailAccountId,
 }) {
   const [text, setText] = useState('');
   const [mode, setMode] = useState('message');
@@ -37,6 +41,81 @@ export default function ChatInput({
   const isNote = mode === 'note';
   const isEmail = channel === 'email' && !isNote;
   const readyUploads = uploads.filter((u) => u.status === 'done');
+
+  // Compact email composer: collapse to a slim bar until the user clicks
+  // in. This reclaims ~50% of the pane height for the message thread —
+  // agents were losing message context to composer chrome (subject / CC /
+  // formatting / suggested-reply tile / emoji-attach-schedule row).
+  // WhatsApp/Instagram composers stay as-is; only email needs this treatment.
+  const [emailExpanded, setEmailExpanded] = useState(false);
+  const collapsedEmail = isEmail && !emailExpanded && !text && !emailSubject && readyUploads.length === 0;
+
+  // From-picker state — only fetched when the email composer is active.
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState('');
+
+  // Draft auto-save state — shown as a tiny "Saved" indicator so users know
+  // their work is safe if they close the tab. Debounced to avoid hammering
+  // the API on every keystroke.
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
+  const draftTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isEmail || !onSaveDraft) return;
+    // Don't autosave an empty draft (that'd create empty rows on every mount).
+    const bodyContent = editorRef.current?.innerHTML?.trim();
+    const hasContent = !!(bodyContent || emailSubject?.trim() || emailCc?.trim());
+    if (!hasContent) return;
+
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      try {
+        onSaveDraft({
+          subject: emailSubject,
+          body: editorRef.current?.innerHTML,
+          cc: emailCc,
+          silent: true,
+        });
+        setDraftSavedAt(new Date());
+      } catch {
+        /* silent — user will notice a broken draft on next expand */
+      }
+    }, 2000);
+
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [text, emailSubject, emailCc, isEmail, onSaveDraft]);
+
+  useEffect(() => {
+    if (!isEmail) return;
+    let cancelled = false;
+    (async () => {
+      setAccountsLoading(true);
+      try {
+        const res = await authFetch('/api/automation/inbox/email-accounts');
+        const data = await res.json();
+        if (cancelled) return;
+        const list = (data.data || []).filter((a) => a.status === 'active');
+        setAccounts(list);
+        // Priority: pinned (reply on existing thread) → default → first active.
+        if (pinnedEmailAccountId && list.some((a) => a._id === pinnedEmailAccountId)) {
+          setSelectedAccountId(pinnedEmailAccountId);
+        } else {
+          const def = list.find((a) => a.isDefault) || list[0];
+          if (def) setSelectedAccountId(def._id);
+        }
+      } catch {
+        /* silent — send will just fall back to legacy path */
+      } finally {
+        if (!cancelled) setAccountsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEmail, pinnedEmailAccountId]);
 
   const handleFiles = useCallback(async (files) => {
     for (const file of Array.from(files)) {
@@ -93,6 +172,11 @@ export default function ChatInput({
       media: readyUploads[0]
         ? { url: readyUploads[0].url, mimeType: readyUploads[0].mimeType, fileName: readyUploads[0].name }
         : undefined,
+      // For email sends, the resolver on the backend needs this. Pinned wins;
+      // otherwise picker choice; otherwise the backend's own default lookup.
+      emailAccountId: isEmail
+        ? pinnedEmailAccountId || selectedAccountId || undefined
+        : undefined,
     };
 
     const ok = await onSend(plainText.trim(), payload);
@@ -145,6 +229,39 @@ export default function ChatInput({
     );
   }
 
+  // Collapsed email view — one row, minimum footprint. Click anywhere on
+  // the "Reply..." bar (or the small "Note" pill) to expand. This reclaims
+  // ~200px for the message thread on email conversations, matching what
+  // Gmail/Front do by default.
+  if (collapsedEmail) {
+    return composerShell(
+      <div className="flex items-center gap-2 px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setEmailExpanded(true)}
+          className="flex-1 text-left text-sm px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-500 transition-colors"
+        >
+          Reply…
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMode('note'); setEmailExpanded(true); }}
+          className="inline-flex items-center gap-1 px-2.5 py-2 text-[11px] font-medium rounded-lg text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+          title="Add internal note"
+        >
+          <StickyNote className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setEmailExpanded(true)}
+          className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+        >
+          Compose
+        </button>
+      </div>
+    );
+  }
+
   return composerShell(
     <>
       <div className="flex items-center gap-1 px-3 pt-2">
@@ -154,15 +271,77 @@ export default function ChatInput({
         <button type="button" onClick={() => setMode('note')} className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md ${isNote ? 'bg-amber-500 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
           <StickyNote className="w-3 h-3" /> Note
         </button>
-        {isEmail && onSaveDraft && (
-          <button type="button" onClick={() => onSaveDraft({ subject: emailSubject, body: editorRef.current?.innerHTML, cc: emailCc })} className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100 rounded-md">
-            <Save className="w-3 h-3" /> Save draft
+        {isEmail && (
+          <button
+            type="button"
+            onClick={() => setEmailExpanded(false)}
+            className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-[11px] text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md"
+            title="Minimize composer"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
           </button>
+        )}
+        {isEmail && onSaveDraft && (
+          <>
+            {draftSavedAt && (
+              <span className="text-[10px] text-emerald-600 mr-1" title={`Draft auto-saved at ${draftSavedAt.toLocaleTimeString()}`}>
+                ✓ Saved
+              </span>
+            )}
+            <button type="button" onClick={() => { onSaveDraft({ subject: emailSubject, body: editorRef.current?.innerHTML, cc: emailCc }); setDraftSavedAt(new Date()); }} className="inline-flex items-center gap-1 px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100 rounded-md">
+              <Save className="w-3 h-3" /> Save draft
+            </button>
+          </>
         )}
       </div>
 
       {isEmail && !isNote && (
         <div className="px-3 pt-2 space-y-1.5">
+          {/* From picker. Locked when replying on an existing thread — the
+              immutable-sender rule prevents silent mid-conversation switches.
+              When no accounts are connected, show a friendly nudge instead of
+              a broken empty dropdown. */}
+          {accountsLoading ? (
+            <div className="w-full text-xs px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-400">
+              Loading mailboxes…
+            </div>
+          ) : accounts.length === 0 ? (
+            <div className="w-full text-xs px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5" />
+              <span>
+                No mailbox connected.{' '}
+                <a href="/automation/settings/email" className="font-semibold underline">
+                  Connect one
+                </a>{' '}
+                to send.
+              </span>
+            </div>
+          ) : pinnedEmailAccountId ? (
+            <div className="w-full text-xs px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5" />
+              <span className="font-medium">From:</span>
+              <span>
+                {accounts.find((a) => a._id === pinnedEmailAccountId)?.email || 'original mailbox'}
+              </span>
+              <span className="ml-auto text-[10px] text-slate-400">Locked to conversation</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs">
+              <label className="text-slate-500 font-medium shrink-0">From:</label>
+              <select
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.target.value)}
+                className="flex-1 text-xs px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+              >
+                {accounts.map((a) => (
+                  <option key={a._id} value={a._id}>
+                    {a.displayName ? `${a.displayName} <${a.email}>` : a.email}
+                    {a.type === 'shared' ? ' (shared)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <input type="text" value={emailSubject} onChange={(e) => onEmailSubjectChange?.(e.target.value)} placeholder="Subject" className="w-full text-sm px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg" />
           <input type="text" value={emailCc} onChange={(e) => onEmailCcChange?.(e.target.value)} placeholder="CC (comma separated)" className="w-full text-xs px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg" />
           <div className="flex gap-1 text-slate-500">
@@ -228,7 +407,7 @@ export default function ChatInput({
 
       <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 pt-2">
         {isEmail && !isNote ? (
-          <div ref={editorRef} contentEditable suppressContentEditableWarning className="flex-1 text-sm px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-h-40 min-h-[80px] overflow-y-auto" />
+          <div ref={editorRef} contentEditable suppressContentEditableWarning className="flex-1 text-sm px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-h-48 min-h-[44px] overflow-y-auto" />
         ) : (
           <textarea rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder={isNote ? 'Add internal note...' : 'Type a message...'} className={`flex-1 resize-none text-sm px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 max-h-32 min-h-[42px] ${isNote ? 'bg-amber-50/50 border-amber-200 focus:ring-amber-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-blue-500/20'}`} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }} />
         )}

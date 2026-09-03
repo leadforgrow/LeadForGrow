@@ -5,7 +5,7 @@ import {
   Pin, Star, Mail,
   ArrowLeft, ArrowRight,
   FileText, Image as ImageIcon, Mic, Video, MapPin, Phone,
-  Check, CheckCheck,
+  Check, CheckCheck, Clock,
 } from 'lucide-react';
 import { WhatsAppIcon, InstagramIcon } from './BrandIcons';
 
@@ -109,6 +109,24 @@ function ConversationItem({ chat, active, onClick }) {
   const tone = toneForName(displayName);
   const intervened = chat.status === 'intervened' || chat.inboxStatus === 'intervened';
 
+  // SLA badge: how long has the customer been waiting for a human reply?
+  // Only shown when the LAST message was inbound (they're waiting on us)
+  // and no human has replied since. Buckets escalate visually — grey <1h,
+  // amber 1-4h, red >4h — so agents can prioritize at a glance.
+  let waitingBadge = null;
+  if (chat.lastMessageDirection === 'incoming' && chat.lastInboundAt) {
+    const waitMs = Date.now() - new Date(chat.lastInboundAt).getTime();
+    const waitH = waitMs / (60 * 60 * 1000);
+    if (waitH >= 0.25) {  // Only show after 15 min — before that it's just "recent"
+      let label, cls;
+      if (waitH < 1) { label = `${Math.round(waitH * 60)}m`; cls = 'bg-slate-100 text-slate-600'; }
+      else if (waitH < 4) { label = `${Math.round(waitH)}h`; cls = 'bg-amber-100 text-amber-700'; }
+      else if (waitH < 24) { label = `${Math.round(waitH)}h`; cls = 'bg-rose-100 text-rose-700'; }
+      else { label = `${Math.round(waitH / 24)}d`; cls = 'bg-rose-200 text-rose-800'; }
+      waitingBadge = { label, cls };
+    }
+  }
+
   // Delivery status icon only makes sense when the preview is our outbound
   // message. Hide it entirely when we've surfaced a customer reply.
   let DeliveryIcon = null;
@@ -148,6 +166,15 @@ function ConversationItem({ chat, active, onClick }) {
             {chat.isFavorite && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
             {intervened && (
               <span className="text-[9px] font-bold px-1.5 py-[1px] rounded-full bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 uppercase tracking-wide">Live</span>
+            )}
+            {waitingBadge && (
+              <span
+                title="Waiting for reply"
+                className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-[1px] rounded-full ${waitingBadge.cls}`}
+              >
+                <Clock className="w-2.5 h-2.5" />
+                {waitingBadge.label}
+              </span>
             )}
             <ChannelIcon className={`w-3 h-3 ${unread ? channelClass : 'text-slate-400'}`} />
             <span className={`text-[11px] tabular-nums ${unread ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-400'}`}>

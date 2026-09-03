@@ -1,0 +1,79 @@
+# CLAUDE.md — Change Log
+
+This file is a running log of every change made in this repo by Claude Code, in reverse-chronological order (newest first). Every session must append an entry here before ending. See `DECISIONS.md` for the reasoning behind non-obvious choices — this file records *what* changed, that file records *why*.
+
+Entry format:
+```
+## YYYY-MM-DD — short title
+Branch: <branch name>
+Files: <files touched>
+What changed: <plain description>
+Related decisions: <link to DECISIONS.md entry, if any>
+```
+
+---
+
+## 2026-09-03 — Instagram comments: webhook ingestion + reply-from-inbox (Phase 1)
+Branch: feature/whatsapp-templates-and-broadcasts
+Files:
+- `lib/instagram/handler.js` (added `parseInstagramChanges` + `processInstagramCommentEvent`; exported `IG_COMMENT_PARTICIPANT_PREFIX = 'ig_comment:'`; stores `metadata.lastCommentId` on Conversation for reply targeting)
+- `lib/instagram/send.js` (added `sendInstagramCommentReply(business, commentId, text)` — POST to Graph API `/{comment_id}/replies`)
+- `app/api/webhooks/meta/route.js` (extended the `payload.object === 'instagram'` branch to iterate `payload.entry[]`, process both `entry.messaging[]` for DMs and `entry.changes[]` for comments; returns processed count)
+- `app/api/automation/inbox/send/route.js` (Instagram branch now detects `participantId.startsWith('ig_comment:')` and routes to `sendInstagramCommentReply` using `conversation.metadata.lastCommentId`; refuses media replies since Meta doesn't support them on comments)
+- `lib/automation/triggerHub.js` (registered `instagram_comment` in `EVENT_TO_ENGINE_TRIGGER` and `EVENT_TO_SEQUENCE_TRIGGER`)
+- `models/automation/AutomationSequence.js` (added `instagram_comment` to `triggerType` enum)
+- `lib/sequences/constants.js` (added `trigger_instagram_comment` node + mapping in `TRIGGER_ENGINE_MAP`)
+
+What changed: Instagram DMs were already ingested end-to-end. This session adds the comments half — public comments on IG posts now land in the Unified Inbox as their own conversations (one per commenter, keyed by `ig_comment:<commenterId>` so they never merge with the same person's DM thread), can be replied to from the composer (posts a nested reply via Meta's Graph API), and fire the `instagram_comment` automation trigger so sequences can react.
+
+Scope deliberately excluded from Phase 1: an automated `send_instagram_comment_reply` sequence action (added to constants briefly then removed — no executor case yet); a comment→DM auto-response rule builder (Phase 2); an SLA safety-net auto-reply for DMs (Phase 3, will reuse the email pattern); a settings UI to onboard IG credentials (Pistons Garage's creds already live on `business.integrationCredentials.instagram`, so Phase 1 is unblocked without one).
+
+Meta app config the tenant still needs (one-time, done on their side): add Instagram product to the shared app, connect a Business/Creator IG account linked to a Facebook Page, generate a Page Access Token with scopes `instagram_basic + instagram_manage_messages + instagram_manage_comments + pages_manage_metadata + pages_show_list`, and subscribe webhook fields `messages`, `comments`, `messaging_postbacks`, `mentions`. Webhook URL is the existing `/api/webhooks/meta` — Meta multiplexes WhatsApp + Instagram over the one endpoint.
+
+Related decisions: see DECISIONS.md 2026-09-03 IG comment participant keying entry.
+
+## 2026-09-03 — Prod fixes: cookie banner persistence + register rate limit
+Branch: master
+Files:
+- `app/components/consent/CookieConsentManager.jsx` (persist consent to localStorage BEFORE the server audit call so it survives slow/failed network; added dismiss X on banner that counts as decline)
+- `lib/rateLimit.js` (added `Retry-After` header + retry-window seconds in error body on 429)
+- `app/api/auth/register/route.js` (loosen limit from 5/min to 10/min per IP, matches login)
+
+What changed: two independent prod issues surfaced in Vercel logs. (1) The cookie consent banner reappeared on every visit because `saveConsentState` ran only after `await logConsentToServer()`; a slow or blocked audit call meant nothing was persisted. Made persistence optimistic — the choice is saved instantly on click and the audit log is best-effort in the background. (2) Register endpoint was returning 429 to a real user because the rate-limit was tighter than login's (5/min vs 10/min per IP) and a user retrying after a password-policy or "user already exists" 400 could exhaust the window. Bumped register to 10/min to match login and added a proper `Retry-After` header so the client can surface a specific wait time.
+
+Related decisions: see DECISIONS.md 2026-09-03 register-rate-limit and cookie-persist entries.
+
+## 2026-09-03 — Email SLA safety-net auto-reply (Step 9)
+Branch: master
+Files:
+- `models/Business.js` (added `settings.emailAutoReply` sub-schema: enabled/thresholdMinutes/template/guardrails/telemetry)
+- `models/omnichannel/Conversation.js` (added `autoReplyPaused`, `lastAutoReplyAt`)
+- `lib/emailAutoReply.js` (new — worker function + scheduleAutoReplyForInbound helper; template-based, no AI call yet)
+- `lib/queue.js` (new `enqueueEmailAutoReply` helper + `email-auto-reply` job branch in BullMQ worker)
+- `lib/omnichannel/emailService.js` (`ingestInboundEmail` fires `scheduleAutoReplyForInbound` after inbound message is persisted; fire-and-forget, non-blocking)
+- `app/automation/settings/email/page.js` (new `AutoReplyCard` + `AutoReplyConfig` components rendered above the accounts list)
+
+What changed: shipped the SLA safety-net auto-reply. When a customer email arrives and no human replies within N minutes (default 5), a polite holding message goes out from the same mailbox the thread belongs to. Includes guardrails: business-hours-only, one-per-conversation, and skip-keyword blocklist (`angry`, `refund`, `cancel`, etc.). Reuses Step 8's `origin='automation'` provenance so auto-replies show the violet "Auto" pill in the inbox and don't fool the "Human replies" filter. Business-wide setting with per-conversation `autoReplyPaused` override for VIP threads.
+
+Design intent: template + variable substitution instead of a real AI call for v1. Reasons: reliability (no hallucination risk on outbound customer email), no API-key dependency, hot-swappable by replacing `renderTemplate()` inside `runAutoReplyJob` when we're ready for AI. The plumbing is designed so swapping in an AI provider later doesn't touch call sites.
+
+Related decisions: see DECISIONS.md 2026-09-03 auto-reply entry.
+
+### Prior undocumented work observed on this branch (2026-08-30 to 2026-09-02, inherited)
+The working tree had a large multi-user email feature already built across ~15 files before this session logged its first entry. Confirmed from the modified/untracked file list — matches an "Option A" implementation: per-user `EmailAccount` with encryption at write, Gmail App-Password wizard, `sendChannelEmail` builds per-account Nodemailer transports, IMAP sync cron at `app/api/cron/email-sync`, threading via In-Reply-To / References headers, `origin` provenance on Message + `lastMessageOrigin` cache on Conversation, folder tabs wired end-to-end with per-message star/trash actions, compact composer collapse-when-idle, signature + logo (Cloudinary upload OR URL paste), sidebar unread-badge fix, reply-timing SLA pill on conversation cards, draft auto-save, snooze presets, keyboard shortcuts (j/k/e/s/#/?), and real-time SSE user signals (live green dot, toast on incoming, opt-in sound).
+
+None of that work has its own log entry — this line is the paper trail. Future sessions modifying any of those areas should confirm intent with the user before further changes.
+
+---
+
+## 2026-09-03 — Set up CLAUDE.md and DECISIONS.md
+Branch: feature/whatsapp-templates-and-broadcasts
+Files: `CLAUDE.md` (new), `DECISIONS.md` (new)
+What changed: Created this change log and the companion decisions log at the user's request. Going forward, every change made in this repo is recorded here, and every non-trivial decision is recorded in `DECISIONS.md`.
+Related decisions: see DECISIONS.md 2026-09-03 entry.
+
+### Branch state observed at setup time (not made by this session)
+The working tree already had substantial uncommitted changes on this branch before this session started, in the omnichannel inbox / email-sync area:
+- Modified: `app/api/automation/inbox/{conversations,email-accounts,send}/route.js`, most of `app/automation/chat/*` and `app/automation/hooks/{useChatInbox,useSidebar}.js`, `app/automation/settings/email/page.js`, `lib/automationEngine.js`, `lib/broadcasts/engine.js`, `lib/integrations/email.js`, `lib/meetings/email.js`, `lib/omnichannel/{conversationService,emailService,emailSync}.js`, `lib/sequences/executor.js`, `models/automation/Message.js`, `models/omnichannel/{Conversation,EmailAccount}.js`, `app/components/landing/CustomerJourneySection.jsx`.
+- New, untracked: `app/api/automation/inbox/email-accounts/[id]/`, `app/api/automation/inbox/messages/[id]/`, `app/api/cron/email-sync/`, `lib/omnichannel/mailerFromAccount.js`.
+- This looks like an in-progress IMAP/email-account sync + unified inbox feature layered on top of the WhatsApp templates/broadcasts work already on this branch (see project memory `project_known_issues.md`). Not yet reviewed or attributed to a specific prior session in this log — first change to that area in a future session should confirm intent before modifying further.
