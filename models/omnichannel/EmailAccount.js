@@ -46,6 +46,9 @@ const EmailAccountSchema = new mongoose.Schema(
       refreshToken: String,
       expiresAt: Date,
     },
+    // Legacy single-signature field. Kept for backward compat with rows
+    // created before multi-signatures shipped. Read as a fallback when
+    // `signatures[]` is empty. New writes should use `signatures[]`.
     signature: String,
     // Optional company logo shown above the signature text on outbound mail.
     // Stored as a Cloudinary URL (public — the whole point is embedding in
@@ -53,6 +56,23 @@ const EmailAccountSchema = new mongoose.Schema(
     // upload doesn't blow up the recipient's email client.
     signatureLogoUrl: { type: String, trim: true },
     signatureLogoWidth: { type: Number, default: 180 },
+    // Multi-signature support: users can save several signatures per
+    // mailbox (e.g. "Sales", "HR", "Personal") and pick which to use
+    // at compose time. Exactly one entry should have isDefault=true;
+    // the PATCH endpoint enforces this on save. Ids are stable so the
+    // compose picker can reference them across renders.
+    signatures: [
+      new mongoose.Schema(
+        {
+          id: { type: String, required: true },
+          name: { type: String, required: true, trim: true, maxlength: 60 },
+          html: { type: String, default: '' },
+          isDefault: { type: Boolean, default: false },
+          createdAt: { type: Date, default: Date.now },
+        },
+        { _id: false }
+      ),
+    ],
     isDefault: { type: Boolean, default: false },
     lastSyncAt: Date,
     syncEnabled: { type: Boolean, default: true },
@@ -90,5 +110,21 @@ EmailAccountSchema.index(
     partialFilterExpression: { isDefault: true, userId: { $type: 'objectId' } },
   }
 );
+
+/**
+ * Resolve the signature HTML to append on outbound mail.
+ * Precedence: specific signatureId → default from signatures[] → legacy `signature` → ''.
+ * Kept as an instance method so callers don't have to duplicate this logic.
+ */
+EmailAccountSchema.methods.resolveSignatureHtml = function resolveSignatureHtml(signatureId) {
+  const list = Array.isArray(this.signatures) ? this.signatures : [];
+  if (signatureId) {
+    const picked = list.find((s) => s.id === signatureId);
+    if (picked?.html) return picked.html;
+  }
+  const def = list.find((s) => s.isDefault);
+  if (def?.html) return def.html;
+  return this.signature || '';
+};
 
 export default mongoose.models.EmailAccount || mongoose.model('EmailAccount', EmailAccountSchema);

@@ -109,6 +109,34 @@ async function patchHandler(req, ctx) {
       account.signatureLogoWidth = Math.min(600, Math.max(40, body.signatureLogoWidth));
     }
     if (typeof body.syncEnabled === 'boolean') account.syncEnabled = body.syncEnabled;
+
+    // Multi-signature support. Accept the whole array on save; normalize and
+    // enforce invariants server-side (client is untrusted): every entry gets
+    // a stable id + trimmed name, at most one isDefault (auto-promote first
+    // entry if none is marked), max 20 signatures per account.
+    if (Array.isArray(body.signatures)) {
+      const cleaned = body.signatures
+        .filter((s) => s && typeof s === 'object')
+        .slice(0, 20)
+        .map((s) => ({
+          id:
+            (typeof s.id === 'string' && s.id.trim()) ||
+            `sig_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+          name: (typeof s.name === 'string' ? s.name.trim() : '') || 'Signature',
+          html: typeof s.html === 'string' ? s.html : '',
+          isDefault: !!s.isDefault,
+          createdAt: s.createdAt ? new Date(s.createdAt) : new Date(),
+        }));
+      // Enforce: exactly one default. If several claim it, keep the first.
+      // If none claim it and the list is non-empty, promote the first entry.
+      let sawDefault = false;
+      for (const s of cleaned) {
+        if (s.isDefault && !sawDefault) sawDefault = true;
+        else s.isDefault = false;
+      }
+      if (!sawDefault && cleaned.length) cleaned[0].isDefault = true;
+      account.signatures = cleaned;
+    }
     if (typeof body.isDefault === 'boolean') {
       // If setting this account as default, clear default from other accounts
       // belonging to the same user so the partial unique index (Step 1) stays

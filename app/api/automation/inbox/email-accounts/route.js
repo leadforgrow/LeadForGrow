@@ -53,6 +53,7 @@ async function postHandler(req) {
       smtp,
       oauth,
       signature,
+      signatures,
       signatureLogoUrl,
       signatureLogoWidth,
       isDefault,
@@ -83,6 +84,31 @@ async function postHandler(req) {
     encryptCredentialsInPlace(smtp);
     encryptCredentialsInPlace(oauth);
 
+    // Normalize signatures[] the same way PATCH does: enforce exactly-one
+    // default, cap at 20, generate ids for entries missing them. Silently
+    // ignore anything that isn't an object.
+    let normalizedSignatures = [];
+    if (Array.isArray(signatures)) {
+      normalizedSignatures = signatures
+        .filter((s) => s && typeof s === 'object')
+        .slice(0, 20)
+        .map((s) => ({
+          id:
+            (typeof s.id === 'string' && s.id.trim()) ||
+            `sig_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+          name: (typeof s.name === 'string' ? s.name.trim() : '') || 'Signature',
+          html: typeof s.html === 'string' ? s.html : '',
+          isDefault: !!s.isDefault,
+          createdAt: new Date(),
+        }));
+      let sawDefault = false;
+      for (const s of normalizedSignatures) {
+        if (s.isDefault && !sawDefault) sawDefault = true;
+        else s.isDefault = false;
+      }
+      if (!sawDefault && normalizedSignatures.length) normalizedSignatures[0].isDefault = true;
+    }
+
     await dbConnect();
     const account = await EmailAccount.create({
       businessId: user.businessId,
@@ -95,6 +121,7 @@ async function postHandler(req) {
       smtp,
       oauth,
       signature,
+      signatures: normalizedSignatures,
       signatureLogoUrl,
       signatureLogoWidth,
       isDefault: !!isDefault,

@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Send, Smile, Paperclip, Sparkles, Hand, StickyNote, MessageSquare,
-  Bold, Italic, Link2, Clock, Save, Mail, ChevronDown, ChevronUp,
+  Bold, Italic, Link2, Clock, Save, Mail, ChevronDown, ChevronUp, PenLine,
 } from 'lucide-react';
 import { QUICK_EMOJIS } from './constants';
 import MediaAttachmentStrip from './MediaAttachmentStrip';
@@ -54,6 +54,11 @@ export default function ChatInput({
   const [accounts, setAccounts] = useState([]);
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState('');
+
+  // Signature-picker state. Auto-picks the default signature for the
+  // current From mailbox; user can override via the toolbar icon.
+  const [selectedSignatureId, setSelectedSignatureId] = useState('');
+  const [signaturePickerOpen, setSignaturePickerOpen] = useState(false);
 
   // Draft auto-save state — shown as a tiny "Saved" indicator so users know
   // their work is safe if they close the tab. Debounced to avoid hammering
@@ -117,6 +122,27 @@ export default function ChatInput({
     };
   }, [isEmail, pinnedEmailAccountId]);
 
+  // Whenever the effective From-account changes, auto-pick that account's
+  // default signature. Users can still override via the picker below —
+  // this just sets the sensible starting point every time.
+  const effectiveAccountId = pinnedEmailAccountId || selectedAccountId;
+  const effectiveAccount = accounts.find((a) => a._id === effectiveAccountId) || null;
+  const accountSignatures = Array.isArray(effectiveAccount?.signatures)
+    ? effectiveAccount.signatures
+    : [];
+  useEffect(() => {
+    if (!isEmail) return;
+    if (!accountSignatures.length) {
+      setSelectedSignatureId('');
+      return;
+    }
+    // Keep the current pick if it still belongs to this account; otherwise
+    // reset to the account's default (or first entry).
+    if (accountSignatures.some((s) => s.id === selectedSignatureId)) return;
+    const def = accountSignatures.find((s) => s.isDefault) || accountSignatures[0];
+    setSelectedSignatureId(def?.id || '');
+  }, [effectiveAccountId, isEmail, accountSignatures.length]);
+
   const handleFiles = useCallback(async (files) => {
     for (const file of Array.from(files)) {
       try {
@@ -177,6 +203,9 @@ export default function ChatInput({
       emailAccountId: isEmail
         ? pinnedEmailAccountId || selectedAccountId || undefined
         : undefined,
+      // Which of the account's saved signatures to append. Backend falls
+      // back to the account's default signature when this is absent.
+      signatureId: isEmail && selectedSignatureId ? selectedSignatureId : undefined,
     };
 
     const ok = await onSend(plainText.trim(), payload);
@@ -382,6 +411,70 @@ export default function ChatInput({
         <input ref={fileRef} type="file" multiple className="hidden" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.zip" onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} />
         {isEmail && (
           <button type="button" onClick={() => setScheduleOpen(!scheduleOpen)} className="p-2 rounded-lg hover:bg-slate-100" title="Schedule send"><Clock className="w-4 h-4" /></button>
+        )}
+        {isEmail && accountSignatures.length > 0 && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setSignaturePickerOpen((v) => !v)}
+              className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                selectedSignatureId &&
+                !accountSignatures.find((s) => s.id === selectedSignatureId)?.isDefault
+                  ? 'text-indigo-600'
+                  : ''
+              }`}
+              title={`Signature: ${
+                accountSignatures.find((s) => s.id === selectedSignatureId)?.name || 'None'
+              }`}
+            >
+              <PenLine className="w-4 h-4" />
+            </button>
+            {signaturePickerOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setSignaturePickerOpen(false)} />
+                <div className="absolute bottom-full left-0 mb-1 z-20 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:bg-slate-900">
+                  <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Signature
+                  </p>
+                  {accountSignatures.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSignatureId(s.id);
+                        setSignaturePickerOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                        s.id === selectedSignatureId ? 'bg-slate-50 dark:bg-slate-800' : ''
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5 truncate">
+                        {s.id === selectedSignatureId && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                        )}
+                        <span className="truncate">{s.name}</span>
+                      </span>
+                      {s.isDefault && (
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">
+                          Default
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSignatureId('');
+                      setSignaturePickerOpen(false);
+                    }}
+                    className="mt-1 flex w-full items-center rounded-md border-t border-slate-100 px-3 py-2 text-left text-[11px] text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    No signature this email
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         )}
         {!isNote && templates.length > 0 && (
           <div className="relative ml-auto">
