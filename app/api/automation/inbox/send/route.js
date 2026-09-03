@@ -158,10 +158,30 @@ async function handler(req) {
       }
       externalMessageId = emailResult.messageId;
     } else if (activeChannel === 'instagram') {
-      const { sendInstagramMessage, sendInstagramMedia } = await import('@/lib/instagram/send');
-      const igResult = hasMedia
-        ? await sendInstagramMedia(business, conversation?.participantId, { mediaUrl, messageType: resolvedType })
-        : await sendInstagramMessage(business, conversation?.participantId, message.trim());
+      const { sendInstagramMessage, sendInstagramMedia, sendInstagramCommentReply } = await import('@/lib/instagram/send');
+      const { IG_COMMENT_PARTICIPANT_PREFIX } = await import('@/lib/instagram/handler');
+      const participantId = conversation?.participantId || '';
+      const isCommentThread = participantId.startsWith(IG_COMMENT_PARTICIPANT_PREFIX);
+
+      let igResult;
+      if (isCommentThread) {
+        // Reply to the most recent comment on this thread — stored on the
+        // conversation by the webhook handler so we don't have to walk Messages.
+        const targetCommentId = conversation?.metadata?.get?.('lastCommentId')
+          || conversation?.metadata?.lastCommentId;
+        if (!targetCommentId) {
+          return NextResponse.json({ success: false, error: 'No comment to reply to on this thread' }, { status: 400 });
+        }
+        if (hasMedia) {
+          return NextResponse.json({ success: false, error: 'Media replies to comments are not supported by Instagram' }, { status: 400 });
+        }
+        igResult = await sendInstagramCommentReply(business, targetCommentId, message.trim());
+      } else {
+        igResult = hasMedia
+          ? await sendInstagramMedia(business, participantId, { mediaUrl, messageType: resolvedType })
+          : await sendInstagramMessage(business, participantId, message.trim());
+      }
+
       if (!igResult.success) {
         return NextResponse.json({ success: false, error: igResult.error }, { status: 500 });
       }

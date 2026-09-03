@@ -13,6 +13,25 @@ Related decisions: <link to DECISIONS.md entry, if any>
 
 ---
 
+## 2026-09-03 — Instagram comments: webhook ingestion + reply-from-inbox (Phase 1)
+Branch: feature/whatsapp-templates-and-broadcasts
+Files:
+- `lib/instagram/handler.js` (added `parseInstagramChanges` + `processInstagramCommentEvent`; exported `IG_COMMENT_PARTICIPANT_PREFIX = 'ig_comment:'`; stores `metadata.lastCommentId` on Conversation for reply targeting)
+- `lib/instagram/send.js` (added `sendInstagramCommentReply(business, commentId, text)` — POST to Graph API `/{comment_id}/replies`)
+- `app/api/webhooks/meta/route.js` (extended the `payload.object === 'instagram'` branch to iterate `payload.entry[]`, process both `entry.messaging[]` for DMs and `entry.changes[]` for comments; returns processed count)
+- `app/api/automation/inbox/send/route.js` (Instagram branch now detects `participantId.startsWith('ig_comment:')` and routes to `sendInstagramCommentReply` using `conversation.metadata.lastCommentId`; refuses media replies since Meta doesn't support them on comments)
+- `lib/automation/triggerHub.js` (registered `instagram_comment` in `EVENT_TO_ENGINE_TRIGGER` and `EVENT_TO_SEQUENCE_TRIGGER`)
+- `models/automation/AutomationSequence.js` (added `instagram_comment` to `triggerType` enum)
+- `lib/sequences/constants.js` (added `trigger_instagram_comment` node + mapping in `TRIGGER_ENGINE_MAP`)
+
+What changed: Instagram DMs were already ingested end-to-end. This session adds the comments half — public comments on IG posts now land in the Unified Inbox as their own conversations (one per commenter, keyed by `ig_comment:<commenterId>` so they never merge with the same person's DM thread), can be replied to from the composer (posts a nested reply via Meta's Graph API), and fire the `instagram_comment` automation trigger so sequences can react.
+
+Scope deliberately excluded from Phase 1: an automated `send_instagram_comment_reply` sequence action (added to constants briefly then removed — no executor case yet); a comment→DM auto-response rule builder (Phase 2); an SLA safety-net auto-reply for DMs (Phase 3, will reuse the email pattern); a settings UI to onboard IG credentials (Pistons Garage's creds already live on `business.integrationCredentials.instagram`, so Phase 1 is unblocked without one).
+
+Meta app config the tenant still needs (one-time, done on their side): add Instagram product to the shared app, connect a Business/Creator IG account linked to a Facebook Page, generate a Page Access Token with scopes `instagram_basic + instagram_manage_messages + instagram_manage_comments + pages_manage_metadata + pages_show_list`, and subscribe webhook fields `messages`, `comments`, `messaging_postbacks`, `mentions`. Webhook URL is the existing `/api/webhooks/meta` — Meta multiplexes WhatsApp + Instagram over the one endpoint.
+
+Related decisions: see DECISIONS.md 2026-09-03 IG comment participant keying entry.
+
 ## 2026-09-03 — Prod fixes: cookie banner persistence + register rate limit
 Branch: master
 Files:

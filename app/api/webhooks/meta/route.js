@@ -150,27 +150,56 @@ export async function POST(req) {
       }
     }
 
-    // Instagram messaging
+    // Instagram — DMs (entry.messaging[]) and comments (entry.changes[] where field==='comments').
+    // Meta bundles both under object==='instagram' and can send several entries in one POST.
     if (payload.object === 'instagram') {
-      const { parseInstagramMessaging, processInstagramEvent } = await import('@/lib/instagram/handler');
-      const entry = payload.entry?.[0];
-      const pageId = entry?.id;
-      const business = await Business.findOne({
-        $or: [
-          { 'integrationCredentials.instagram.pageId': pageId },
-          { 'integrationCredentials.facebookAds.pageId': pageId },
-        ],
-      });
-      if (!business) {
-        await finalizeMetaWebhookIngress(ingressId, { outcome: 'failed', processing: { step: 'instagram_business_not_found' } });
+      const {
+        parseInstagramMessaging,
+        processInstagramEvent,
+        parseInstagramChanges,
+        processInstagramCommentEvent,
+      } = await import('@/lib/instagram/handler');
+
+      let totalProcessed = 0;
+      let businessesTouched = 0;
+
+      for (const entry of payload.entry || []) {
+        const pageId = entry?.id;
+        const business = await Business.findOne({
+          $or: [
+            { 'integrationCredentials.instagram.pageId': pageId },
+            { 'integrationCredentials.facebookAds.pageId': pageId },
+          ],
+        });
+        if (!business) continue;
+        businessesTouched += 1;
+
+        const dmEvents = parseInstagramMessaging(entry);
+        for (const event of dmEvents) {
+          await processInstagramEvent(business._id, event);
+          totalProcessed += 1;
+        }
+
+        const commentEvents = parseInstagramChanges(entry);
+        for (const event of commentEvents) {
+          await processInstagramCommentEvent(business._id, event);
+          totalProcessed += 1;
+        }
+      }
+
+      if (!businessesTouched) {
+        await finalizeMetaWebhookIngress(ingressId, {
+          outcome: 'failed',
+          processing: { step: 'instagram_business_not_found' },
+        });
         return NextResponse.json({ status: 'business_not_found' }, { status: 200 });
       }
-      const events = parseInstagramMessaging(entry);
-      for (const event of events) {
-        await processInstagramEvent(business._id, event);
-      }
-      await finalizeMetaWebhookIngress(ingressId, { outcome: 'success', processing: { step: 'instagram_processed', count: events.length } });
-      return NextResponse.json({ status: 'success' }, { status: 200 });
+
+      await finalizeMetaWebhookIngress(ingressId, {
+        outcome: 'success',
+        processing: { step: 'instagram_processed', count: totalProcessed },
+      });
+      return NextResponse.json({ status: 'success', processed: totalProcessed }, { status: 200 });
     }
 
     // WhatsApp template status updates (auto-sync APPROVED/REJECTED/etc.)
