@@ -42,6 +42,10 @@ async function handler(req) {
       // Multi-user email: composer's From-picker sends this so the sender
       // resolver in sendChannelEmail can pick the right mailbox.
       emailAccountId,
+      // Multi-signature: composer's signature-picker sends this so the
+      // sender appends the specific signature the user chose. When absent,
+      // sendChannelEmail falls back to the mailbox's default signature.
+      signatureId,
     } = body;
 
     const hasMedia = !!mediaUrl;
@@ -152,6 +156,7 @@ async function handler(req) {
         isHtml: !!bodyHtml,
         emailAccountId,      // explicit picker choice, if any
         userId: user.userId, // enables the "user's default" fallback
+        signatureId,         // explicit signature choice, if any
       });
       if (!emailResult.success) {
         return NextResponse.json({ success: false, error: emailResult.error }, { status: 500 });

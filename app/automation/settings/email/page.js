@@ -9,6 +9,7 @@ import {
   Mail,
   Trash2,
   Zap,
+  Sparkles,
   CheckCircle2,
   AlertCircle,
   Clock,
@@ -18,6 +19,9 @@ import {
 import { authFetch } from '@/lib/apiClient';
 import { toast } from 'react-hot-toast';
 import PageLoader from '../../components/PageLoader';
+import RichSignatureEditor from '../../components/settings/RichSignatureEditor';
+import MultiSignatureEditor from '../../components/settings/MultiSignatureEditor';
+import AiBadgeIcon from '@/app/components/icons/AiBadgeIcon';
 
 // Gmail-specific defaults. Users don't need to know these — the wizard fills
 // them in from the "Connect Gmail" flow. If Google ever changes them (they
@@ -67,7 +71,9 @@ function GmailConnectModal({ open, onClose, onConnected }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [signature, setSignature] = useState('');
+  // Signatures array — populated live by the embedded MultiSignatureEditor.
+  // Users can create multiple signatures during setup; one is marked default.
+  const [signatures, setSignatures] = useState([]);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -76,7 +82,7 @@ function GmailConnectModal({ open, onClose, onConnected }) {
     setEmail('');
     setPassword('');
     setDisplayName('');
-    setSignature('');
+    setSignatures([]);
     setTestResult(null);
     setSaving(false);
     setTesting(false);
@@ -104,7 +110,7 @@ function GmailConnectModal({ open, onClose, onConnected }) {
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           displayName: displayName.trim() || email.trim(),
-          signature: signature.trim() || undefined,
+          signatures: signatures.length ? signatures : undefined,
           provider: GMAIL_DEFAULTS.provider,
           type: 'personal',
           imap: {
@@ -248,19 +254,17 @@ function GmailConnectModal({ open, onClose, onConnected }) {
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-slate-700">
-              Signature{' '}
+              Signatures{' '}
               <span className="font-normal text-slate-400">(optional)</span>
             </label>
-            <textarea
-              value={signature}
-              onChange={(e) => setSignature(e.target.value)}
-              placeholder={`Best regards,\nAlice\nSales Manager · Acme Inc.`}
-              rows={3}
-              disabled={saving || testing}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-50 resize-none"
+            <MultiSignatureEditor
+              embedded
+              account={{ email, displayName, signatures }}
+              busy={saving || testing}
+              onChange={setSignatures}
             />
             <p className="mt-1 text-[10px] text-slate-500">
-              Automatically appended to every outbound email from this mailbox. Plain text or basic HTML.
+              Create as many as you need (Sales, HR, Personal…). The one marked Default is used unless you pick another at compose time.
             </p>
           </div>
 
@@ -478,31 +482,15 @@ function SignatureEditor({ account, busy, onSave, onSavePatch }) {
           </div>
         </div>
 
-        {/* Text signature */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
-            Signature text
-          </p>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={3}
-            placeholder={`Best regards,\nYour name\nTitle · Company`}
-            disabled={busy}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none font-mono"
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => onSave(account._id, draft)}
-            disabled={!dirty || busy}
-            className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-black disabled:opacity-40"
-          >
-            {busy ? 'Saving…' : 'Save signature'}
-          </button>
-        </div>
+        {/* Multi-signature editor — Hostinger-style. Lets the user save
+            several named signatures per mailbox (Sales / HR / Personal)
+            and mark one as default. Legacy single-signature accounts are
+            migrated automatically on first open. */}
+        <MultiSignatureEditor
+          account={account}
+          busy={busy}
+          onSave={(signatures) => onSavePatch(account._id, { signatures }, 'Signatures saved')}
+        />
       </div>
     </details>
   );
@@ -573,9 +561,9 @@ function AutoReplyCard() {
   return (
     <div className={`rounded-xl border p-4 ${cfg.enabled ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200 bg-white'}`}>
       <div className="flex items-start gap-3">
-        <div className={`shrink-0 rounded-lg p-2 ${cfg.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-          <Zap className="h-4 w-4" />
-        </div>
+        {/* Bare icon — no container. Opacity dims it in the OFF state so
+            the disabled look still reads at a glance. */}
+        <AiBadgeIcon className={`h-9 w-9 shrink-0 ${cfg.enabled ? '' : 'opacity-60'}`} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-slate-900">SLA safety net — auto-reply</p>
@@ -733,7 +721,9 @@ export default function EmailSettingsPage() {
   const [form, setForm] = useState({
     email: '',
     displayName: '',
-    signature: '',
+    // Multi-signature array — MultiSignatureEditor in embedded mode
+    // populates this via its onChange callback.
+    signatures: [],
     imapHost: '',
     smtpHost: '',
     imapUser: '',
@@ -762,7 +752,7 @@ export default function EmailSettingsPage() {
       body: JSON.stringify({
         email: form.email,
         displayName: form.displayName,
-        signature: form.signature || undefined,
+        signatures: form.signatures?.length ? form.signatures : undefined,
         provider: 'smtp',
         imap: {
           host: form.imapHost,
@@ -926,13 +916,23 @@ export default function EmailSettingsPage() {
             onChange={(e) => setForm({ ...form, displayName: e.target.value })}
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
-          <textarea
-            placeholder="Signature (optional) — appended to every outbound email"
-            value={form.signature}
-            onChange={(e) => setForm({ ...form, signature: e.target.value })}
-            rows={2}
-            className="w-full rounded-lg border px-3 py-2 text-sm resize-none"
-          />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-700">
+              Signatures <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <MultiSignatureEditor
+              embedded
+              account={{
+                email: form.email,
+                displayName: form.displayName,
+                signatures: form.signatures || [],
+              }}
+              onChange={(signatures) => setForm({ ...form, signatures })}
+            />
+            <p className="mt-1 text-[10px] text-slate-500">
+              Create as many as you need (Sales, HR, Personal…). The one marked Default is used unless you pick another at compose time.
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <input
               required

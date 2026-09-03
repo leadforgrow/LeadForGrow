@@ -13,6 +13,33 @@ Related decisions: <link to DECISIONS.md entry, if any>
 
 ---
 
+## 2026-09-04 — Rich WYSIWYG signature editor + multi-signature per mailbox
+Branch: feature/rich-signature-editor
+Files:
+- `app/automation/components/settings/RichSignatureEditor.jsx` (new — TipTap-based WYSIWYG editor with toolbar: bold/italic/underline/strike, text color picker, alignment, bullet & numbered lists, insert link, insert image via Cloudinary, S/M/L logo resize, clear formatting, live preview toggle)
+- `app/automation/components/settings/signatureTemplates.js` (new — 4 email-safe table-based HTML templates: two-column with divider, logo on top, corporate, minimal text-only)
+- `app/automation/components/settings/MultiSignatureEditor.jsx` (new — Hostinger-style manager: dropdown of saved signatures + Create new + rename + Delete + Make default + Save; embedded mode fires onChange live for use inside larger forms)
+- `app/components/icons/AiBadgeIcon.jsx` (new — shared inline-SVG "AI" badge icon; black rounded box + white centered "AI" text + two gold sparkles)
+- `models/omnichannel/EmailAccount.js` (added `signatures[]` sub-schema {id,name,html,isDefault,createdAt}; legacy `signature` string kept as fallback; new `resolveSignatureHtml(signatureId?)` instance method with priority order: signatureId → default → legacy → '')
+- `app/api/automation/inbox/email-accounts/route.js` (POST accepts `signatures[]` on create; normalizes: exactly-one-default enforced, cap at 20, ids auto-generated)
+- `app/api/automation/inbox/email-accounts/[id]/route.js` (PATCH whitelists `signatures[]` with same normalizer)
+- `app/api/automation/inbox/send/route.js` (accepts `signatureId` from composer, forwards to sendChannelEmail)
+- `lib/omnichannel/emailService.js` (uses `resolveSignatureHtml(signatureId)` for outbound signature; legacy signatureLogoUrl only prepended for plain-text legacy signatures)
+- `app/automation/settings/email/page.js` (both Add flows — Gmail wizard + Custom IMAP/SMTP — use `<MultiSignatureEditor embedded>` for consistency; connected-account accordion uses standalone MultiSignatureEditor; SLA card badge redesigned with the new shared AiBadgeIcon)
+- `app/automation/components/chat/ChatInput.jsx` (new signature-picker icon in composer toolbar for email channel; popover with radio list of signatures scoped to the current From mailbox; auto-picks the mailbox's default; passes signatureId through to send payload)
+- `package.json` + `package-lock.json` (added TipTap v3.31.2: @tiptap/react, @tiptap/starter-kit, @tiptap/extension-color, @tiptap/extension-text-style, @tiptap/extension-link, @tiptap/extension-image, @tiptap/extension-text-align, @tiptap/extension-placeholder, @tiptap/extension-table, @tiptap/extension-table-row, @tiptap/extension-table-cell, @tiptap/extension-table-header — all MIT-licensed)
+
+What changed: replaced the plain textarea signature field with a WYSIWYG editor at Hostinger polish level. Users can now save multiple named signatures per mailbox ("Sales", "HR", "Personal") and pick which one to attach at compose time via a small pen-icon dropdown in the composer toolbar. Templates provide one-click professional signatures; the placeholder LOGO auto-swaps for the user's uploaded image via Cloudinary. Fully unified UX — the same MultiSignatureEditor UI appears in the Add SMTP/IMAP form, Gmail Connect wizard, and connected-account accordion, so there's no "wait, this looks different from before" moment after saving.
+
+Design intent details:
+- Custom Table/TableRow/TableCell TipTap extensions preserve `style`, `align`, `valign`, `width`, `bgcolor` attributes on parse+render (default TipTap only kept colspan/rowspan/colwidth) — needed so email-safe inline styles like `border-right: 2px solid ...` survive the round-trip through the editor.
+- Image extension configured with `inline: true` + custom `width`/`height`/`style` attribute preservers so the S/M/L resize buttons + logo placement inside table cells work correctly.
+- Signature templates use table-based HTML (not flex/grid) for cross-client rendering in Gmail/Outlook/Apple Mail.
+- MultiSignatureEditor accepts a ref-stashed onChange in embedded mode to avoid infinite render loops from parent inline arrow callbacks.
+- Signature preview panel matches how the signature actually renders in a real inbox: left-aligned at the bottom of the mock email body (not centered — that would mislead users about how recipients see it).
+
+Related decisions: see DECISIONS.md 2026-09-04 signature editor entries.
+
 ## 2026-09-03 — Instagram comments: webhook ingestion + reply-from-inbox (Phase 1)
 Branch: feature/whatsapp-templates-and-broadcasts
 Files:

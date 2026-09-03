@@ -13,6 +13,31 @@ Consequences: <what this commits future work to, if anything>
 
 ---
 
+## 2026-09-04 — Signature editor: TipTap over contenteditable / textarea
+Context: The signature field was a plain `<textarea>` and users wanted a Hostinger-polish WYSIWYG (toolbar, live preview, embedded logo, template picker). Three build paths were on the table.
+Decision: TipTap v3.x with a small suite of MIT-licensed extensions (StarterKit, Color, TextStyle, Link, Image, TextAlign, Placeholder, Table + TableRow/Cell/Header). ~50KB gzipped. Same editor Notion / Linear / Cal.com / Vercel dashboard use.
+Alternatives considered:
+  (a) `contenteditable` + `document.execCommand` — same amount of code, but built on an API browsers are actively deprecating; no future upgrade path.
+  (b) A commercial WYSIWYG SDK (TinyMCE, CKEditor) — feature-rich but paid/attribution-required for commercial use, adds ~200KB+, brand marks on the editor.
+  (c) Stay on textarea — misses the "Hostinger-quality" ask entirely.
+Consequences: TipTap's default schemas are minimal — the table extensions only preserve colspan/rowspan/colwidth attributes, dropping style/align/valign/width/bgcolor silently. We had to author custom Table/TableRow/TableCell extensions that whitelist the extra HTML attrs so inline-styled email-safe templates survive parse+render. Any future template that adds new HTML attrs needs to extend this whitelist. This is documented at the top of RichSignatureEditor.jsx.
+
+## 2026-09-04 — Multi-signature: array on EmailAccount + composer picker, not separate collection
+Context: Users wanted Hostinger-style multi-signatures per mailbox: create "Sales", "HR", "Personal", pick one as default, override at compose time.
+Decision: Extended `EmailAccount` with a `signatures[]` sub-schema `{id, name, html, isDefault, createdAt}` — kept the legacy `signature` string field as a fallback for old rows. Added a `resolveSignatureHtml(signatureId?)` instance method that encapsulates the priority order (explicit id → default → legacy → '') so callers don't duplicate the resolution logic. Composer picker sends `signatureId` on send; server resolves via that method.
+Alternatives considered:
+  (a) New Mongo collection `EmailSignature` with `emailAccountId` FK — cleaner normalization but adds a join on every outbound send. Not worth it for typically 1-5 signatures per mailbox.
+  (b) Just add `additionalSignatures[]` alongside the legacy `signature` field — leaves two sources of truth for "what's the default", constantly confusing.
+Consequences: Migration is transparent — a `MultiSignatureEditor` mount on a mailbox with `signatures: []` but a legacy `signature` string synthesizes one entry named "Default" so users never lose existing content. Backend PATCH/POST endpoints enforce invariants server-side (exactly-one-default, max 20 entries, ids auto-generated) since the client is untrusted. The `signatures[]` schema is deliberately lightweight — no versioning, no ACL, no template-vs-instance distinction. If those needs materialize, they layer on additively.
+
+## 2026-09-04 — Unified MultiSignatureEditor UI in Add flow AND connected accordion
+Context: The Add SMTP/IMAP form originally used the single RichSignatureEditor while the connected-account accordion used the full MultiSignatureEditor. That created two different UIs for the same conceptual task.
+Decision: MultiSignatureEditor grew an `embedded` prop. Standalone mode (default) keeps its own draft state + Save button. Embedded mode hides Save and fires `onChange(signatures)` on every mutation so the parent form (Gmail wizard / Custom IMAP add form) owns the signatures state and includes them in its own submit payload. Same UI everywhere.
+Alternatives considered:
+  (a) Keep the split (simpler add form, richer connected accordion) — rejected: inconsistency is a real UX cost per Nielsen heuristic #4, and users who wanted 2 signatures on day 1 had to save-then-come-back.
+  (b) Remove signature from add form entirely (Gmail/Outlook pattern) — rejected: extra clicks to finish setup, and new mailboxes would send with no signature until user hunted for the settings.
+Consequences: The `onChange` prop in embedded mode is called with the full signatures array on every state change. To avoid infinite render loops from parents passing inline arrow callbacks (`onChange={(s) => setForm({...form, signatures: s})}` — new function every render), MultiSignatureEditor stashes `onChange` in a `useRef` and only depends on `signatures` in the useEffect. Any future component using this callback-fires-on-state pattern should copy the ref approach.
+
 ## 2026-09-03 — IG comments: separate Conversations from DMs, keyed by prefix
 Context: Instagram sends DMs and public post comments to the same webhook. The Conversation model has a unique index on `(businessId, participantId, channel)`, so if we used the raw commenter IG user id as `participantId` for both DMs and comments, a person who both DM'd us and commented on a post would collapse into one Conversation. That's bad for two reasons: (1) reply endpoint differs — DMs go to `/{ig_user_id}/messages`, comments to `/{comment_id}/replies`; (2) the composer would have no way to tell them apart, so agents replying to a comment thread would accidentally send a DM instead.
 Decision: Comment conversations get a prefixed participantId: `ig_comment:<commenterId>`. DM conversations keep the raw `<igUserId>`. The two threads coexist for the same person. The send route detects the prefix and dispatches to the right Meta endpoint. The specific comment id to reply to is stored on `conversation.metadata.lastCommentId` by the webhook handler, so the send route doesn't need to walk Messages to find it.
