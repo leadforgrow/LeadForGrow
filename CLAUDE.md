@@ -13,6 +13,17 @@ Related decisions: <link to DECISIONS.md entry, if any>
 
 ---
 
+## 2026-09-03 — Prod fixes: cookie banner persistence + register rate limit
+Branch: master
+Files:
+- `app/components/consent/CookieConsentManager.jsx` (persist consent to localStorage BEFORE the server audit call so it survives slow/failed network; added dismiss X on banner that counts as decline)
+- `lib/rateLimit.js` (added `Retry-After` header + retry-window seconds in error body on 429)
+- `app/api/auth/register/route.js` (loosen limit from 5/min to 10/min per IP, matches login)
+
+What changed: two independent prod issues surfaced in Vercel logs. (1) The cookie consent banner reappeared on every visit because `saveConsentState` ran only after `await logConsentToServer()`; a slow or blocked audit call meant nothing was persisted. Made persistence optimistic — the choice is saved instantly on click and the audit log is best-effort in the background. (2) Register endpoint was returning 429 to a real user because the rate-limit was tighter than login's (5/min vs 10/min per IP) and a user retrying after a password-policy or "user already exists" 400 could exhaust the window. Bumped register to 10/min to match login and added a proper `Retry-After` header so the client can surface a specific wait time.
+
+Related decisions: see DECISIONS.md 2026-09-03 register-rate-limit and cookie-persist entries.
+
 ## 2026-09-03 — Email SLA safety-net auto-reply (Step 9)
 Branch: master
 Files:

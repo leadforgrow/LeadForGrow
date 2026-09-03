@@ -13,6 +13,18 @@ Consequences: <what this commits future work to, if anything>
 
 ---
 
+## 2026-09-03 — Cookie consent: persist locally BEFORE the server audit call
+Context: The cookie banner was reappearing on every page visit even after users clicked Allow/Decline. Root cause: `saveConsentState()` ran inside the `try` block **after** `await logConsentToServer()`. If the server call was slow, timed out silently, or the tab was closed mid-request, `localStorage` was never written and the banner returned on next load. The `catch` branch also saved, but only if the fetch actually rejected.
+Decision: Made persistence optimistic. `saveConsentState()` and all UI state updates happen synchronously the moment the user clicks. The server audit call is now fire-and-forget in the background — failures log to console but do not affect UX.
+Alternatives considered: (a) Keep the current order and just extend the fetch timeout — rejected because it doesn't fix tab-close-during-await. (b) Use `navigator.sendBeacon()` for the audit call so it survives page unload — cleaner but requires reworking the endpoint to accept beacon-encoded payloads. Deferred until we have a reason to touch the endpoint.
+Consequences: If the audit log ever falls out of sync with actual user choices (server missed some Allow/Decline events), the local state is still authoritative. Analytics/consent reports may under-count decisions but never over-count.
+
+## 2026-09-03 — Register rate limit: 10/min (was 5/min), matches login
+Context: Prod Vercel logs showed `POST /api/auth/register` returning 429 for a real user attempt. The register endpoint had `withRateLimit(5, 60)` — tighter than login's `withRateLimit(10, 60)`. A user retrying after password-policy 400s or "user already exists" 400s can exhaust 5 attempts in 60s easily.
+Decision: Bump register to `10/min` to match login. Also added `Retry-After` header and the retry window in the 429 body so the client can display "try again in ~60 seconds" instead of vague "later."
+Alternatives considered: (a) Keep 5/min but skip failed-validation attempts in the counter — safer against brute force but adds enumeration risk (attacker can probe for valid emails without incrementing). (b) Move to per-IP+UA composite key to reduce NAT collisions — deferred; the 10/min bump likely resolves it without needing a keying change. (c) Add a CAPTCHA on 3rd+ attempt — good long-term, deferred until we see repeat abuse patterns.
+Consequences: Signup endpoint is now 2× more permissive than before. If brute-force / signup-spam becomes a real problem, we escalate to a fingerprint-based key or add CAPTCHA. Login's limit remains 10/min for consistency; refresh is 20/min which is fine since refresh happens on real logged-in traffic only.
+
 ## 2026-09-03 — Email auto-reply v1 uses a template, not an AI call
 Context: User asked to build an "AI auto-reply after 5 minutes" for the SLA safety net. Two flavors were on the table — (A) a holding message that just acknowledges receipt and sets expectation, (B) a full AI-generated answer using the knowledge base.
 Decision: Shipped Flavor A with a mustache-style template + variable substitution. No AI provider call. Message goes out via the same `sendChannelEmail` pipeline as manual composer sends, tagged `origin='automation'` so it shows the "Auto" pill in the inbox.

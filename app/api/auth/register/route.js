@@ -147,4 +147,4 @@ async function registerHandler(req) {
   }
 }
 
-export const POST = withRateLimit(5, 60, registerHandler);
+export const POST = withRateLimit(10, 60, registerHandler);
