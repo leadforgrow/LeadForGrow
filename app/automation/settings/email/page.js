@@ -10,6 +10,7 @@ import {
   Trash2,
   Zap,
   Sparkles,
+  Plug,
   CheckCircle2,
   AlertCircle,
   Clock,
@@ -1041,7 +1042,7 @@ export default function EmailSettingsPage() {
                     title="Test connection"
                     className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                   >
-                    <Zap className="h-4 w-4" />
+                    <Plug className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
