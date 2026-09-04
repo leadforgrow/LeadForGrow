@@ -384,7 +384,12 @@ function SignatureEditor({ account, busy, onSave, onSavePatch }) {
         <span className="flex-1">
           Signature{' '}
           <span className="text-slate-400">
-            {account.signature || account.signatureLogoUrl ? '· set' : '· none — click to add'}
+            {(() => {
+              const count = Array.isArray(account.signatures) ? account.signatures.length : 0;
+              if (count > 0) return `· ${count} saved`;
+              if (account.signature || account.signatureLogoUrl) return '· set';
+              return '· none — click to add';
+            })()}
           </span>
         </span>
         <span className="text-slate-400 text-[10px] group-open:hidden">Show</span>
